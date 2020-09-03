@@ -259,7 +259,7 @@ waves = SxPW(....);
                        SxArray<SxArray<SxDiracMat<TPrecCoeffG> > > *uPtr=NULL);
 
       /** \brief Normalization procedures */
-      enum NormMethod { DONT_NORMALIZE, NORMALIZE, RENORMALIZE };
+      enum NormMethod { DONT_NORMALIZE, NORMALIZE };
 
       /** \brief Set a vector orthogonal to the first n states
 

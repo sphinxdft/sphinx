@@ -58,7 +58,7 @@ extern int SxDemo3Parser_debug;
 
 union YYSTYPE
 {
-#line 21 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/03_unicode/SxDemo3Parser.ypp" /* yacc.c:1909  */
+#line 21 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/03_unicode/SxDemo3Parser.ypp" /* yacc.c:1909  */
 
    ssize_t   nodeId;
    SxString *strPtr;

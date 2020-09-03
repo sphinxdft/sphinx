@@ -674,7 +674,7 @@ void SxLoopMPI::sum(T* in, T* out, ssize_t nElem)
    MPI_Datatype dt = getMpiDataType (in);
 
    // nElem must not exceed the value limit of int
-   SX_CHECK_VARS (nElem < (1<<30), nElem, (1<<30));
+   SX_CHECK (nElem < (1<<30), nElem, (1<<30));
    int N = int(nElem);
    void *inPtr = in;
 
@@ -746,7 +746,7 @@ void SxLoopMPI::sum(T* in, T* out, ssize_t nElem)
       {
          MPI_Comm comm;
          if (!source->hasChildren ())  {
-            SX_CHECK_VAR (source->getNsiblings () == 1, source->getNsiblings ());
+            SX_CHECK (source->getNsiblings () == 1, source->getNsiblings ());
             if (source->getNmembers () == 1) continue; // nothing to sum
             // bottom level => each rank would be a master
             comm = source->getIntraCommunicator ().comm;
@@ -793,7 +793,7 @@ void SxLoopMPI::bcast(T* inout, ssize_t nElem, int sourceId)
 
    MPI_Datatype dt = getMpiDataType (inout);
    // nElem must not exceed the value limit of int
-   SX_CHECK_VARS (nElem < (1<<30), nElem, (1<<30));
+   SX_CHECK (nElem < (1<<30), nElem, (1<<30));
    int N = int(nElem);
 
    if (MPItarget.levelType == TopLevel && MPIsource.levelType == TopLevel) {
@@ -846,7 +846,7 @@ void SxLoopMPI::bcast(T* inout, ssize_t nElem, int sourceId)
    } else {
       SX_CHECK (MPItarget.levelType == CurrentLevel);
       SX_CHECK (MPItarget.who == TaskGroupAll);
-      SX_CHECK_VAR (sourceId == 0, sourceId); // only master to others allowed
+      SX_CHECK (sourceId == 0, sourceId); // only master to others allowed
       if (source->getNmembers () == 1) return; // nothing to do
       comm = source->getIntraCommunicator ().comm;
    }

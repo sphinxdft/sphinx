@@ -68,10 +68,11 @@
 
 
 /* Copy the first part of user declarations.  */
-#line 9 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/06_schema/SxDemo6Parser.ypp" /* yacc.c:339  */
+#line 9 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/06_schema/SxDemo6Parser.ypp" /* yacc.c:339  */
 
 #  define YYDEBUG 1
 #  include <SxMacroLib.h>
+#  include <inttypes.h>
 #  include <SxString.h>
 class SxDemo6Parser;
 #  include <SxDemo6Parser.tab.hpp>
@@ -79,7 +80,7 @@ class SxDemo6Parser;
 #  include <SxDemo6Parser.h>
 #  define ast parserPtr
 
-#line 83 "SxDemo6Parser.tab.cpp" /* yacc.c:339  */
+#line 84 "SxDemo6Parser.tab.cpp" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -115,13 +116,13 @@ extern int SxDemo6Parser_debug;
   enum yytokentype
   {
     TK_INTEGER = 258,
-    TK_FLOAT = 259,
+    TK_REAL = 259,
     TK_STRING = 260
   };
 #endif
 /* Tokens.  */
 #define TK_INTEGER 258
-#define TK_FLOAT 259
+#define TK_REAL 259
 #define TK_STRING 260
 
 /* Value type.  */
@@ -129,14 +130,14 @@ extern int SxDemo6Parser_debug;
 
 union YYSTYPE
 {
-#line 21 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/06_schema/SxDemo6Parser.ypp" /* yacc.c:355  */
+#line 22 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/06_schema/SxDemo6Parser.ypp" /* yacc.c:355  */
 
    ssize_t   nodeId;
-   ssize_t   intVal;
-   double    floatVal;
+   int64_t   intVal;
+   double    realVal;
    SxString *strPtr;
 
-#line 140 "SxDemo6Parser.tab.cpp" /* yacc.c:355  */
+#line 141 "SxDemo6Parser.tab.cpp" /* yacc.c:355  */
 };
 
 typedef union YYSTYPE YYSTYPE;
@@ -166,7 +167,7 @@ int SxDemo6Parser_parse (SxDemo6Parser* parserPtr);
 
 /* Copy the second part of user declarations.  */
 
-#line 170 "SxDemo6Parser.tab.cpp" /* yacc.c:358  */
+#line 171 "SxDemo6Parser.tab.cpp" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -466,8 +467,8 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    53,    53,    62,    66,    73,    79,    87,    97,   103,
-     107,   112,   116,   122,   129
+       0,    54,    54,    63,    67,    74,    80,    88,    98,   104,
+     108,   113,   117,   123,   130
 };
 #endif
 
@@ -476,7 +477,7 @@ static const yytype_uint8 yyrline[] =
    First, the terminals, then, starting at YYNTOKENS, nonterminals.  */
 static const char *const yytname[] =
 {
-  "$end", "error", "$undefined", "TK_INTEGER", "TK_FLOAT", "TK_STRING",
+  "$end", "error", "$undefined", "TK_INTEGER", "TK_REAL", "TK_STRING",
   "'{'", "'}'", "','", "':'", "$accept", "main", "object", "members",
   "member", "element", "value", "push", "pop", YY_NULLPTR
 };
@@ -723,57 +724,57 @@ yy_symbol_value_print (FILE *yyoutput, int yytype, YYSTYPE const * const yyvalue
   switch (yytype)
     {
           case 3: /* TK_INTEGER  */
-#line 42 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/06_schema/SxDemo6Parser.ypp" /* yacc.c:684  */
-      { fprintf (yyoutput, "TK_INTEGER, val='%zd'", ((*yyvaluep).intVal)); }
-#line 729 "SxDemo6Parser.tab.cpp" /* yacc.c:684  */
+#line 43 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/06_schema/SxDemo6Parser.ypp" /* yacc.c:684  */
+      { fprintf (yyoutput, "TK_INTEGER, val=%" PRId64, ((*yyvaluep).intVal)); }
+#line 730 "SxDemo6Parser.tab.cpp" /* yacc.c:684  */
         break;
 
-    case 4: /* TK_FLOAT  */
-#line 43 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/06_schema/SxDemo6Parser.ypp" /* yacc.c:684  */
-      { fprintf (yyoutput, "TK_FLOAT, val='%f'", ((*yyvaluep).floatVal)); }
-#line 735 "SxDemo6Parser.tab.cpp" /* yacc.c:684  */
+    case 4: /* TK_REAL  */
+#line 44 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/06_schema/SxDemo6Parser.ypp" /* yacc.c:684  */
+      { fprintf (yyoutput, "TK_REAL, val='%f'", ((*yyvaluep).realVal)); }
+#line 736 "SxDemo6Parser.tab.cpp" /* yacc.c:684  */
         break;
 
     case 5: /* TK_STRING  */
-#line 41 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/06_schema/SxDemo6Parser.ypp" /* yacc.c:684  */
+#line 42 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/06_schema/SxDemo6Parser.ypp" /* yacc.c:684  */
       { fprintf (yyoutput, "TK_STRING, val='%s'", ((*yyvaluep).strPtr)->getElems ()); }
-#line 741 "SxDemo6Parser.tab.cpp" /* yacc.c:684  */
+#line 742 "SxDemo6Parser.tab.cpp" /* yacc.c:684  */
         break;
 
     case 11: /* main  */
-#line 45 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/06_schema/SxDemo6Parser.ypp" /* yacc.c:684  */
+#line 46 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/06_schema/SxDemo6Parser.ypp" /* yacc.c:684  */
       { fprintf (yyoutput, "main"); }
-#line 747 "SxDemo6Parser.tab.cpp" /* yacc.c:684  */
+#line 748 "SxDemo6Parser.tab.cpp" /* yacc.c:684  */
         break;
 
     case 12: /* object  */
-#line 46 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/06_schema/SxDemo6Parser.ypp" /* yacc.c:684  */
+#line 47 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/06_schema/SxDemo6Parser.ypp" /* yacc.c:684  */
       { fprintf (yyoutput, "object"); }
-#line 753 "SxDemo6Parser.tab.cpp" /* yacc.c:684  */
+#line 754 "SxDemo6Parser.tab.cpp" /* yacc.c:684  */
         break;
 
     case 13: /* members  */
-#line 47 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/06_schema/SxDemo6Parser.ypp" /* yacc.c:684  */
+#line 48 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/06_schema/SxDemo6Parser.ypp" /* yacc.c:684  */
       { fprintf (yyoutput, "members"); }
-#line 759 "SxDemo6Parser.tab.cpp" /* yacc.c:684  */
+#line 760 "SxDemo6Parser.tab.cpp" /* yacc.c:684  */
         break;
 
     case 14: /* member  */
-#line 48 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/06_schema/SxDemo6Parser.ypp" /* yacc.c:684  */
+#line 49 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/06_schema/SxDemo6Parser.ypp" /* yacc.c:684  */
       { fprintf (yyoutput, "member"); }
-#line 765 "SxDemo6Parser.tab.cpp" /* yacc.c:684  */
+#line 766 "SxDemo6Parser.tab.cpp" /* yacc.c:684  */
         break;
 
     case 15: /* element  */
-#line 49 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/06_schema/SxDemo6Parser.ypp" /* yacc.c:684  */
+#line 50 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/06_schema/SxDemo6Parser.ypp" /* yacc.c:684  */
       { fprintf (yyoutput, "element"); }
-#line 771 "SxDemo6Parser.tab.cpp" /* yacc.c:684  */
+#line 772 "SxDemo6Parser.tab.cpp" /* yacc.c:684  */
         break;
 
     case 16: /* value  */
-#line 50 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/06_schema/SxDemo6Parser.ypp" /* yacc.c:684  */
+#line 51 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/06_schema/SxDemo6Parser.ypp" /* yacc.c:684  */
       { fprintf (yyoutput, "value"); }
-#line 777 "SxDemo6Parser.tab.cpp" /* yacc.c:684  */
+#line 778 "SxDemo6Parser.tab.cpp" /* yacc.c:684  */
         break;
 
 
@@ -1121,9 +1122,9 @@ yydestruct (const char *yymsg, int yytype, YYSTYPE *yyvaluep, YYLTYPE *yylocatio
   switch (yytype)
     {
           case 5: /* TK_STRING  */
-#line 33 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/06_schema/SxDemo6Parser.ypp" /* yacc.c:1257  */
+#line 34 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/06_schema/SxDemo6Parser.ypp" /* yacc.c:1257  */
       { delete ((*yyvaluep).strPtr); }
-#line 1127 "SxDemo6Parser.tab.cpp" /* yacc.c:1257  */
+#line 1128 "SxDemo6Parser.tab.cpp" /* yacc.c:1257  */
         break;
 
 
@@ -1415,7 +1416,7 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 53 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/06_schema/SxDemo6Parser.ypp" /* yacc.c:1646  */
+#line 54 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/06_schema/SxDemo6Parser.ypp" /* yacc.c:1646  */
     {
                   SX_DBG_YACC ("main#1");
                   SxDemo6AstNode &node = ast->getNode ((yyval.nodeId));
@@ -1423,131 +1424,131 @@ yyreduce:
                   root.data.setTag (parserPtr->getInFile ());
                   ast->addEdge (root.id, node.id);
                }
-#line 1427 "SxDemo6Parser.tab.cpp" /* yacc.c:1646  */
+#line 1428 "SxDemo6Parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 3:
-#line 62 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/06_schema/SxDemo6Parser.ypp" /* yacc.c:1646  */
+#line 63 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/06_schema/SxDemo6Parser.ypp" /* yacc.c:1646  */
     {
                   SX_DBG_YACC ("object#1");
                   (yyval.nodeId) = (yyvsp[-3].nodeId);
                }
-#line 1436 "SxDemo6Parser.tab.cpp" /* yacc.c:1646  */
+#line 1437 "SxDemo6Parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 4:
-#line 66 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/06_schema/SxDemo6Parser.ypp" /* yacc.c:1646  */
+#line 67 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/06_schema/SxDemo6Parser.ypp" /* yacc.c:1646  */
     {
                   SX_DBG_YACC ("object#2");
                   (yyval.nodeId) = ast->addNode (SxDemo6AstNode::Group, "JsonObject");
                   ast->addEdge ((yyval.nodeId), (yyvsp[-2].nodeId));
                }
-#line 1446 "SxDemo6Parser.tab.cpp" /* yacc.c:1646  */
+#line 1447 "SxDemo6Parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 5:
-#line 73 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/06_schema/SxDemo6Parser.ypp" /* yacc.c:1646  */
+#line 74 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/06_schema/SxDemo6Parser.ypp" /* yacc.c:1646  */
     {
                   SX_DBG_YACC ("members#1: " << (yyvsp[0].nodeId));
                   SxDemo6AstNode parent = parserPtr->getCurrent ();
                   ast->addEdge (parent.id, (yyvsp[0].nodeId));
                   (yyval.nodeId) = parent.id;
                }
-#line 1457 "SxDemo6Parser.tab.cpp" /* yacc.c:1646  */
+#line 1458 "SxDemo6Parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 6:
-#line 79 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/06_schema/SxDemo6Parser.ypp" /* yacc.c:1646  */
+#line 80 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/06_schema/SxDemo6Parser.ypp" /* yacc.c:1646  */
     {
                   SX_DBG_YACC ("members#2: " << (yyvsp[-2].nodeId) << "-" << (yyvsp[0].nodeId));
                   SxDemo6AstNode parent = parserPtr->getCurrent ();
                   ast->addEdge (parent.id, (yyvsp[0].nodeId));
                   (yyval.nodeId) = parent.id;
                }
-#line 1468 "SxDemo6Parser.tab.cpp" /* yacc.c:1646  */
+#line 1469 "SxDemo6Parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 7:
-#line 87 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/06_schema/SxDemo6Parser.ypp" /* yacc.c:1646  */
+#line 88 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/06_schema/SxDemo6Parser.ypp" /* yacc.c:1646  */
     {
                   SX_DBG_YACC ("member#1");
-                  ssize_t keyId = ast->addNode (SxDemo6AstNode::StringVal,*(yyvsp[-2].strPtr));
+                  ssize_t keyId = ast->addNode (SxDemo6AstNode::StringVal, *(yyvsp[-2].strPtr));
                   (yyval.nodeId) = ast->addNode (SxDemo6AstNode::KeyVal, ("K:"+ *(yyvsp[-2].strPtr)));
                   ast->addEdge ((yyval.nodeId), keyId);
                   ast->addEdge ((yyval.nodeId), (yyvsp[0].nodeId));
                   delete (yyvsp[-2].strPtr);
                }
-#line 1481 "SxDemo6Parser.tab.cpp" /* yacc.c:1646  */
+#line 1482 "SxDemo6Parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 8:
-#line 97 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/06_schema/SxDemo6Parser.ypp" /* yacc.c:1646  */
+#line 98 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/06_schema/SxDemo6Parser.ypp" /* yacc.c:1646  */
     {
                     SX_DBG_YACC ("element#1");
                     (yyval.nodeId) = (yyvsp[0].nodeId);
                  }
-#line 1490 "SxDemo6Parser.tab.cpp" /* yacc.c:1646  */
+#line 1491 "SxDemo6Parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 9:
-#line 103 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/06_schema/SxDemo6Parser.ypp" /* yacc.c:1646  */
+#line 104 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/06_schema/SxDemo6Parser.ypp" /* yacc.c:1646  */
     {
                     SX_DBG_YACC ("value#1");
                     (yyval.nodeId) = (yyvsp[0].nodeId);
                  }
-#line 1499 "SxDemo6Parser.tab.cpp" /* yacc.c:1646  */
+#line 1500 "SxDemo6Parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 10:
-#line 107 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/06_schema/SxDemo6Parser.ypp" /* yacc.c:1646  */
+#line 108 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/06_schema/SxDemo6Parser.ypp" /* yacc.c:1646  */
     {
                     SX_DBG_YACC ("value#2");
                     (yyval.nodeId) = ast->addNode (SxDemo6AstNode::StringVal, *(yyvsp[0].strPtr));
                     delete (yyvsp[0].strPtr);
                  }
-#line 1509 "SxDemo6Parser.tab.cpp" /* yacc.c:1646  */
+#line 1510 "SxDemo6Parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 11:
-#line 112 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/06_schema/SxDemo6Parser.ypp" /* yacc.c:1646  */
+#line 113 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/06_schema/SxDemo6Parser.ypp" /* yacc.c:1646  */
     {
                     SX_DBG_YACC ("value#3");
                     (yyval.nodeId) = ast->addNode (SxDemo6AstNode::NumberVal, (yyvsp[0].intVal));
                  }
-#line 1518 "SxDemo6Parser.tab.cpp" /* yacc.c:1646  */
+#line 1519 "SxDemo6Parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 12:
-#line 116 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/06_schema/SxDemo6Parser.ypp" /* yacc.c:1646  */
+#line 117 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/06_schema/SxDemo6Parser.ypp" /* yacc.c:1646  */
     {
                     SX_DBG_YACC ("value#4");
-                    (yyval.nodeId) = ast->addNode (SxDemo6AstNode::NumberVal, (yyvsp[0].floatVal));
+                    (yyval.nodeId) = ast->addNode (SxDemo6AstNode::NumberVal, (yyvsp[0].realVal));
                  }
-#line 1527 "SxDemo6Parser.tab.cpp" /* yacc.c:1646  */
+#line 1528 "SxDemo6Parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 13:
-#line 122 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/06_schema/SxDemo6Parser.ypp" /* yacc.c:1646  */
+#line 123 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/06_schema/SxDemo6Parser.ypp" /* yacc.c:1646  */
     {
                     (yyval.nodeId) = ast->addNode (SxDemo6AstNode::Group, "_tmpGroup");
                     SX_DBG_MSG ("push: " << (yyval.nodeId));
                     parserPtr->push ((yyval.nodeId));
                  }
-#line 1537 "SxDemo6Parser.tab.cpp" /* yacc.c:1646  */
+#line 1538 "SxDemo6Parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 14:
-#line 129 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/06_schema/SxDemo6Parser.ypp" /* yacc.c:1646  */
+#line 130 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/06_schema/SxDemo6Parser.ypp" /* yacc.c:1646  */
     {
                     SX_DBG_MSG ("pop");
                     SxDemo6AstNode &tmpGrp = parserPtr->pop ();
                     (yyval.nodeId) = tmpGrp.id;
                  }
-#line 1547 "SxDemo6Parser.tab.cpp" /* yacc.c:1646  */
+#line 1548 "SxDemo6Parser.tab.cpp" /* yacc.c:1646  */
     break;
 
 
-#line 1551 "SxDemo6Parser.tab.cpp" /* yacc.c:1646  */
+#line 1552 "SxDemo6Parser.tab.cpp" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires

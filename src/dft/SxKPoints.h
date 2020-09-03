@@ -73,6 +73,9 @@ class SX_EXPORT_DFT SxKPoints
       SxKPoints (const SxCell &cell,
                  const SxSymbolTable *,
                  bool useInvSymmetry_=true);
+
+      /// Assignment operator
+      SxKPoints& operator= (const SxKPoints &) = default;
     
       /** \brief Read from symbol table
           @param recCell reciprocal Cell

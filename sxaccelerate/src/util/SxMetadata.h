@@ -22,6 +22,7 @@
   */
 class SxMetaBase {
    public:
+      SxMetaBase() : typeId(NULL), typeSize(0) {/* empty */}
       /// Virtual destructor
       virtual ~SxMetaBase () {/* empty */}
       /// Explicit type cast operator (crashes if type does not match)
@@ -154,7 +155,7 @@ class SxMetaMap : public SxMetaBase
       {
          for (typename SxMap<Key, SxMetaBase*>::Iterator it = map.begin ();
               it != map.end ();
-              it++)
+              ++it)
          {
             delete it.getValue ();
          }
@@ -302,7 +303,7 @@ class SxMetaMap<void> : public SxMetaBase
       {
          for (SxMap<size_t, SxList<SxMetaBase*> >::Iterator listIt = map.begin ();
               listIt != map.end ();
-              listIt++)
+              ++listIt)
          {
             for (SxList<SxMetaBase*>::Iterator it = listIt.getValue ().begin ();
                  it != listIt.getValue ().end ();
@@ -331,7 +332,7 @@ class SxMetaMap<void> : public SxMetaBase
          SxMetaMap<void> *newMap = new SxMetaMap<void> ();
          for (SxMap<size_t, SxList<SxMetaBase*> >::ConstIterator listIt = map.begin ();
               listIt != map.end ();
-              listIt++)
+              ++listIt)
          {
             for (SxList<SxMetaBase*>::ConstIterator it = listIt.getValue ().begin ();
                  it != listIt.getValue ().end ();

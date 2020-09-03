@@ -131,7 +131,7 @@
          this->copy (in_);                                                   \
          return this->getIterator ();                                        \
       }                                                                      \
-      Iterator &operator= (Iterator &&in_) {                                 \
+      Iterator &operator= (Iterator &&in_) noexcept {                                 \
          if (this == &in_) return this->getIterator ();                      \
          this->move (std::move(in_));                                        \
          return this->getIterator ();                                        \
@@ -243,7 +243,7 @@
          this->copy (in_);                                                   \
          return this->getIterator ();                                        \
       }                                                                      \
-      ConstIterator &operator= (ConstIterator &&in_) {                       \
+      ConstIterator &operator= (ConstIterator &&in_) noexcept {              \
          if (this == &in_) return this->getIterator ();                      \
          this->move (std::move(in_));                                        \
          return this->getIterator ();                                        \

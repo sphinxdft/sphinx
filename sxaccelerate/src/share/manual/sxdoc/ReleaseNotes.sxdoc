@@ -1,5 +1,67 @@
 h1. Release Notes
 
+/* h2. Development
+
+p1. The current development branch contains the following upcoming features:*/
+
+h2. SxAccelerate 2.11
+
+p1. The 2.11 branch begins to support JSON beside SX as human readable
+    input file format.
+
+h3. SxAccelerate 2.11.8
+
+p1. This is a hotfix patch as @src/math/@ was not compiling.
+
+h3. SxAccelerate 2.11.7
+
+p1. The missing features of the JSON support roadmap have been implemented.
+    The schema validation is now nearly compatible with the SX definitions.
+    Graphs can also be written to JSON now which allows for reading, modifying,
+    and writing JSON files.
+
+p1. The static compilation now supports fully static builds including a static
+    libc.
+
+p1. Many compiler warnings have been removed.
+
+h3. SxAccelerate 2.11.6
+
+p1. This patch comes with minor fixes in the NAPI interface, e.g., boolean
+    are now a supported data type.
+
+h3. SxAccelerate 2.11.5
+
+p1. This minor patch adds runtime checks in @SxFSACTION@ simplifying debugging.
+
+h3. SxAccelerate 2.11.4
+
+p1. The 2.11.4 is a minor patch for Windows making @SxFSAction::ls@ case
+    insensitive.
+
+h3. SxAccelerate 2.11.3
+
+p1. The type validation of the JSON parser has been slightly improved by
+    providing regular expressions to string validation.
+
+h3. SxAccelerate 2.11.2
+
+p1. This patch improves runtime stability and error message quality of
+    the JSON parser and its underlying @SxParserKit@. This manual has been
+    extended with a chapter about the JSON parser usage.
+
+h3. SxAccelerate 2.11.1
+
+    * Fixed compiler bugs on Windows
+
+h3. SxAccelerate 2.11.0
+
+    * added command line tool @sx2json@ to convert @.sx@ files to @.json@
+    * SxCLI provides the new built-in option @--threadcheck@ invoking
+      valgrind's helgrind module, if available.
+    * Exception handling with exception categories and tags.
+    * Fixed several static code analysis warnings.
+
 h2. SxAccelerate 2.10
 
 p1. With SxAccelerate 2.10 the new parser framework @SxParserKit@ is introduced
@@ -12,7 +74,13 @@ p1. As of 2.10 a new version workflow is being introduced to SxAccelerate.
     patches can change corresponding API function calls in order to decrease
     development cycles.
 
-h2. SxAccelerate 2.10.0
+h3. SxAccelerate 2.10.1
+
+p1. Minor modifications introduced in this patch level are:
+
+    * @SxArray@ uses @memcpy@ instead of element-wise copy if possible
+
+h3. SxAccelerate 2.10.0
 
 p1. The following modifications are shipped with 2.10.0:
 

@@ -199,7 +199,6 @@ psiAO = (ao | psi);
             int n, l, m;
             AoIndex () : n(-1), l(-1), m(-1) {}
             AoIndex (int n_, int l_, int m_) : n(n_), l(l_), m(m_) {}
-            ~AoIndex () { /* empty */ }
             // The standard copy and assignment operators work fine
             // because there's no memory management here.
             // i.e. these two are automatically defined:
@@ -264,7 +263,6 @@ int m = nlm.m;
             OrbitalIndex () : is(-1), ia(-1), io(-1) {} 
             OrbitalIndex (int is_, int ia_, int io_) 
               : is(is_), ia(ia_), io(io_) {}
-            ~OrbitalIndex () {/* empty */}
             // The standard copy and assignment operators work fine
             // because there's no memory management here.
             // i.e. these two are automatically defined:

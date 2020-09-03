@@ -67,7 +67,7 @@ class SxSelection
       template<class> friend class SxArray;
       template<class, template<class,class,class> class> friend class SxList;
       template<class,class,class> friend class SxMap;
-      template<class,class,template<class> class,template<class> class,
+      template<class,class,template<class,bool> class,
                template<class,class,class> class> friend class SxGraph;
 
 

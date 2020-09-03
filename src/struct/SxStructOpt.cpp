@@ -260,6 +260,8 @@ SxStructOpt::getFilter (const SxSymbolTable *table)
 
    if (!stepMayDrift)
       stepF->F << SxDriftFilter ();
+   if (stepF->F.isEmpty ())
+      stepF->F = SxOperator<SxAtomicStructure>::Identity ();
    // set up the step filter
    stepFilter = stepF;
 
@@ -488,7 +490,7 @@ void SxStructOpt::extControl (const SxSymbolTable *cmd, bool calc)
       }
       // --- total energy
       else if (cmdMatch(extCmd, "get energy"))  {
-         double E = potentialPtr->getPotentialEnergy ();
+         double E = potentialPtr->getEnergy ();
          fprintf (extRes, "%.16f\n", E);
       }
       // --- atomic forces
@@ -1076,7 +1078,7 @@ void SxStructOpt::quasiNewton (const SxSymbolTable *cmd, bool calc)
    gAvg = sqrt(g2.sum () / (double)g2.getSize ());
 
 
-   E = potentialPtr->getPotentialEnergy ();
+   E = potentialPtr->getEnergy ();
 
    sxprintf ("QN[0]: max(|f|)=%12.8f, max(|dx|)=%12.8f, E=%12.8f H\n", 
                 gMax, 0., E);
@@ -1165,9 +1167,9 @@ void SxStructOpt::quasiNewton (const SxSymbolTable *cmd, bool calc)
          }
       }
 
-      deltaE = potentialPtr->getPotentialEnergy () - E;
+      deltaE = potentialPtr->getEnergy () - E;
 
-      E  = potentialPtr->getPotentialEnergy ();
+      E  = potentialPtr->getEnergy ();
 
 
       //--- Third Order Correction:
@@ -1206,9 +1208,9 @@ void SxStructOpt::quasiNewton (const SxSymbolTable *cmd, bool calc)
             //--- if the energy on the evaluated is lower then the energy from
             //    the harmonic guess, forces, structure and energy are updated
             //    accordingly
-            if (potentialPtr->getPotentialEnergy () < E) {
+            if (potentialPtr->getEnergy () < E) {
                g = trialG;
-               E = potentialPtr->getPotentialEnergy ();
+               E = potentialPtr->getEnergy ();
             } else {
                x <<= currentX;
 
@@ -1392,7 +1394,7 @@ void SxStructOpt::linearQuasiNewton (const SxSymbolTable *cmd, bool calc)
    gMax = sqrt(g2.maxval ());
    gAvg = sqrt(g2.sum () / (double)g2.getSize ());
 
-   E = potentialPtr->getPotentialEnergy ();
+   E = potentialPtr->getEnergy ();
    sxprintf ("linQN[0]: max(|f|)=%12.8f, max(|dx|)=%12.8f, E=%12.8f H\n",
            gMax, 0., E);
    sxprintf ("rms(f)=%12.8f, rms(dx)=%12.8f\n", gAvg, 0.);
@@ -1461,8 +1463,8 @@ void SxStructOpt::linearQuasiNewton (const SxSymbolTable *cmd, bool calc)
 
       y  = g.coordRef () - gOld.coordRef ();  // ref1 (31)
 
-      deltaE = potentialPtr->getPotentialEnergy () - E;
-      E  = potentialPtr->getPotentialEnergy ();
+      deltaE = potentialPtr->getEnergy () - E;
+      E  = potentialPtr->getEnergy ();
       {
          double dEEstimate = 0.5 * dot(s,gOld.coordRef ());
          double dEHarmonic = 0.5 * dot(s,(g + gOld).coordRef ());
@@ -1923,7 +1925,7 @@ void SxStructOpt::ricQuasiNewton (const SxSymbolTable *cmd, bool calc)
    gMax = sqrt(g2.maxval ());
    gAvg = sqrt(g2.sum () / (double)g2.getSize ());
 
-   E = potentialPtr->getPotentialEnergy ();
+   E = potentialPtr->getEnergy ();
    sxprintf ("ricQN[0]: max(|f|)=%12.8f, max(|dx|)=%12.8f, E=%12.8f H\n",
            gMax, 0., E);
    sxprintf ("rms(f)=%12.8f, rms(dx)=%12.8f\n", gAvg, 0.);
@@ -2040,8 +2042,8 @@ void SxStructOpt::ricQuasiNewton (const SxSymbolTable *cmd, bool calc)
 
       y  = g.coordRef () - gOld.coordRef ();  // ref1 (31)
 
-      deltaE = potentialPtr->getPotentialEnergy () - E;
-      E  = potentialPtr->getPotentialEnergy ();
+      deltaE = potentialPtr->getEnergy () - E;
+      E  = potentialPtr->getEnergy ();
       {
          double dEEstimate = 0.5 * dot(s,gOld.coordRef ());
          double dEHarmonic = 0.5 * dot(s,(g + gOld).coordRef ());

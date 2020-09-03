@@ -186,8 +186,8 @@ SxString SxCLI::CliArg::getArgument ()
       {
          SxString s = args_(0);
          args_.remove (0);
-         if (stickyOption && parent->iLoop + 1 < parent->arguments.getSize ())
-            parent->arguments(parent->iLoop + 1).append (s);
+         if (stickyOption && (ssize_t)parent->iLoop + 1 < parent->arguments.getSize ())
+            parent->arguments((ssize_t)parent->iLoop + 1).append (s);
          group->status = Required;
          return s;
       } else {
@@ -211,7 +211,7 @@ SxString SxCLI::CliArg::getArgument ()
       arg = args_(iArg);
       args_.remove(iArg);
       if (stickyOption && !exists(parent->iLoop+1))
-         parent->arguments(parent->iLoop + 1).append (arg);
+         parent->arguments((ssize_t)parent->iLoop + 1).append (arg);
       break;
    }
    if (arg == "")  {
@@ -270,7 +270,7 @@ SxString SxCLI::CliArg::getArgument ()
       } else { 
          // --- argument is attached to mark
          if (arg(length) == '=') // allow for --option=value style
-            arg = arg.subString (length + 1);
+            arg = arg.subString ((ssize_t)length + 1);
          else
             arg = arg.subString (length);
       }
@@ -469,52 +469,6 @@ int SxCLI::CliArg::toInt (Given<int> def, Given<int> min, Given<int> max)
          i = arg.toInt ();
       } catch (SxException e) {
          cout << "Can't convert '" << arg << "' to integer number.\n"; 
-         parent->setError ();
-         return i;
-      }
-      // --- check range
-      if (min.given && (min.value > i))
-         tooSmallError (SxString(i), SxString(min.value));
-      if (max.given && (max.value < i))
-         tooLargeError (SxString(i), SxString(max.value));
-   }
-   return i;
-}
-   
-long int SxCLI::CliArg::toLong (Given<long int> def,
-                                Given<long int> min,
-                                Given<long int> max)
-{
-   // --- check def, min and max are consistent
-   SX_CHECK (!(min.given && max.given && (min.value > max.value)),
-               min.value, max.value);
-   SX_CHECK (!(min.given && def.given && (min.value > def.value)),
-               min.value, def.value);
-   SX_CHECK (!(def.given && max.given && (def.value > max.value)),
-               def.value, max.value);
-
-   // --- set option behaviour
-   if (!hasValue ()) {
-      optional      = optional && def.given; // can't be optional without default
-      emptyOption   = false;
-   }
-
-   // --- set up default and range description
-   setDefault(def.given ? SxString(def.value) : "",
-              min.given ? SxString(min.value) : "",
-              max.given ? SxString(max.value) : "");
-
-   long int i = (def.given ? def.value : 0);
-   // stop if error occured
-   //if (parent->error) return i;
-
-   // --- get argument and integer from that (or default)
-   SxString arg = hasValue () ? getValue () : getArgument ();
-   if (arg != "")  {
-      try  {
-         i = arg.toInt64 ();
-      } catch (SxException e)  {
-         cout << "Can't convert '" << arg << "' to integer number.\n";
          parent->setError ();
          return i;
       }
@@ -734,14 +688,14 @@ SxList<double> SxCLI::CliArg::toList3 (const SxString &separators,
    // --- take away braces
    for (int i = 0; i < braces.getSize (); i+=2)
       if (arg.contains (braces(i)))  {
-         if (!arg.contains (braces(i+1)))  {
+         if (!arg.contains (braces((ssize_t)i+1)))  {
             cout << "Parsing error in vector '" << orig << "':" << endl;
             cout << "Opening is '" << braces(i) << "', but closing '";
-            cout << braces(i+1) << "' not found." << endl;
+            cout << braces((ssize_t)i+1) << "' not found." << endl;
             parent->setError ();
             return res;
          }
-         arg = arg.right(braces(i)).left(braces(i+1));
+         arg = arg.right(braces(i)).left(braces((ssize_t)i+1));
          break;
       }
 
@@ -1022,8 +976,8 @@ bool SxCLI::CliArg::exists (int iLoop_, bool keep)
       // remove arg unless it should be kept
       if (!keep)  {
          // propagate sticky flag to next loop
-         if (stickyOption && parent->iLoop + 1 < parent->arguments.getSize ())
-           parent->arguments(parent->iLoop + 1) << args_(iArg);
+         if (stickyOption && (ssize_t)parent->iLoop + 1 < parent->arguments.getSize ())
+           parent->arguments((ssize_t)parent->iLoop + 1) << args_(iArg);
          if (group->status == MissingRequired)  {
             // --- issue error if a required option of this group is missing
             group->initOption->printMark ();
@@ -1126,7 +1080,7 @@ void SxCLI::init ()
 {
    autoOptionNames = SxString("-h|--help|--usage|help|HELP|usage"
                               "|--opts|--about|-v|--version|--log|--quiet"
-                              "|--debug|--memcheck|--no-exceptions"
+                              "|--debug|--memcheck|--threadcheck|--no-exceptions"
                               "|--completion|--sxprintcli"
                      ).tokenize ('|');
    // hidden option: completion mode
@@ -1470,6 +1424,32 @@ void SxCLI::addAutoOptions ()
 #     else
          cmd  = SxString(libtool) + " --mode=execute ";
          cmd += SxString(MEMTRACER) + " ";
+#     endif /* WIN32 */
+         if (last ().hasValue ()) cmd += last ().getValue () + " ";
+         cmd += SxString(execPath);
+         for (int i = 1; i < args.getSize(); ++i)  {
+            SxString arg = args(i);
+            if (! last ().fits (arg))
+               cmd += " " + arg;
+         }
+         cout << "Executing " << cmd.ascii() << endl; cout.flush ();
+         int r = system (cmd.ascii());
+         runAtExitFuncs ();
+         _Exit(r);
+      }
+
+      // "--threadcheck"
+      if (option ("--threadcheck", "options", "Invoke syncronization error detector").toBool ())  {
+         if (SxString(THREADTRACER) == "")  {
+            cout << "no syncronization error detector was configured" << endl;
+            SX_EXIT;
+         }
+         SxString cmd;
+#     ifdef WIN32
+         SX_EXIT;
+#     else
+         cmd  = SxString(libtool) + " --mode=execute ";
+         cmd += SxString(THREADTRACER) + " ";
 #     endif /* WIN32 */
          if (last ().hasValue ()) cmd += last ().getValue () + " ";
          cmd += SxString(execPath);

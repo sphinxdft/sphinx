@@ -907,7 +907,7 @@ int yy_flex_debug = 0;
 #define YY_MORE_ADJ 0
 #define YY_RESTORE_YY_MORE_OFFSET
 char *yytext;
-#line 1 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.lpp"
+#line 1 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.lpp"
 /* ---------------------------------------------------------------------------
 //
 //      The ab-initio based multiscale library
@@ -924,7 +924,7 @@ char *yytext;
 // ---------------------------------------------------------------------------
 // Compile with flex option -PSxParser_ ...
 // --------------------------------------------------------------------------*/
-#line 19 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.lpp"
+#line 19 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.lpp"
 #include <string.h>
 #include <stdio.h>
 #include <SxSymbolTable.h>
@@ -1595,7 +1595,7 @@ YY_DECL
 		}
 
 	{
-#line 500 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.lpp"
+#line 500 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.lpp"
 
 #line 1601 "SxParser.lex.cpp"
 
@@ -1656,19 +1656,19 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 501 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.lpp"
+#line 501 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.lpp"
 { SxParser_pos += yyleng; }
 	YY_BREAK
 case 2:
 /* rule 2 can match eol */
 YY_RULE_SETUP
-#line 502 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.lpp"
+#line 502 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.lpp"
 { SxParser_pos+=yyleng;
                   SxParser_lineNumber++; }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 504 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.lpp"
+#line 504 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.lpp"
 { SxParser_pos += yyleng;
                   SxSymbol sym;
                   sym.parserFilename = SxParser_filename;
@@ -1681,7 +1681,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 513 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.lpp"
+#line 513 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.lpp"
 {
                   SxParser_pos += yyleng;
                   size_t len = strlen (SxParser_text);
@@ -1727,7 +1727,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 555 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.lpp"
+#line 555 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.lpp"
 { SxParser_pos += yyleng;
 //                  sxprintf ("NEWLINES: %d\n", SxString(SxParser_text).contains('\n'));
                   size_t len = strlen (SxParser_text);
@@ -1756,7 +1756,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 580 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.lpp"
+#line 580 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.lpp"
 { SxParser_groupLevel--;
                   SxParser_pos++;
                   SxSymbolTable::getGlobalPtr() = SxSymbolTable::getGlobalPtr()->parent;
@@ -1764,42 +1764,42 @@ YY_RULE_SETUP
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 584 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.lpp"
+#line 584 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.lpp"
 { SxParser_pos++; return '+'; }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 585 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.lpp"
+#line 585 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.lpp"
 { SxParser_pos++; return '-'; }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 586 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.lpp"
+#line 586 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.lpp"
 { SxParser_pos++; return '*'; }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 587 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.lpp"
+#line 587 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.lpp"
 { SxParser_pos++; return '/'; }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 588 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.lpp"
+#line 588 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.lpp"
 { SxParser_pos++; return '^'; }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 589 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.lpp"
+#line 589 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.lpp"
 { SxParser_pos++; return '('; }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 590 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.lpp"
+#line 590 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.lpp"
 { SxParser_pos++; return ')'; }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 591 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.lpp"
+#line 591 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.lpp"
 { SxParser_pos++;
                   dimension++;
                   SxSymbol sym, emptyList ("emptyList", 0.);
@@ -1816,27 +1816,27 @@ YY_RULE_SETUP
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 604 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.lpp"
+#line 604 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.lpp"
 { SxParser_pos++; return ']'; }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 605 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.lpp"
+#line 605 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.lpp"
 { SxParser_pos++; return '='; }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 606 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.lpp"
+#line 606 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.lpp"
 { SxParser_pos++; return ','; }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 607 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.lpp"
+#line 607 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.lpp"
 { SxParser_pos++; return ';'; }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 608 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.lpp"
+#line 608 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.lpp"
 { SxParser_pos += yyleng;
                   SxString name = SxString(SxParser_text).left('=').trim();
                   SxSymbol *sym = SxSymbolTable::getGlobalPtr()->get(name,
@@ -1861,7 +1861,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 629 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.lpp"
+#line 629 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.lpp"
 { SxParser_pos += yyleng;
                   SxSymbol *sym = SxSymbolTable::getGlobalPtr()->get(SxParser_text,
                                                    SxParser_validationMode,
@@ -1887,7 +1887,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 651 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.lpp"
+#line 651 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.lpp"
 { // strings
                   SxParser_pos += yyleng;
                   int i=0, length = 1024;
@@ -1931,7 +1931,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 691 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.lpp"
+#line 691 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.lpp"
 { // strings with search pathes, like  <string>
                   SxParser_pos += yyleng;
                   int i=0, length = 1024;
@@ -1965,7 +1965,7 @@ YY_RULE_SETUP
 case 23:
 /* rule 23 can match eol */
 YY_RULE_SETUP
-#line 720 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.lpp"
+#line 720 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.lpp"
 { // HERE documents
                   int nr = SxParser_lineNumber;
 
@@ -2010,7 +2010,7 @@ YY_RULE_SETUP
                   }
                   unput (';');  //SxParser_pos--; // fake final ';' in statement
 
-                  SxParser_lineNumber += hereBuffer.getSize();
+                  SxParser_lineNumber += (int)(hereBuffer.getSize());
 
 
                   SxSymbol sym;
@@ -2026,7 +2026,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 777 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.lpp"
+#line 777 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.lpp"
 { // eat up C comments
                   //SxParser_pos += yyleng;
                   int c, cNext;
@@ -2067,7 +2067,7 @@ case 25:
 (yy_c_buf_p) = yy_cp -= 1;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 811 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.lpp"
+#line 811 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.lpp"
 { // eat up C++ comments
                   SxParser_pos += yyleng;
                 }
@@ -2077,7 +2077,7 @@ case 26:
 (yy_c_buf_p) = yy_cp -= 1;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 814 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.lpp"
+#line 814 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.lpp"
 { // eat up shell comments
                   SxParser_pos += yyleng;
                 }
@@ -2087,20 +2087,20 @@ case 27:
 (yy_c_buf_p) = yy_cp -= 1;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 817 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.lpp"
+#line 817 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.lpp"
 { // eat up Fortran90 comments
                   SxParser_pos += yyleng;
                 }
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 820 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.lpp"
+#line 820 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.lpp"
 { // eat up terminator characters '\0'
                 }
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 822 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.lpp"
+#line 822 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.lpp"
 { // validation file
                   SxString str  = SxString(SxParser_text).right("format").trim();
                   str = str.left (";");
@@ -2117,14 +2117,14 @@ YY_RULE_SETUP
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 835 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.lpp"
+#line 835 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.lpp"
 { // switch to validation mode (all vars are treated locally)
                   SxParser_validationMode = true;
                   SxParser_pos += yyleng; }
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 838 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.lpp"
+#line 838 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.lpp"
 { // --- retrieve variable name
                   SxString vars = SxString(SxParser_text).right("needs")
                                   .removeWhiteSpace();
@@ -2147,7 +2147,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 857 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.lpp"
+#line 857 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.lpp"
 { // --- retrieve variable name
                   SxString vars = SxString(SxParser_text).right("requires")
                                                          .removeWhiteSpace();
@@ -2170,7 +2170,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 876 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.lpp"
+#line 876 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.lpp"
 { SxString newGlobals;
                   newGlobals = SxString(SxParser_text).right("global")
                                .removeWhiteSpace();
@@ -2185,27 +2185,27 @@ YY_RULE_SETUP
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 887 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.lpp"
+#line 887 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.lpp"
 { SxParser_handleInclude (); }
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 888 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.lpp"
+#line 888 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.lpp"
 { SxParser_handleInclude (); }
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 889 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.lpp"
+#line 889 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.lpp"
 { SxParser_handleInclude (); }
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 890 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.lpp"
+#line 890 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.lpp"
 { SxParser_pos += yyleng; SxParser_verbose = true;   }
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 891 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.lpp"
+#line 891 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.lpp"
 { SxParser_pos += yyleng; SxParser_verbose = false;  }
 	YY_BREAK
 case 39:
@@ -2213,11 +2213,11 @@ case 39:
 (yy_c_buf_p) = yy_cp -= 1;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 892 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.lpp"
+#line 892 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.lpp"
 { yyterminate(); }
 	YY_BREAK
 case YY_STATE_EOF(INITIAL):
-#line 893 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.lpp"
+#line 893 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.lpp"
 { SxParser_includeLevel--;
                   SxParser_globalVars.removeAll ();
                   if (SxParser_bufferStack.getSize() == 0)  {
@@ -2250,7 +2250,7 @@ case YY_STATE_EOF(INITIAL):
                      // --- concatenate resulting buffer
                      ssize_t size   = popBuffer.getSize ();
                      if (startToken > 0)
-                        left = popBuffer.subString(0, startToken-1);
+                        left = popBuffer.subString(0, (ssize_t)startToken-1);
                      if (endToken < size-1)
                         right = popBuffer.subString (endToken, size-1);
 
@@ -2269,7 +2269,7 @@ case YY_STATE_EOF(INITIAL):
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 941 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.lpp"
+#line 941 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.lpp"
 {
                     char errormsg[1024];
                     int c = *SxParser_text;
@@ -2301,7 +2301,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 969 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.lpp"
+#line 969 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.lpp"
 ECHO;
 	YY_BREAK
 #line 2308 "SxParser.lex.cpp"
@@ -3307,7 +3307,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 969 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.lpp"
+#line 969 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.lpp"
 
 
 int SxParser_wrap () { return 1; }

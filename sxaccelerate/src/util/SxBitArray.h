@@ -142,7 +142,7 @@ class SX_EXPORT_UTIL SxBitArray
 
       // -- Copy-Constructor
       SxBitArray (const SxBitArray & rhs);
-      SxBitArray (SxBitArray &&);
+      SxBitArray (SxBitArray &&) noexcept;
 
       // -- Creates a bit array from int array
       SxBitArray (const SxArray<int> &);
@@ -164,8 +164,8 @@ class SX_EXPORT_UTIL SxBitArray
       const size_t & getSize () const;
 
       // Operators
-      SxBitArray & operator= (const SxBitArray &rhs);
-      SxBitArray & operator= (SxBitArray &&rhs);
+      SxBitArray & operator= (const SxBitArray &rhs) noexcept;
+      SxBitArray & operator= (SxBitArray &&rhs) noexcept;
 
       // bitArray = 1;  bitArray = 0
       SxBitArray & operator= (int rhs);

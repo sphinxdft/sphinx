@@ -104,6 +104,7 @@ class SxHashFunction
 
       // --- hash functions
       static unsigned int murmur (const void *key, int len, unsigned int seed);
+      static uint64_t murmur64 (const void  *key, int len, unsigned int seed);
       static uint32_t constexpr jenkinsHash (const char *key, size_t len);
 };
 
@@ -179,10 +180,9 @@ inline unsigned int SxHashFunction::murmur (const void   *key,
 
    unsigned int h = seed ^ static_cast<unsigned int>(len);
 
-   const unsigned char * data = (const unsigned char *)key;
+   const unsigned char *data = (const unsigned char *)key;
 
-   while(len >= 4)
-   {
+   while(len >= 4)  {
       unsigned int k;
 
       k  = data[0];
@@ -190,8 +190,8 @@ inline unsigned int SxHashFunction::murmur (const void   *key,
       k |= static_cast<unsigned int>(data[2]) << 16;
       k |= static_cast<unsigned int>(data[3]) << 24;
 
-      k *= m; 
-      k ^= k >> r; 
+      k *= m;
+      k ^= k >> r;
       k *= m;
 
       h *= m;
@@ -200,7 +200,7 @@ inline unsigned int SxHashFunction::murmur (const void   *key,
       data += 4;
       len -= 4;
    }
-   
+
    if (len == 3)  { h ^= static_cast<unsigned int>(data[2]) << 16; }
    if (len >= 2)  { h ^= static_cast<unsigned int>(data[1]) << 8;  }
    if (len >= 1)  { h ^= data[0]; h *= m; }
@@ -212,9 +212,55 @@ inline unsigned int SxHashFunction::murmur (const void   *key,
    return h;
 }
 
+// --- MurmurHash2, 64-bit versions, by Austin Appleby
+//     LICENSE: public domain / MIT
+//     The same caveats as 32-bit MurmurHash2 apply here - beware of alignment
+//     and endian-ness issues if used across multiple platforms.
+
+// 64-bit hash for 64-bit platforms
+inline uint64_t SxHashFunction::murmur64 (const void  *key,
+                                          int          len,
+                                          unsigned int seed)
+{
+   const uint64_t m = 0xc6a4a7935bd1e995;
+   const int r = 47;
+
+   uint64_t h = seed ^ (len * m);
+
+   const uint64_t *data = (const uint64_t *)key;
+   const uint64_t *end = data + (len/8);
+
+   while(data != end)  {
+      uint64_t k = *data++;
+
+      k *= m;
+      k ^= k >> r;
+      k *= m;
+
+      h ^= k;
+      h *= m;
+   }
+
+   const unsigned char *data2 = (const unsigned char*)data;
+
+   len = len & 7;
+   if (len == 7)  { h ^= uint64_t(data2[6]) << 48; }
+   if (len >= 6)  { h ^= uint64_t(data2[5]) << 40; }
+   if (len >= 5)  { h ^= uint64_t(data2[4]) << 32; }
+   if (len >= 4)  { h ^= uint64_t(data2[3]) << 24; }
+   if (len >= 3)  { h ^= uint64_t(data2[2]) << 16; }
+   if (len >= 2)  { h ^= uint64_t(data2[1]) <<  8; }
+   if (len >= 1)  { h ^= uint64_t(data2[0]); h *= m; }
+
+   h ^= h >> r;
+   h *= m;
+   h ^= h >> r;
+
+   return h;
+}
+
 // ref.: https://en.wikipedia.org/wiki/Jenkins_hash_function
-uint32_t constexpr SxHashFunction::jenkinsHash (const char *key,
-                                                       size_t len)
+uint32_t constexpr SxHashFunction::jenkinsHash (const char *key, size_t len)
 {
    uint32_t i = 0;
    uint32_t hash = 0;

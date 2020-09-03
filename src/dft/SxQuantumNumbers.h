@@ -112,17 +112,6 @@ class SxQuantumNumbers
          ik       = ikIn;
       }
 
-      SxQuantumNumbers (const SxQuantumNumbers &in)  {
-         i        = in.i;
-         iSpin    = in.iSpin;
-         ik       = in.ik;
-         iSpecies = in.iSpecies;
-         iAtom    = in.iAtom;
-         n        = in.n;
-         l        = in.l;
-         m        = in.m;
-      }
-
       bool operator== (const SxQuantumNumbers &o) const
       {
          return (   iSpecies == o.iSpecies

@@ -8,6 +8,7 @@ SxParserBase::SxParserBase ()
    : scannerPtr(NULL),
      inStream(NULL),
      lineOffset(0),
+     maxErrors(-1),
      traces(false),
      curLineIndent(-1),
      prevLineIndent(-1),
@@ -34,15 +35,19 @@ void SxParserBase::errorHandler (const SxString &msg_,
                                  ssize_t line1, ssize_t col1)
 {
    SX_TRACE ();
-   // -- display non-printable characters
+
+   if (!resume ())  return;
+
+   // --- display non-printable characters
    SxString err = msg_.substitute ("\n","\\n");
+   err = err.substitute ("$end","end");
    err = SxSed("s#(\t)#\\\\t#g").subst (err);
    err = SxSed("s#(\n)#\\\\n#g").subst (err);
    err = SxSed("s#(\a)#\\\\a#g").subst (err);
    err = SxSed("s#(\b)#\\\\b#g").subst (err);
    err = SxSed("s#(\r)#\\\\r#g").subst (err);
 
-   // -- convert TK_TOKEN to Token
+   // --- convert TK_TOKEN to Token
    err = SxSed("s#(TK_)([A-Za-z]+)#\\L$1\\L$2#g").subst (err);
    err = SxSed("s#(tk_)([a-z])#\\u$2#g").subst (err);
    SxString msg = inFile + ":"
@@ -57,7 +62,6 @@ void SxParserBase::setLineOffset (ssize_t offset)
    SX_TRACE ();
    lineOffset = offset;
 }
-
 
 void SxParserBase::setSearchPath (const SxString &path)
 {
@@ -89,7 +93,7 @@ void SxParserBase::validateIncludes (const SxString &pattern) const
    SX_TRACE ();
 
    if (lexIncludes.getSize() > maxIncludeDepth)  {
-      SX_THROW ("Too many include levels:\n- "
+      SX_THROW ("ParserKit", "ParseError", "Too many include levels:\n- "
                + SxString::join (lexIncludes, "\n- "));
    }
 
@@ -99,7 +103,7 @@ void SxParserBase::validateIncludes (const SxString &pattern) const
    // --- is file readable?
    FILE *fp = fopen (filename.getElems (), "r");
    if (!fp)  {
-      SX_THROW ("file open failed for " + filename);
+      SX_THROW ("ParserKit", "ParseError", "file open failed for " + filename);
    }
    fclose (fp);
 }
@@ -147,7 +151,7 @@ bool SxParserBase::pushIncludes (const SxString &pattern,
    SX_DBG_MSG ("   opening file " << pattern);
 
    if (lexIncludes.getSize() > maxIncludeDepth)  {
-      SX_THROW ("too many include levels.");
+      SX_THROW ("ParserKit", "ParseError", "too many include levels.");
    }
 
    SxSortedList<SxString> fqfns = resolveFiles (pattern);
@@ -158,7 +162,7 @@ bool SxParserBase::pushIncludes (const SxString &pattern,
    // --- is file readable?
    FILE *fp = fopen (filename.getElems (), "r");
    if (!fp)  {
-      SX_THROW ("file open failed for " + filename);
+      SX_THROW ("ParserKit", "ParseError", "file open failed for " + filename);
    }
    fclose (fp);
 
@@ -312,13 +316,13 @@ SxSortedList<SxString> SxParserBase::resolveFiles (const SxString &pattern) cons
             }
          }
       } catch (SxException e)  {
-         e.print ();
-         SX_EXIT;
+         SX_RETHROW (e, "ParserKit", "ParseError",
+                     "include file resolution error");
       }
    }
    // --- nothing found
    if (!useWildcards)  {
-      SX_THROW ("file not found " + pattern);
+      SX_THROW ("ParserKit", "ParseError", "include file not found " + pattern);
    }
    return SxSortedList<SxString> ();
 }
@@ -362,12 +366,12 @@ int SxParserBase::readFile (const SxString &filename, ssize_t maxErrors_)
    inFile = filename;
    maxErrors = maxErrors_;
    if (!SxFSAction::test_f (filename))  {
-      SX_THROW ("file not found " + filename);
+      SX_THROW ("ParserKit", "FileIOError", "file not found " + filename);
    }
    // --- is file readable?
    FILE *fp = fopen (filename.getElems (), "r");
    if (!fp)  {
-      SX_THROW ("file open failed " + filename);
+      SX_THROW ("ParserKit", "FileIOError", "file open failed " + filename);
    }
    fclose (fp);
 
@@ -402,6 +406,7 @@ int SxParserBase::readFunction (const ReaderFunction &cb,
 void SxParserBase::handleExceptions ()
 {
    SX_TRACE ();
+
    if (errors.getSize() > 0)  {
       SxString msg;
       SxList<Error>::ConstIterator it;
@@ -412,7 +417,7 @@ void SxParserBase::handleExceptions ()
          msg += it->msg + "\n";
 #  endif
       }
-      SX_THROW (msg);
+      SX_THROW ("ParserKit", "ParseError", msg);
    }
 }
 

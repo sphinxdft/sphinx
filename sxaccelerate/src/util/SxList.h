@@ -32,7 +32,7 @@ class SxListNode {
       T elem;
       SxListNode<T> *prev, *next;
 
-      SxListNode () : prev(NULL), next(NULL) { }
+      SxListNode () : elem(T()), prev(NULL), next(NULL) { }
       SxListNode (const SxListNode<T> &in)
          : elem(in.elem), prev(in.prev), next(in.next) { }
 
@@ -69,7 +69,7 @@ class SxListIterators
                SX_UNUSED (cmode_);
             }
 
-            State (State &&in, sx::ItCopyMode cmode_ = sx::CopyAll)
+            State (State &&in, sx::ItCopyMode cmode_ = sx::CopyAll) noexcept
                : dir(in.dir), container(in.container), node(in.node)
             {
                SX_UNUSED (cmode_);
@@ -92,7 +92,7 @@ class SxListIterators
             void copy (const IT &in_) {
                container = in_.container; node = in_.node; dir = in_.dir;
             }
-            void move (IT &&in_) {
+            void move (IT &&in_) noexcept {
                dir = in_.dir; container = in_.container; node = in_.node;
                in_.dir = sx::Undefined; in_.container = NULL; in_.node = NULL;
             }
@@ -136,7 +136,7 @@ class SxListIterators
             Iterator (const Iterator &in, sx::ItCopyMode cmode_ = sx::CopyAll)
                : State<T,Node,Container,Iterator> (in, cmode_) { }
 
-            Iterator (Iterator &&in, sx::ItCopyMode cmode_ = sx::CopyAll)
+            Iterator (Iterator &&in, sx::ItCopyMode cmode_ = sx::CopyAll) noexcept
                : State<T,Node,Container,Iterator> (std::move(in), cmode_) { }
 
       };
@@ -157,7 +157,7 @@ class SxListIterators
                  (in, cmode_) { }
 
             ConstIterator (ConstIterator &&in,
-                           sx::ItCopyMode cmode_ = sx::CopyAll)
+                           sx::ItCopyMode cmode_ = sx::CopyAll) noexcept
                : State<const T,const Node,const Container,ConstIterator>
                  (std::move(in), cmode_) { }
 
@@ -205,7 +205,7 @@ class SxList : public SxMemConsumer,
       SxList ();
       SxList (const SxList<T,ItPair> &);
       SxList (const SxCList<T> &);
-      SxList (SxList<T,ItPair> &&);
+      SxList (SxList<T,ItPair> &&) noexcept;
       SxList (const std::initializer_list<T> &);
 
       // conversion from sx::find
@@ -223,7 +223,7 @@ class SxList : public SxMemConsumer,
 
       // -- Assignment
       SxList<T,ItPair> &operator=  (const SxList<T,ItPair> &);
-      SxList<T,ItPair> &operator=  (SxList<T,ItPair> &&);
+      SxList<T,ItPair> &operator=  (SxList<T,ItPair> &&) noexcept;
       SxList<T,ItPair> &operator=  (const std::initializer_list<T> &);
 
       // -- Equality
@@ -348,7 +348,7 @@ SxList<T,ItPair>::SxList (const SxList<T,ItPair> &in)
 }
 
 template<class T,template<class,class,class> class ItPair>
-SxList<T,ItPair>::SxList (SxList<T,ItPair> &&in)
+SxList<T,ItPair>::SxList (SxList<T,ItPair> &&in) noexcept
    : SxMemConsumer (in),
      SxThis<SxList<T,ItPair> > ()
 {
@@ -374,7 +374,7 @@ SxList<T,ItPair>::SxList (const std::initializer_list<T> &in)
    SX_CHECK (in.size() >= 0, in.size());
 
    firstElement = lastElement = NULL;
-   size = in.size();
+   size = (ssize_t)in.size();
    if (size > 0)  {
       ssize_t count = 0;
       Node *prevDest = NULL;
@@ -495,7 +495,7 @@ SxList<T,ItPair> &SxList<T,ItPair>::operator= (const SxList<T,ItPair> &in)
 
 // -- Move assignment
 template<class T,template<class,class,class> class ItPair>
-SxList<T,ItPair> &SxList<T,ItPair>::operator= (SxList<T,ItPair> &&in)
+SxList<T,ItPair> &SxList<T,ItPair>::operator= (SxList<T,ItPair> &&in) noexcept
 {
    SX_CHECK (in.size >= 0, in.size);
    if ( this == &in ) return *this;

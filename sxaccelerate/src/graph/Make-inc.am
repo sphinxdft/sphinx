@@ -18,14 +18,13 @@ include_HEADERS = SxArrayList.h \
                   SxGQOr.h \
                   SxGQPattern.h \
                   SxGQRelations.h \
-                  SxGQRelations.hpp \
                   SxGQuery.h \
+                  SxGQuery.hpp \
                   SxGraph.h \
                   SxGraph.hpp \
                   SxGraphStorage.h \
                   SxHashedArray.h \
                   SxN.h \
-                  SxN.hpp \
                   SxSet.h
 
 lib_LTLIBRARIES       = libsxgraph.la
@@ -37,7 +36,9 @@ libsxgraph_la_SOURCES += SxExportGraph.cpp \
    SxGQExprList.cpp \
    SxGQOr.cpp \
    SxGQPattern.cpp \
-   SxGQuery.cpp
+   SxGQRelations.cpp \
+   SxGQuery.cpp \
+   SxN.cpp
 
 libsxgraph_la_LIBADD   = $(SXIMPORTLIBS)
 libsxgraph_la_LIBADD  += 

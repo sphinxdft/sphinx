@@ -26,12 +26,13 @@
 
 SX_EXPORT_UTIL SxMap<SxString, int> registeredTimerEnums;
 
-SxTimer::SxTimer ()
+SxTimer::SxTimer () : nTimers(0), realTime(false)
 {
    // empty
 }
 
 SxTimer::SxTimer (int nTimers_, bool realTime_)
+   : nTimers(0), realTime(false)
 {
    char *str = getenv ("SX_WALL_TIMER");
    if (str)  {
@@ -168,7 +169,7 @@ SxString SxTimer::toMinutes (double t)
    SX_CHECK (t >= 0, t);
 
    int m = (int)(t / 60);
-   int s = (int)(t - 60 * m);
+   int s = (int)(t - 60 * (double)m);
    SxString minutes (m);
    SxString seconds = s < 10 ? SxString("0") + s : s;
 

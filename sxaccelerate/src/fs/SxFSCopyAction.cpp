@@ -489,10 +489,10 @@ void SxFSCopyAction::convFileSymLinkToNothing (const SxFileInfo &src,
    }
    SxSymLink srcLink (src.getOrig ());
    // Getting the link target
-   SxString target;
-   target = srcLink.getTarget ();
+   SxString targetStr = srcLink.getTarget ();
+   SxFileInfo target (targetStr);
    // Creating a link that has the same target as the source link
-   SxFSCreateAction::ln_sf (SxFileInfo (target), dest);
+   SxFSCreateAction::ln_sf (target, dest);
 }
 
 void SxFSCopyAction::convFileSymLinkToFileSymLink (const SxFileInfo &src,
@@ -575,10 +575,10 @@ void SxFSCopyAction::convDirSymLinkToNothing (const SxFileInfo &src,
    }
    SxSymLink srcLink (src.getOrig ());
    // Getting the link target
-   SxString target;
-   target = srcLink.getTarget ();
+   SxString targetStr = srcLink.getTarget ();
+   SxFileInfo target (targetStr);
    // Creating a link that has the same target as the source link
-   SxFSCreateAction::ln_sf (SxFileInfo (target), dest);
+   SxFSCreateAction::ln_sf (target, dest);
 }
 
 void SxFSCopyAction::convDirSymLinkToFileSymLink (const SxFileInfo &src,
@@ -694,11 +694,10 @@ void SxFSCopyAction::convEmptySymLinkToNothing (const SxFileInfo &src,
    }
    SxSymLink srcLink (src.getOrig ());
    // Getting the link target
-   SxString target;
-   target = srcLink.getTarget ();
-
+   SxString targetStr = srcLink.getTarget ();
+   SxFileInfo target (targetStr);
    // Creating a link that has the same target as the source link
-   SxFSCreateAction::ln_sf (SxFileInfo (target), dest);
+   SxFSCreateAction::ln_sf (target, dest);
 
 }
 

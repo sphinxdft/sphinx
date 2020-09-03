@@ -17,8 +17,6 @@
 #include <SxString.h>
 #include <SxGraph.h>
 #include <SxGProps.h>
-
-
 /** \brief ...
 
     \b SxClass = S/PHI/nX ...
@@ -30,12 +28,18 @@ class SX_EXPORT_PARSER_KIT SxParserAst
 {
    public:
 
+      enum ElemType { Undefined = SxVariantType::Undefined,
+                      Int = SxVariantType::Int,
+                      Double = SxVariantType::Double,
+                      Bool = SxVariantType::Bool,
+                      String = SxVariantType::String,
+                      List = SxVariantType::List, Group,
+                      Vector, Matrix, Enum };
+
       SxParserAst ();
      ~SxParserAst ();
 
-      bool validateKey (const SxString &key_) const;
-
-      SxGProps *addNode (const SxVariantType::DataType &);
+      SxGProps *addNode (int type_);
 
       void addEdge (ssize_t, ssize_t);
       void addEdge (const SxGProps *, const SxGProps *);
@@ -46,6 +50,12 @@ class SX_EXPORT_PARSER_KIT SxParserAst
       const SxPtr<SxGraph<SxGProps> > &getAst () const;
 
       void printAst () const;
+
+      static ElemType getTypeId (const SxString &str);
+      static SxString getTypeStr (const ElemType &type_);
+
+      static SxString escapeStr (const SxString &str);
+      static SxString unescapeStr (const SxString &str);
 
    protected:
 

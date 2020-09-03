@@ -268,7 +268,7 @@ SxString::SxString (const SxString &in)
    if (in.isUnicode ()) isUnicode_ = true;
 }
 
-SxString::SxString (SxString &&in)
+SxString::SxString (SxString &&in) noexcept
   : SxArray<char> (), nChars(0), isUnicode_(false), isDirty(false)
 {
    replace (std::move(in));
@@ -602,12 +602,35 @@ SxString SxString::unicodeFromUtf8 (const char *src,
 {
    SxString res;
    res.isUnicode_ = true;
-   if (src == NULL)  return res;
-   if (nBytes == -1)  nBytes = (ssize_t) ::strlen (src);
+   const char *buf = src;
+   if (buf == NULL)  return res;
+   if (nBytes == -1)  nBytes = (ssize_t) ::strlen (buf);
    SX_CHECK (nBytes >= 0, nBytes);
-   if ( (nBytes == 0) || (*src == '\0') )  return res;
+   if ( (nBytes == 0) || (*buf == '\0') )  return res;
+
+   if (nBytes > 1)  {
+      // --- if UTF16(LE) BOM (\xfffe)
+      const uint16_t *wChrBuf = reinterpret_cast<const uint16_t *>(buf);
+      if (wChrBuf[0] == 65279)  {
+         // --- convert from UTF16
+         return SxString (wChrBuf);
+      }
+   }
+
+   if (nBytes > 2)  {
+      uint8_t chr0 = static_cast<uint8_t>(buf[0]);
+      uint8_t chr1 = static_cast<uint8_t>(buf[1]);
+      uint8_t chr2 = static_cast<uint8_t>(buf[2]);
+      // --- if starts with UTF8 BOM (\xefbbbf)
+      if (chr0 == 239 && chr1 == 187 && chr2 == 191)  {
+         nBytes -= 3;
+         buf += 3;
+         if (nBytes < 1)  return res;
+      }
+   }
+
    res.resize0 (nBytes, false);
-   ::memcpy (res.elements, src, static_cast<size_t>(nBytes));
+   ::memcpy (res.elements, buf, static_cast<size_t>(nBytes));
    if (nChars_ == -1)  {
       nChars_ = SxConstChar::getNUtf8Chars (res.elements,
                                             res.elements + nBytes);
@@ -658,13 +681,33 @@ void SxString::replace (const uint16_t *origStr)
       removeAll ();
       return; // done
    }
-   SxArray<char> arr = SxConstChar::wcharsToUtf8 (origStr);
+
+   const uint16_t *buf = origStr;
+   // --- if UTF16 BOM (\xfffe)
+   if (buf[0] == 65279)  {
+      buf += 1; // skip BOM
+      if ( (buf == NULL) || (*buf == '\0'))  {
+         removeAll ();
+         return;
+      }
+   }
+
+   // --- if UTF8 BOM (\xefbbbf)
+   const uint8_t *chrBuf = (const uint8_t *)origStr;
+   if (   chrBuf[0] == 239
+       && chrBuf[1] == 187
+       && chrBuf[2] == 191)  {
+      *this = SxString::unicodeFromUtf8 ((const char *)chrBuf);
+      return;
+   }
+
+   SxArray<char> arr = SxConstChar::wcharsToUtf8 (buf);
    const char *src = arr.elements;
    ssize_t newNBytes = (src ? ((ssize_t) ::strlen (src)) : 0);
    resize0 (newNBytes, false);
    if (newNBytes > 0)  ::memcpy (elements, src, static_cast<size_t>(newNBytes));
    updateNChars (SxConstChar::countChars (elements, elements + newNBytes,
-      true));
+                                          true));
 }
 
 SxArray<uint16_t> SxString::toWChars () const
@@ -719,7 +762,7 @@ SxString SxString::subString (const SxConstChar &str,
 SxString SxString::subStringByBytes (ssize_t fromByteIdx, ssize_t toByteIdx)
    const
 {
-   SX_CHECK_3VARS (fromByteIdx <= toByteIdx && fromByteIdx >= 0 &&
+   SX_CHECK (fromByteIdx <= toByteIdx && fromByteIdx >= 0 &&
       toByteIdx < getNBytes (), fromByteIdx, toByteIdx, getNBytes ());
    SxString res;
    const char *src = getElems ();
@@ -1754,9 +1797,9 @@ SxString SxString::sprintf (const char *fmt, ...)
    if (n < maxFormatLength) return SxString (tmp, n);
 
    // --- fall-back if maxFormatLength was not sufficient
-   char *tmp2 = new char[static_cast<size_t>(n+1)];
+   char *tmp2 = new char[((size_t)n+1)];
    va_start (arg, fmt);
-   int n2 = ::vsnprintf (tmp2, static_cast<size_t>(n + 1), fmt, arg);
+   int n2 = ::vsnprintf (tmp2, ((size_t)n + 1), fmt, arg);
    va_end (arg);
    if (n2 != n) { SX_EXIT; }
    SxString result(tmp2, n);
@@ -1775,7 +1818,7 @@ SxString &SxString::operator= (const SxString &in)
    return *this;
 }
 
-SxString &SxString::operator= (SxString &&in)
+SxString &SxString::operator= (SxString &&in) noexcept
 {
    if (this != &in)  {
       replace (std::move(in));
@@ -1896,7 +1939,8 @@ SxString SxString::operator<< (const SxString &in) const
 
 //------------------------------------------------------------------------------
 
-SxString::Buffer::Buffer(ssize_t maxNChars, Mode mode) : buffer(NULL)
+SxString::Buffer::Buffer(ssize_t maxNChars, Mode mode)
+   : maxNChars_(-1), buffer(NULL)
 {
    SX_CHECK (maxNChars >= 0, maxNChars);
    SX_CHECK (mode == ASCII || mode == UTF8 || mode == UTF16, mode);
@@ -1904,7 +1948,8 @@ SxString::Buffer::Buffer(ssize_t maxNChars, Mode mode) : buffer(NULL)
    allocate (maxNChars);
 }
 
-SxString::Buffer::Buffer(const SxString &str, Mode mode) : buffer(NULL)
+SxString::Buffer::Buffer(const SxString &str, Mode mode)
+   : maxNChars_(-1), buffer(NULL)
 {
    SX_CHECK (mode == ASCII || mode == UTF8 || mode == UTF16, mode);
    mode_ = mode;
@@ -1923,14 +1968,14 @@ SxString::Buffer::Buffer(const SxString &str, Mode mode) : buffer(NULL)
          SX_CHECK ( (!str.isUnicode ()) || (SxConstChar::is7bit (src)) );
          size = nBytes + 1;
          resize (size);
-         ::memcpy (buffer, src, static_cast<size_t>(size)); // copy including the trailing '\0'
+         if (buffer) ::memcpy (buffer, src, static_cast<size_t>(size)); // copy including the trailing '\0'
          break;
       case UTF8:
          size = str.getSize () + 1;
          resize (size);
          if ( (str.isUnicode ()) || (SxConstChar::is7bit (src)) )  {
             // we only must copy the bytes
-            ::memcpy (buffer, src, static_cast<size_t>(nBytes + 1)); // copy incl. the trailing '\0'
+            if (buffer) ::memcpy (buffer, src, static_cast<size_t>(nBytes + 1)); // copy incl. the trailing '\0'
          }  else  { // we must convert
             dest = getBuffer ();
             dest += SxConstChar::asciiToUtf8 (dest, src, nBytes); // convert
@@ -2051,8 +2096,8 @@ int sxprintf (const char *fmt, va_list arg)
 
    if (n >= maxFormatLength)  {
       // --- fall-back if maxFormatLength was not sufficient
-      char *tmp2 = new char[static_cast<size_t>(n+1)];
-      int n2 = ::vsnprintf (tmp2, static_cast<size_t>(n + 1), fmt, arg2);
+      char *tmp2 = new char[((size_t)n+1)];
+      int n2 = ::vsnprintf (tmp2, ((size_t)n + 1), fmt, arg2);
       if (n2 != n) { SX_EXIT; }
 #     ifdef SX_ANDROID
          __android_log_write (ANDROID_LOG_INFO, SX_LOG_ID, tmp2);

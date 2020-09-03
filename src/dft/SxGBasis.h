@@ -108,7 +108,7 @@ class SX_EXPORT_DFT SxGBasis : public SxBasis
         computed in changeTau, or they are calculated on demand.
         \sa phaseFactors
        */
-      SxDiracVec<TPrecPhase> getPhaseFactors(int is, int ia) const;
+      SxDiracVec<TPrecPhase> getPhaseFactors(ssize_t is, ssize_t ia) const;
 
       /** \brief Get phase factors for one atom and one G vector
 
@@ -120,7 +120,7 @@ class SX_EXPORT_DFT SxGBasis : public SxBasis
         computed in changeTau, or they are calculated on demand.
         \sa phaseFactors
        */
-      SxComplex16 getPhaseFactors(int is, int ia, ssize_t ig) const;
+      SxComplex16 getPhaseFactors(ssize_t is, ssize_t ia, ssize_t ig) const;
 
       /** If set to true, 3D phase factors are stored. Otherwise, only
           partial 1D phase factors are stored, and the 3D ones are computed
@@ -168,7 +168,7 @@ class SX_EXPORT_DFT SxGBasis : public SxBasis
         */
       mutable SxArray<ssize_t> packedGrel;
       /// If necessary, set up 1D phFac(is)(ia) and packedGrel
-      void setupPhase1D (int is, int ia) const;
+      void setupPhase1D (ssize_t is, ssize_t ia) const;
       /// Set up packed 1D phase factors for a given coordinate
       SxDiracVec<Complex16> setupPhase1D (const Coord &tau) const;
       /// Setup mapping from ig to packed 1D phase factors
@@ -766,13 +766,13 @@ class SX_EXPORT_DFT SxGBasis : public SxBasis
          const PrecFFTIdx fftIdx1 = n123(0)(idxG1);
          const PrecFFTIdx fftIdx2 = n123(0)(idxG2);
 
+         /*
          // get mesh vector with coordinates -mesh(i)/2 < vec(i) <= mesh(i)/2
          const SxVector3<Int> idxVec1
             = fft3d(0).mesh.getMeshVec (fftIdx1, SxMesh3D::Origin);
          const SxVector3<Int> idxVec2
             = fft3d(0).mesh.getMeshVec (fftIdx2, SxMesh3D::Origin);
 
-         /*
          // substract index vectors
          const SxVector3<Int> idxVecRes = idxVec1 - idxVec2;
 

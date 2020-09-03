@@ -40,6 +40,12 @@ int main (int argc, char **argv)
       cli.option ("-i","mesh file","netcdf mesh file (one mesh only)")
       .toString ();
 
+   int smoothGroup = cli.newGroup ("smoothing");
+
+   double gCut2 = cli.option ("--ecut", "cutoff", "G cutofff").toDouble ();
+   double gTrans = cli.option ("--smear", "transient", "cutoff transient").toDouble ();
+
+
    cli.finalize ();
 
    // --- read input
@@ -74,11 +80,19 @@ int main (int argc, char **argv)
    fft.fftReverse (meshSize, in.elements, out.elements);
    SxDiracVec<Complex16> meshInG = out;
 
+   SxCell recCell = cell.getReciprocalCell ();
+   if (smoothGroup)  {
+      SX_LOOP(i)  {
+         SxVector3<Double> g = recCell.relToCar (fft.mesh.getMeshVec ((int)i, SxMesh3D::Origin));
+         double x = (g.normSqr () - gCut2) / gTrans;
+         meshInG(i) *= 0.5 * derfc (x);
+      }
+   }
+
    SxDiracVec<TPrecCoeffG> gradMesh;
    gradMesh.reformat (meshSize, 3);
 
    // --- set up G-vectors and compute I G rho(G)
-   SxCell recCell = cell.getReciprocalCell ();
    SX_LOOP(i)  {
       SxVector3<Double> g = recCell.relToCar (fft.mesh.getMeshVec ((int)i, SxMesh3D::Origin));
       SX_LOOP(iDir) gradMesh(i,iDir) = meshInG(i) * g(iDir) * I;

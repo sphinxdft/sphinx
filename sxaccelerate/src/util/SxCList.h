@@ -28,7 +28,7 @@ class SxCListNode {
       T elem;
       SxCListNode<T> *prev, *next;
 
-      SxCListNode () : prev(NULL), next(NULL) { }
+      SxCListNode () : elem(T()), prev(NULL), next(NULL) { }
       SxCListNode (const SxCListNode<T> &in)
          : elem(in.elem), prev(in.prev), next(in.next) { }
 

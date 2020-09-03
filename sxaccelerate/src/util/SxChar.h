@@ -77,8 +77,8 @@ class SX_EXPORT_UTIL SxConstChar
                 characters, starting at the current index position */
             inline ssize_t getNCharsToNBytes (ssize_t nChars_) const
             {
-               SX_CHECK_3VARS (charIdx + nChars_ <= charObj->getNChars (),
-                  charIdx, nChars_, charObj->getNChars ());
+               SX_CHECK (charIdx + nChars_ <= charObj->getNChars (),
+                         charIdx, nChars_, charObj->getNChars ());
                return SxConstChar::getNCharsToNBytes (getPtr (), nChars_,
                   charObj->isUnicode);
             }

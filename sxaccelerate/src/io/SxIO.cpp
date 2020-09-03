@@ -20,26 +20,26 @@ void deleteFileOnce (const SxString &filename)
 {
    static SxMutex mutex;
    static SxUniqueList<SxString> allNames;
-   mutex.lock ();
-   if (! allNames.contains (filename))  {
-      allNames.append (filename);
-      int err = unlink (filename.ascii ());
-      if (err == EISDIR)  {
-         cout << "WARNING: output file " << filename << " exists as a directory"
-              << endl;
-      } else if (err == EPERM)  {
-         // strange. According to man page, this may happen if the OS
-         // does not allow to unlink files. Let's try to truncate file...
-         FILE *fp = fopen(filename.ascii (), "w");
-         if (fp)  {
-            fclose (fp);
-         } else {
-            std::cout << "WARNING: Failed to clean " << filename << endl;
+   SX_MUTEX (mutex)  {
+      if (! allNames.contains (filename))  {
+         allNames.append (filename);
+         int err = unlink (filename.ascii ());
+         if (err == EISDIR)  {
+            cout << "WARNING: output file " << filename << " exists as a directory"
+               << endl;
+         } else if (err == EPERM)  {
+            // strange. According to man page, this may happen if the OS
+            // does not allow to unlink files. Let's try to truncate file...
+            FILE *fp = fopen(filename.ascii (), "w");
+            if (fp)  {
+               fclose (fp);
+            } else {
+               std::cout << "WARNING: Failed to clean " << filename << endl;
+            }
          }
+         // ignore all other errors.
       }
-      // ignore all other errors.
    }
-   mutex.unlock ();
 }
 
 void sxfopenError(const char *name, const char *mode)

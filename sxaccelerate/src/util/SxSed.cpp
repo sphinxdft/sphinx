@@ -13,6 +13,7 @@
 // SxSed can be used only if pcre2 is available
 #include <SxSed.h>
 #include <SxError.h>
+#include <SxException.h>
 
 const ssize_t SxSed::MAX_SUBPATTERNS = 100;
 
@@ -57,14 +58,16 @@ x     \k'name' match subpattern name
  */
 SxSed::SxSed ()
    : nReferences(0),
-     flags(0)
+     flags(0),
+     substituteFlags(0)
 {
    // empty
 }
 
 SxSed::SxSed (const SxString &command_)
    : nReferences(0),
-     flags(0)
+     flags(0),
+     substituteFlags(0)
 {
    compile (command_);
 }
@@ -73,7 +76,8 @@ SxSed::SxSed (const SxString &pattern_,
               const SxString &substitute_,
               const SxString &options_)
    : nReferences(0),
-     flags(0)
+     flags(0),
+     substituteFlags(0)
 {
    compile (pattern_, substitute_, options_);
 }
@@ -110,7 +114,7 @@ bool SxSed::compile (const SxString &command_, bool exception)
 
       clean ();
       if (!exception) return false;
-      SX_THROW (e, "RegexCompilationFailed", commandCompileError ());
+      SX_RETHROW (e, "RegexCompilationFailed", commandCompileError ());
    }
 
    return true;
@@ -137,7 +141,7 @@ bool SxSed::compile (const SxString &pattern_,
       if (!exception)
          return false;
 
-      SX_THROW (e, "RegexCompilationFailed", commandCompileError ());
+      SX_RETHROW (e, "RegexCompilationFailed", commandCompileError ());
    }
 
    return true;
@@ -172,7 +176,7 @@ SxString SxSed::subst (const SxString &input, ssize_t *nHits) const
       }
 
    } catch (SxException e) {
-      SX_THROW (e, "RegexSubstitutionFailed", substituteError ());
+      SX_RETHROW (e, "RegexSubstitutionFailed", substituteError ());
    }
 
    return SxString();
@@ -342,6 +346,7 @@ void SxSed::storeNamedBackRef (ssize_t destByteIdx, SxConstChar::Iterator &it)
    ssize_t toCharIdx = it.getCharIdx () - 1; // name ends before delimiter
    ssize_t nChars = toCharIdx - fromCharIdx + 1;
    SX_CHECK (nChars > 0, nChars); // empty back-reference names are invalid
+   SX_UNUSED (nChars);
    SxString name = SxString::subString (*(it.getCharObj ()), fromCharIdx,
       toCharIdx);
    SX_DBG_MSG ("back-reference name '" << name << "'");
@@ -499,6 +504,7 @@ SxString SxSed::substLine (const SxString &input, ssize_t *nHits) const
 
    do {
 
+      submatch.removeAll ();
       rc = re.matchToOffsets (input, startOffset, &submatch);
 
       if (rc > 0)  {

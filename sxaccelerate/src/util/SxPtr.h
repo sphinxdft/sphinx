@@ -372,7 +372,9 @@ class SxConstPtr : public SxPtr<const T>
    SxConstPtr<T> t(a);
 \endcode
       */
-      SxConstPtr (const SxConstPtr<T> &);
+      SxConstPtr (const SxConstPtr<T> &) = default; // uses SxPtr base
+      /// Assignment operator
+      SxConstPtr& operator= (const SxConstPtr<T>&) = default; // uses SxPtr base
 
       /** \brief convert from SxPtr<T>::create ()
 
@@ -384,6 +386,7 @@ class SxConstPtr : public SxPtr<const T>
       */
       template<class B>
       SxConstPtr (const SxConstPtr<B> &);
+
 
 };
 

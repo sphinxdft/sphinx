@@ -1,4 +1,4 @@
-AC_INIT([SxAccelerate],[2.10.0], [https://www.sxlib.de])
+AC_INIT([SxAccelerate],[2.11.8], [https://www.sxlib.de])
 AC_CANONICAL_HOST
 
 AM_INIT_AUTOMAKE([foreign])

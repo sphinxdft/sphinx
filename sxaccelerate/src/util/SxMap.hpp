@@ -31,7 +31,7 @@ SxMap<K,V,H>::SxMap (const std::initializer_list<SxPair<K,V> > &list_)
 }
 
 template<class K, class V, class H>
-SxMap<K,V,H>::SxMap (SxMap<K,V,H> &&map_)
+SxMap<K,V,H>::SxMap (SxMap<K,V,H> &&map_) noexcept
    : SxThis<SxMap<K,V,H> > ()
 {
    keys = std::move (map_.keys);
@@ -61,7 +61,7 @@ SxMap<K,V,H> &SxMap<K,V,H>::operator= (const SxMap<K,V,H> &map_)
 }
 
 template<class K, class V, class H>
-SxMap<K,V,H> &SxMap<K,V,H>::operator= (SxMap<K,V,H> &&map_)
+SxMap<K,V,H> &SxMap<K,V,H>::operator= (SxMap<K,V,H> &&map_) noexcept
 {
    if (this == &map_)  return *this;
    removeAll ();
@@ -117,10 +117,8 @@ template<class K, class V, class H>
 inline const V &SxMap<K,V,H>::operator() (const K &key_) const
 {
    ssize_t idx = table.findPos (key_);
-   if (idx >= 0)  {
-      return table.value(idx)->elem;
-   }
-   throw SxException("The map has no element for this key.",__FILE__,__LINE__);
+   SX_CHECK (idx >= 0, idx);
+   return table.value(idx)->elem;
 }
 
 template<class K, class V, class H>
@@ -733,8 +731,8 @@ inline const V &SxMap<K,V,SxNull>::operator() (const K &key_) const
          return *itValue;
       }
    }
-
-   throw SxException("The map has no element for this key.",__FILE__,__LINE__);
+   SX_EXIT;
+   return *itValue; // itValue == values.end();, removes compiler warning
 }
 
 template<class K, class V>

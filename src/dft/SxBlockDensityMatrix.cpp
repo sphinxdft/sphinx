@@ -168,7 +168,7 @@ void SxBlockDensityMatrix::syncMPI ()
          memcpy (rho1(i).elements, data.elements + iData, n * sizeof(double));
          iData += n;
       }
-      SX_CHECK (iData == nElem);
+      SX_CHECK (iData == (size_t)nElem, iData, nElem);
    }
 #endif
 }

@@ -10,7 +10,7 @@
 #
 # ----------------------------------------------------------------------------
 
-AC_INIT([S/PHI/nX Accelerate Libraries], [2.10.0], [https://www.sxlib.de], [sxaccelerate])
+AC_INIT([S/PHI/nX Accelerate Libraries], [2.11.8], [https://www.sxlib.de], [sxaccelerate])
 SHARED_VERSION_INFO="1:0:0"
 
 AC_CANONICAL_HOST

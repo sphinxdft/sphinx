@@ -18,7 +18,7 @@ SxMemMonitor sxMemMonitor;
 
 
 SxMemMonitor::SxMemMonitor ()
-   : nCounters(100)
+   : lastId(-1), nCounters(100)
 {
    maxMemCounter.resize (nCounters);
    classNames.resize (nCounters);

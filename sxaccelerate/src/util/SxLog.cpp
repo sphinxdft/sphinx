@@ -35,7 +35,6 @@ bool SxLog::isEnabled (const uint32_t &compHash)
    bool res = false;
    SxLog::lock ();
    res = SxLog::getGlobalObj().compIDs.contains (compHash);
-   std::cout << "isEnabled " << compHash << " = " << res << std::endl;
    SxLog::unlock ();
    return res;
 }

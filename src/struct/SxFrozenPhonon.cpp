@@ -70,7 +70,7 @@ bool SxFrozenPhonon::isRegistered (const SxSymbolTable *cmd)
 
 double SxFrozenPhonon::getEPot ()
 {
-      return potential -> getPotentialEnergy ();
+      return potential -> getEnergy ();
 }
 
 void SxFrozenPhonon::print (const SxSymbolTable *cmd)

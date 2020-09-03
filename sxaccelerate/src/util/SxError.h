@@ -19,6 +19,7 @@
 #include <string.h>
 #include <iostream>
 #include <iomanip>
+#include <atomic>
 #include <signal.h>
 #include <SxUtil.h>
 #include <SxMacroLib.h>
@@ -289,13 +290,18 @@ extern void SX_EXPORT_UTIL DECL_NO_RETURN sxQuit ();
 #   define SX_CHECK_3VARS(expr,var1,var2,var3) ((void)0)
 #   define SX_CHECK_RANGE(idx,size)            ((void)0)
 #else
-#   define SX_CHECK_VAR(expr,var)  _SxCheck2(expr,var)
-#   define SX_CHECK_VARS(expr,var1,var2)                                     \
-              _SxCheck3(expr,var1,var2)
-#   define SX_CHECK_3VARS(expr,var1,var2,var3)                               \
-              _SxCheck4(expr,var1,var2,var3)
-#   define SX_CHECK_RANGE(idx,size)                                          \
-              _SxCheck3((idx) >= 0 && (idx) < (size), idx, size)
+#   define SX_CHECK_VAR(expr,var) \
+       SX_COMPILER_WARNING("SX_CHECK_VAR macro is deprecate") \
+       _SxCheck2(expr,var)
+#   define SX_CHECK_VARS(expr,var1,var2) \
+       SX_COMPILER_WARNING("SX_CHECK_VARS macro is deprecate") \
+       _SxCheck3(expr,var1,var2)
+#   define SX_CHECK_3VARS(expr,var1,var2,var3) \
+       SX_COMPILER_WARNING("SX_CHECK_3VARS macro is deprecate") \
+       _SxCheck4(expr,var1,var2,var3)
+#   define SX_CHECK_RANGE(idx,size) \
+       SX_COMPILER_WARNING("SX_CHECK_RANGE macro is deprecate") \
+       _SxCheck3((idx) >= 0 && (idx) < (size), idx, size)
 #endif
 
 
@@ -471,10 +477,11 @@ class SX_EXPORT_UTIL SxTrace
 #   define SX_TRACE(...) ((void)0)
 #else
 #   define SX_TRACE(...) \
-           static int _tron = SxDebug::isEnabled (SX_FILE, SX_FUNCTION, \
-                                                  NULL);                \
-           SxTrace sxTrace (_tron,SX_FILE,__LINE__,SX_FUNC,SX_FUNCTION, \
-			   {__VA_ARGS__});
+           static std::atomic<int> _tron{ SxDebug::isEnabled (SX_FILE,     \
+                                                              SX_FUNCTION, \
+                                                              NULL)};      \
+           SxTrace sxTrace (_tron.load (),SX_FILE,__LINE__,SX_FUNC,        \
+                            SX_FUNCTION, {__VA_ARGS__});
 #endif
 
 

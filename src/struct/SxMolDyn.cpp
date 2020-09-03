@@ -2361,10 +2361,10 @@ double SxMolDyn::getEPot ()
       ePot =  (1. - lambda)*(tPotential -> getEnergy ());
    }
    if (fabs(lambda) > 1e-10) {
-      ePot = ePot + lambda*(potential -> getPotentialEnergy ());
+      ePot = ePot + lambda*(potential -> getEnergy ());
    }
    if (guess.isActive) {
-      double EFull = potential -> getPotentialEnergy ();
+      double EFull = potential -> getEnergy ();
       double EHarmRef = tPotential -> getEnergy ();
       state.dUdL = EFull - EHarmRef;
       if ( state.E0Ref == SX_HUGE ) state.E0Ref = EFull;

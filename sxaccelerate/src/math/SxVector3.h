@@ -52,14 +52,12 @@ class SxVector3
       { 
          v[0] = xVal, v[1] = yVal, v[2] = zVal; 
       }
-      inline SxVector3 (const SxVector3<T> &in);
+      inline SxVector3 (const SxVector3<T> &in) = default;
       template<class B>
          inline SxVector3 (const SxVector3<B> &in);
       inline explicit SxVector3 (const SxList<typename T::Type> &);
       inline explicit SxVector3 (const SxArray<typename T::Type> &);
       
-      inline ~SxVector3 ();
-
       /** \brief Reinterpret 3 numbers in memory as a SxVector3 
         \example
         \code
@@ -88,7 +86,7 @@ for (int ia = 0; ia < nAtoms; ia++)  {
       /** Assign scalar value to vector */
       inline SxVector3<T>     operator= (const typename T::Type &s);
       /** Assign vector to vector */
-      inline SxVector3<T> &   operator= (const SxVector3<T> &in);
+      inline SxVector3<T> &   operator= (const SxVector3<T> &in) = default;
       template<class B>
       inline SxVector3<T> &   operator= (const SxVector3<B> &in);
       inline void             operator+= (const SxVector3<T> &r);
@@ -153,14 +151,6 @@ SxVector3<T>::SxVector3 ()
 
 
 template<class T>
-   SxVector3<T>::SxVector3 (const SxVector3<T> &in)
-{
-   v[0] = in.v[0]; 
-   v[1] = in.v[1]; 
-   v[2] = in.v[2];
-}
-
-template<class T>
    template<class B>
       SxVector3<T>::SxVector3 (const SxVector3<B> &in)
 {
@@ -182,12 +172,6 @@ SxVector3<T>::SxVector3 (const SxArray<typename T::Type> &array)
 {
    SX_CHECK (array.getSize() == 3, array.getSize());
    v[0] = array(0); v[1] = array(1); v[2] = array(2);
-}
-
-template<class T>
-SxVector3<T>::~SxVector3 ()
-{
-   // empty
 }
 
 template<class T>
@@ -230,15 +214,6 @@ SxVector3<T> SxVector3<T>::operator= (const typename T::Type &s)
    return *this;
 }
 
-
-template<class T>
-SxVector3<T> &SxVector3<T>::operator= (const SxVector3<T> &in)
-{
-   v[0] = in.v[0];
-   v[1] = in.v[1];
-   v[2] = in.v[2];
-   return *this;
-}
 
 template<class T>
 template<class B>

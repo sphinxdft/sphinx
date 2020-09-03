@@ -178,16 +178,16 @@ bin_PROGRAMS = sx2aims$(EXEEXT) sx2dx$(EXEEXT) sx2gwst$(EXEEXT) \
 	sxepsslope$(EXEEXT) sxestimate$(EXEEXT) sxextopt$(EXEEXT) \
 	sxfastbs$(EXEEXT) sxfindk$(EXEEXT) sxforces$(EXEEXT) \
 	sxgetfermi$(EXEEXT) sxharmpottst$(EXEEXT) sxinterpol$(EXEEXT) \
-	sxkpprint$(EXEEXT) sxlocalenergy$(EXEEXT) sxmeshline$(EXEEXT) \
-	sxmeshtrace$(EXEEXT) sxmies$(EXEEXT) sxmulliken$(EXEEXT) \
-	sxpdos$(EXEEXT) sxpespectrum$(EXEEXT) sxposmatel$(EXEEXT) \
-	sxprintocc$(EXEEXT) sxrho2dx$(EXEEXT) sxrhodiff$(EXEEXT) \
-	sxrhograd$(EXEEXT) sxrhorep$(EXEEXT) sxrhosplit$(EXEEXT) \
-	sxrictst$(EXEEXT) sxsawtooth$(EXEEXT) sxstructcom$(EXEEXT) \
-	sxstructdiff$(EXEEXT) sxstructjoin$(EXEEXT) \
-	sxstructparam$(EXEEXT) sxstructpatch$(EXEEXT) \
-	sxstructprint$(EXEEXT) sxstructrel$(EXEEXT) \
-	sxstructrep$(EXEEXT) sxstructrot$(EXEEXT) \
+	sxkpprint$(EXEEXT) sxlocalenergy$(EXEEXT) sxmeshiso$(EXEEXT) \
+	sxmeshline$(EXEEXT) sxmeshtrace$(EXEEXT) sxmies$(EXEEXT) \
+	sxmulliken$(EXEEXT) sxpdos$(EXEEXT) sxpespectrum$(EXEEXT) \
+	sxposmatel$(EXEEXT) sxprintocc$(EXEEXT) sxrho2dx$(EXEEXT) \
+	sxrhodiff$(EXEEXT) sxrhograd$(EXEEXT) sxrhorep$(EXEEXT) \
+	sxrhosplit$(EXEEXT) sxrictst$(EXEEXT) sxsawtooth$(EXEEXT) \
+	sxstructcom$(EXEEXT) sxstructdiff$(EXEEXT) \
+	sxstructjoin$(EXEEXT) sxstructparam$(EXEEXT) \
+	sxstructpatch$(EXEEXT) sxstructprint$(EXEEXT) \
+	sxstructrel$(EXEEXT) sxstructrep$(EXEEXT) sxstructrot$(EXEEXT) \
 	sxstructshift$(EXEEXT) sxstructsort$(EXEEXT) \
 	sxstructsym$(EXEEXT) sxsym$(EXEEXT) sxtdos$(EXEEXT) \
 	sxuniqdispl$(EXEEXT) sxwaveh5tosxb$(EXEEXT) sxwavesym$(EXEEXT) \
@@ -334,6 +334,9 @@ sxkpprint_DEPENDENCIES = $(am__DEPENDENCIES_1)
 am_sxlocalenergy_OBJECTS = sxlocalenergy-SxLocalEnergy.$(OBJEXT)
 sxlocalenergy_OBJECTS = $(am_sxlocalenergy_OBJECTS)
 sxlocalenergy_DEPENDENCIES = $(am__DEPENDENCIES_1)
+am_sxmeshiso_OBJECTS = sxmeshiso-SxMeshIso.$(OBJEXT)
+sxmeshiso_OBJECTS = $(am_sxmeshiso_OBJECTS)
+sxmeshiso_DEPENDENCIES = $(am__DEPENDENCIES_1)
 am_sxmeshline_OBJECTS = sxmeshline-SxMeshLine.$(OBJEXT)
 sxmeshline_OBJECTS = $(am_sxmeshline_OBJECTS)
 sxmeshline_DEPENDENCIES = $(am__DEPENDENCIES_1)
@@ -512,21 +515,22 @@ SOURCES = $(sx2aims_SOURCES) $(sx2dx_SOURCES) $(sx2gwst_SOURCES) \
 	$(sxfindk_SOURCES) $(sxforces_SOURCES) $(sxgetfermi_SOURCES) \
 	$(sxharmpottst_SOURCES) $(sxinterpol_SOURCES) \
 	$(sxkpprint_SOURCES) $(sxlocalenergy_SOURCES) \
-	$(sxmeshline_SOURCES) $(sxmeshtrace_SOURCES) $(sxmies_SOURCES) \
-	$(sxmulliken_SOURCES) $(sxpdos_SOURCES) \
-	$(sxpespectrum_SOURCES) $(sxposmatel_SOURCES) \
-	$(sxprintocc_SOURCES) $(sxrho2dx_SOURCES) $(sxrhodiff_SOURCES) \
-	$(sxrhograd_SOURCES) $(sxrhorep_SOURCES) $(sxrhosplit_SOURCES) \
-	$(sxrictst_SOURCES) $(sxsawtooth_SOURCES) \
-	$(sxstructcom_SOURCES) $(sxstructdiff_SOURCES) \
-	$(sxstructjoin_SOURCES) $(sxstructparam_SOURCES) \
-	$(sxstructpatch_SOURCES) $(sxstructprint_SOURCES) \
-	$(sxstructrel_SOURCES) $(sxstructrep_SOURCES) \
-	$(sxstructrot_SOURCES) $(sxstructshift_SOURCES) \
-	$(sxstructsort_SOURCES) $(sxstructsym_SOURCES) \
-	$(sxsym_SOURCES) $(sxtdos_SOURCES) $(sxuniqdispl_SOURCES) \
-	$(sxwaveh5tosxb_SOURCES) $(sxwavesym_SOURCES) \
-	$(sxwavetransfer_SOURCES) $(sxzdos_SOURCES)
+	$(sxmeshiso_SOURCES) $(sxmeshline_SOURCES) \
+	$(sxmeshtrace_SOURCES) $(sxmies_SOURCES) $(sxmulliken_SOURCES) \
+	$(sxpdos_SOURCES) $(sxpespectrum_SOURCES) \
+	$(sxposmatel_SOURCES) $(sxprintocc_SOURCES) \
+	$(sxrho2dx_SOURCES) $(sxrhodiff_SOURCES) $(sxrhograd_SOURCES) \
+	$(sxrhorep_SOURCES) $(sxrhosplit_SOURCES) $(sxrictst_SOURCES) \
+	$(sxsawtooth_SOURCES) $(sxstructcom_SOURCES) \
+	$(sxstructdiff_SOURCES) $(sxstructjoin_SOURCES) \
+	$(sxstructparam_SOURCES) $(sxstructpatch_SOURCES) \
+	$(sxstructprint_SOURCES) $(sxstructrel_SOURCES) \
+	$(sxstructrep_SOURCES) $(sxstructrot_SOURCES) \
+	$(sxstructshift_SOURCES) $(sxstructsort_SOURCES) \
+	$(sxstructsym_SOURCES) $(sxsym_SOURCES) $(sxtdos_SOURCES) \
+	$(sxuniqdispl_SOURCES) $(sxwaveh5tosxb_SOURCES) \
+	$(sxwavesym_SOURCES) $(sxwavetransfer_SOURCES) \
+	$(sxzdos_SOURCES)
 DIST_SOURCES = $(sx2aims_SOURCES) $(sx2dx_SOURCES) $(sx2gwst_SOURCES) \
 	$(sx2pdb_SOURCES) $(sx2poscar_SOURCES) $(sx2xsf_SOURCES) \
 	$(sx2xyz_SOURCES) $(sxaojoin_SOURCES) $(sxaomat_SOURCES) \
@@ -542,21 +546,22 @@ DIST_SOURCES = $(sx2aims_SOURCES) $(sx2dx_SOURCES) $(sx2gwst_SOURCES) \
 	$(sxfindk_SOURCES) $(sxforces_SOURCES) $(sxgetfermi_SOURCES) \
 	$(sxharmpottst_SOURCES) $(sxinterpol_SOURCES) \
 	$(sxkpprint_SOURCES) $(sxlocalenergy_SOURCES) \
-	$(sxmeshline_SOURCES) $(sxmeshtrace_SOURCES) $(sxmies_SOURCES) \
-	$(sxmulliken_SOURCES) $(sxpdos_SOURCES) \
-	$(sxpespectrum_SOURCES) $(sxposmatel_SOURCES) \
-	$(sxprintocc_SOURCES) $(sxrho2dx_SOURCES) $(sxrhodiff_SOURCES) \
-	$(sxrhograd_SOURCES) $(sxrhorep_SOURCES) $(sxrhosplit_SOURCES) \
-	$(sxrictst_SOURCES) $(sxsawtooth_SOURCES) \
-	$(sxstructcom_SOURCES) $(sxstructdiff_SOURCES) \
-	$(sxstructjoin_SOURCES) $(sxstructparam_SOURCES) \
-	$(sxstructpatch_SOURCES) $(sxstructprint_SOURCES) \
-	$(sxstructrel_SOURCES) $(sxstructrep_SOURCES) \
-	$(sxstructrot_SOURCES) $(sxstructshift_SOURCES) \
-	$(sxstructsort_SOURCES) $(sxstructsym_SOURCES) \
-	$(sxsym_SOURCES) $(sxtdos_SOURCES) $(sxuniqdispl_SOURCES) \
-	$(sxwaveh5tosxb_SOURCES) $(sxwavesym_SOURCES) \
-	$(sxwavetransfer_SOURCES) $(sxzdos_SOURCES)
+	$(sxmeshiso_SOURCES) $(sxmeshline_SOURCES) \
+	$(sxmeshtrace_SOURCES) $(sxmies_SOURCES) $(sxmulliken_SOURCES) \
+	$(sxpdos_SOURCES) $(sxpespectrum_SOURCES) \
+	$(sxposmatel_SOURCES) $(sxprintocc_SOURCES) \
+	$(sxrho2dx_SOURCES) $(sxrhodiff_SOURCES) $(sxrhograd_SOURCES) \
+	$(sxrhorep_SOURCES) $(sxrhosplit_SOURCES) $(sxrictst_SOURCES) \
+	$(sxsawtooth_SOURCES) $(sxstructcom_SOURCES) \
+	$(sxstructdiff_SOURCES) $(sxstructjoin_SOURCES) \
+	$(sxstructparam_SOURCES) $(sxstructpatch_SOURCES) \
+	$(sxstructprint_SOURCES) $(sxstructrel_SOURCES) \
+	$(sxstructrep_SOURCES) $(sxstructrot_SOURCES) \
+	$(sxstructshift_SOURCES) $(sxstructsort_SOURCES) \
+	$(sxstructsym_SOURCES) $(sxsym_SOURCES) $(sxtdos_SOURCES) \
+	$(sxuniqdispl_SOURCES) $(sxwaveh5tosxb_SOURCES) \
+	$(sxwavesym_SOURCES) $(sxwavetransfer_SOURCES) \
+	$(sxzdos_SOURCES)
 RECURSIVE_TARGETS = all-recursive check-recursive cscopelist-recursive \
 	ctags-recursive dvi-recursive html-recursive info-recursive \
 	install-data-recursive install-dvi-recursive \
@@ -749,6 +754,7 @@ SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHARED_VERSION_INFO = @SHARED_VERSION_INFO@
 SHELL = @SHELL@
+STATIC_LIBC = @STATIC_LIBC@
 STRIP = @STRIP@
 SUBDIRS = @SUBDIRS@
 SXACCELERATE = @SXACCELERATE@
@@ -766,10 +772,12 @@ SX_PARAM_ATLAS = @SX_PARAM_ATLAS@
 SX_PARAM_FFTW = @SX_PARAM_FFTW@
 SX_PARAM_MKL = @SX_PARAM_MKL@
 SX_PARAM_MKLFFT = @SX_PARAM_MKLFFT@
+SX_PARAM_NETLIB = @SX_PARAM_NETLIB@
 SX_PARAM_NUMLIBS = @SX_PARAM_NUMLIBS@
 SX_PARAM_SXMATH = @SX_PARAM_SXMATH@
 SX_SHORTCUT_LIBS = @SX_SHORTCUT_LIBS@
 TAIL = @TAIL@
+THREADTRACER = @THREADTRACER@
 TODAY = @TODAY@
 UNAME = @UNAME@
 USE_ACML = @USE_ACML@
@@ -783,6 +791,7 @@ USE_INTEL_MKL = @USE_INTEL_MKL@
 USE_MKL_FFT = @USE_MKL_FFT@
 USE_MPI = @USE_MPI@
 USE_NETCDF4 = @USE_NETCDF4@
+USE_NETLIB = @USE_NETLIB@
 USE_OPENMP = @USE_OPENMP@
 USE_PARALLEL_NETCDF4 = @USE_PARALLEL_NETCDF4@
 USE_PCRE2 = @USE_PCRE2@
@@ -1037,6 +1046,10 @@ sxkpprint_LDADD = $(SXIMPORTLIBS) @SX_FFT_LIBS@ @SX_BLAS_LIBS@ \
 sxlocalenergy_SOURCES = $(AUX_SRC) SxLocalEnergy.cpp
 sxlocalenergy_CPPFLAGS = $(AM_CPPFLAGS) -DSXLIBTOOL="\"@SXLIBTOOL@\""
 sxlocalenergy_LDADD = $(SXIMPORTLIBS) @SX_FFT_LIBS@ @SX_BLAS_LIBS@ \
+	$(SXIMPORTOBJS)
+sxmeshiso_SOURCES = $(AUX_SRC) SxMeshIso.cpp
+sxmeshiso_CPPFLAGS = $(AM_CPPFLAGS) -DSXLIBTOOL="\"@SXLIBTOOL@\""
+sxmeshiso_LDADD = $(SXIMPORTLIBS) @SX_FFT_LIBS@ @SX_BLAS_LIBS@ \
 	$(SXIMPORTOBJS)
 sxmeshline_SOURCES = $(AUX_SRC) SxMeshLine.cpp
 sxmeshline_CPPFLAGS = $(AM_CPPFLAGS) -DSXLIBTOOL="\"@SXLIBTOOL@\""
@@ -1447,6 +1460,10 @@ sxlocalenergy$(EXEEXT): $(sxlocalenergy_OBJECTS) $(sxlocalenergy_DEPENDENCIES) $
 	@rm -f sxlocalenergy$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(sxlocalenergy_OBJECTS) $(sxlocalenergy_LDADD) $(LIBS)
 
+sxmeshiso$(EXEEXT): $(sxmeshiso_OBJECTS) $(sxmeshiso_DEPENDENCIES) $(EXTRA_sxmeshiso_DEPENDENCIES) 
+	@rm -f sxmeshiso$(EXEEXT)
+	$(AM_V_CXXLD)$(CXXLINK) $(sxmeshiso_OBJECTS) $(sxmeshiso_LDADD) $(LIBS)
+
 sxmeshline$(EXEEXT): $(sxmeshline_OBJECTS) $(sxmeshline_DEPENDENCIES) $(EXTRA_sxmeshline_DEPENDENCIES) 
 	@rm -f sxmeshline$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(sxmeshline_OBJECTS) $(sxmeshline_LDADD) $(LIBS)
@@ -1659,6 +1676,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sxinterpol-SxInterpol.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sxkpprint-SxKPPrint.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sxlocalenergy-SxLocalEnergy.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sxmeshiso-SxMeshIso.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sxmeshline-SxMeshLine.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sxmeshtrace-SxMeshTrace.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sxmies-SxMIES.Po@am__quote@
@@ -2204,6 +2222,20 @@ sxlocalenergy-SxLocalEnergy.obj: SxLocalEnergy.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SxLocalEnergy.cpp' object='sxlocalenergy-SxLocalEnergy.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(sxlocalenergy_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o sxlocalenergy-SxLocalEnergy.obj `if test -f 'SxLocalEnergy.cpp'; then $(CYGPATH_W) 'SxLocalEnergy.cpp'; else $(CYGPATH_W) '$(srcdir)/SxLocalEnergy.cpp'; fi`
+
+sxmeshiso-SxMeshIso.o: SxMeshIso.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(sxmeshiso_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT sxmeshiso-SxMeshIso.o -MD -MP -MF $(DEPDIR)/sxmeshiso-SxMeshIso.Tpo -c -o sxmeshiso-SxMeshIso.o `test -f 'SxMeshIso.cpp' || echo '$(srcdir)/'`SxMeshIso.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sxmeshiso-SxMeshIso.Tpo $(DEPDIR)/sxmeshiso-SxMeshIso.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SxMeshIso.cpp' object='sxmeshiso-SxMeshIso.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(sxmeshiso_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o sxmeshiso-SxMeshIso.o `test -f 'SxMeshIso.cpp' || echo '$(srcdir)/'`SxMeshIso.cpp
+
+sxmeshiso-SxMeshIso.obj: SxMeshIso.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(sxmeshiso_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT sxmeshiso-SxMeshIso.obj -MD -MP -MF $(DEPDIR)/sxmeshiso-SxMeshIso.Tpo -c -o sxmeshiso-SxMeshIso.obj `if test -f 'SxMeshIso.cpp'; then $(CYGPATH_W) 'SxMeshIso.cpp'; else $(CYGPATH_W) '$(srcdir)/SxMeshIso.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sxmeshiso-SxMeshIso.Tpo $(DEPDIR)/sxmeshiso-SxMeshIso.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SxMeshIso.cpp' object='sxmeshiso-SxMeshIso.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(sxmeshiso_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o sxmeshiso-SxMeshIso.obj `if test -f 'SxMeshIso.cpp'; then $(CYGPATH_W) 'SxMeshIso.cpp'; else $(CYGPATH_W) '$(srcdir)/SxMeshIso.cpp'; fi`
 
 sxmeshline-SxMeshLine.o: SxMeshLine.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(sxmeshline_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT sxmeshline-SxMeshLine.o -MD -MP -MF $(DEPDIR)/sxmeshline-SxMeshLine.Tpo -c -o sxmeshline-SxMeshLine.o `test -f 'SxMeshLine.cpp' || echo '$(srcdir)/'`SxMeshLine.cpp

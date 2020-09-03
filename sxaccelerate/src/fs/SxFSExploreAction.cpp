@@ -453,7 +453,11 @@ SxList<SxFileInfo> SxFSExploreAction::processNode (const SxString   &name,
         SxString ("..") != name))
    {
       // Performing pattern matching using regular expressions
-      if (SxRegex(pattern, "P").match (info.getName ()).getSize () > 0)  {
+#     ifdef WIN32
+         if (SxRegex(pattern, "Pi").match (info.getName ()).getSize () > 0)  {
+#     else
+         if (SxRegex(pattern, "P").match (info.getName ()).getSize () > 0)  {
+#     endif
          fileInfos << info;
          if (foundDirs)  {
             SxDir infoDir (info);

@@ -678,7 +678,7 @@ void SxTBHamSolver::diagonalizeCmplx ()
 SxAtomicStructure SxTBHamSolver::getForces (const SxAtomicStructure &tau,
                                             const SxSymbolTable *cmd)
 {
-   SX_CLOCK (Timer::forces);
+   SX_CLOCK (Timer::Forces);
 
    cout << SX_SEPARATOR;
    sxprintf ("| This is SxTBHamSolver::getForces\n");

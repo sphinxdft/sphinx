@@ -183,7 +183,6 @@ SxPAWPot::SxPAWPot (const SxSymbolTable *table)
       // initialization densities
       rhoInit.resize (nSpecies);
       rhoInitBasis.resize (nSpecies);
-      rhoInitQ0.resize (nSpecies);
 
       // core densities
       rhoCorePS.resize (nSpecies);
@@ -202,6 +201,10 @@ SxPAWPot::SxPAWPot (const SxSymbolTable *table)
       deltaKin.resize (nSpecies);
       deltaS.resize (nSpecies);
       coreX.resize (nSpecies);
+
+      // atomic volume correction
+      deltaR3Free.resize (nSpecies);
+      deltaR3Free.set (0.);
 
       // Core energy
       coreEnergy.resize (nSpecies);
@@ -1201,8 +1204,9 @@ void SxPAWPot::readAbInit (const SxString &filename, int iSpecies)
    rhoInit(iSpecies).handle->auxData.is = iSpecies;
    rhoInit(iSpecies).handle->auxData.l  = 0;
    rhoInit(iSpecies).handle->auxData.m  = 0;
-   SxDiracVec<Double> sumVec(nPtsMax);
-   sumVec = 0.;
+   SxDiracVec<Double> rhoValAE(nPtsMax), rhoValPS2(nPtsMax);
+   rhoValAE = 0.;
+   rhoValPS2 = 0.;
    
    SxVector<Int> map(getNProj(iSpecies));
    for (int ipt = 0, ip = 0; ipt < nWaves; ++ipt)  {
@@ -1215,21 +1219,21 @@ void SxPAWPot::readAbInit (const SxString &filename, int iSpecies)
    // --- Maxmal difference for pseudo valence densities
    for (int ia = 0; ia < rhoij0.nRows (); ia++) {
       for (int ja = 0; ja< rhoij0.nCols (); ja++) {
-         //sumVec += rhoij0(ia,ja)*phiPS(iSpecies).colRef(map(ia))
-         //          *phiPS(iSpecies).colRef(map(ja));
-         sumVec += rhoij0(ia,ja)* nij(phiAE(iSpecies),map(ia),map(ja));
+         rhoValPS2 += rhoij0(ia,ja)* nij(phiPS(iSpecies),map(ia),map(ja));
+         rhoValAE  += rhoij0(ia,ja)* nij(phiAE(iSpecies),map(ia),map(ja));
       }
       foccInit(iSpecies)(map(ia)) += rhoij0(ia,ia);
    }
-   sumVec /= FOUR_PI;
+   rhoValAE /= FOUR_PI;
+   rhoValPS2 /= FOUR_PI;
 
    if (verbose) {
       int idx;
-      double d = (rhoValPS-sumVec).maxval (&idx);
+      double d = (rhoValPS-rhoValPS2).maxval (&idx);
       cout << "Maximal difference for pseudo valence densities\n"
            << "(from File - from PS waves): " << d
            << "@" << idx << ": "
-           << rhoValPS(idx) << "/" << sumVec(idx) << endl;
+           << rhoValPS(idx) << "/" << rhoValPS2(idx) << endl;
    }
 
    double SQRT_4PI = sqrt(FOUR_PI);
@@ -1238,8 +1242,6 @@ void SxPAWPot::readAbInit (const SxString &filename, int iSpecies)
       // Monopole moments of valence and core
       double Qv = foccInit(iSpecies).sum ()
                 - FOUR_PI * (rhoValPS * rad(iSpecies).cub ()).integrate (logdr);
-      cout << "Qv=" << Qv << endl;
-      rhoInitQ0(iSpecies) = Qv;
       if (verbose) cout << "Qv = " << Qv << endl;
 
       double QZc = - nuclearCharge(iSpecies)
@@ -1262,7 +1264,15 @@ void SxPAWPot::readAbInit (const SxString &filename, int iSpecies)
          cout << "g0File moment: "
               << (FOUR_PI * (g0File * rad(iSpecies).cub ()).integrate (logdr)) << endl;
          writePlot ("rhoVal-"+prettyName(iSpecies), rad(iSpecies),
-                    rhoValPS + Qv * g0, rhoValPS, sumVec);
+                    rhoValPS + Qv * g0, rhoValPS, rhoValAE);
+      }
+      deltaR3Free(iSpecies) = (  (rhoValAE + rhoCoreAE(iSpecies)
+                                  - rhoValPS2 - rhoCorePS(iSpecies))
+                            * rad(iSpecies).cub ().sqr ()//r^3 volume,r^3 integration
+                        ).integrate (logdr) * FOUR_PI;
+      if (verbose)  {
+         cout << "Atomic volume PAW correction: " << deltaR3Free(iSpecies)
+              << endl;
       }
 
 
@@ -1514,7 +1524,7 @@ void SxPAWPot::readAtomPAW (const SxString &filename, int iSpecies)
    int meshSize   = potFileTok(13).right("MESH_SIZE").toInt ();
    int psCoreSize = potFileTok(16).right("CORETAIL_POINTS").toInt ();
    int lcaoSize   = potFileTok(17).right("LCAO_SIZE").toInt ();
-   int nPtsMax, psRhoSize = -1;
+   int nPtsMax = -1, psRhoSize = -1;
 
    if ( lcaoSize >= meshSize ) {
       nPtsMax = lcaoSize;
@@ -1738,11 +1748,10 @@ void SxPAWPot::readAtomPAW (const SxString &filename, int iSpecies)
       }
 
       // Monopole moment of pseudo-density
-      double Q = - sqrt(FOUR_PI) * ((rhoValPS + rhoCorePS(iSpecies))
-                                 * rad(iSpecies).cub ()).integrate (logdr);
-      Q += nValElec - valenceCharge(iSpecies);
+      double Q = -sqrt(FOUR_PI) * ((rhoValPS + rhoCorePS(iSpecies))
+                                * rad(iSpecies).cub ()).integrate (logdr);
+      Q += nValElec - valenceCharge(iSpecies); // should be 0
       sxprintf ("compensation Q= %.12f\n", Q);
-      rhoInitQ0(iSpecies) = Q;
       SxDiracVec<Double> g0 = getGrl(iSpecies, 0) / FOUR_PI, vScr;
       //SxDiracVec<Double> g0 = g0File; // DEBUG only
       g0File.setBasis (&radB);
@@ -1763,20 +1772,36 @@ void SxPAWPot::readAtomPAW (const SxString &filename, int iSpecies)
       vScr -= SxRadialAtom::getHartreeSmooth (Q * g0File);
       vBar(iSpecies) -= vScr; 
 
+      double Qv = valenceCharge(iSpecies)
+                - sqrt(FOUR_PI)*(rhoValPS * rad(iSpecies).cub ()).integrate (logdr);
+      Qv += nValElec - valenceCharge(iSpecies); // should be 0
+
       if (kjXcShape.getSize () > 0)  {
-         Q = valenceCharge(iSpecies) 
-           - sqrt(FOUR_PI)*(rhoValPS * rad(iSpecies).cub ()).integrate (logdr);
          kjXcShape(iSpecies) = g0File * FOUR_PI;
          vBar(iSpecies)
             -= SxRadialAtom::computeXC(rad(iSpecies), logdr,
                                        rhoValPS/sqrt(FOUR_PI)
                                        + rhoCorePS(iSpecies)/sqrt(FOUR_PI)
-                                       + Q * g0File, xcFunctional)
+                                       + Qv * g0File, xcFunctional)
              - SxRadialAtom::computeXC(rad(iSpecies), logdr,
                                        rhoValPS/sqrt(FOUR_PI)
                                        + rhoCorePS(iSpecies)/sqrt(FOUR_PI),
                                        xcFunctional);
       }
+
+      // --- atomic volume correction
+      SxDiracVec<Double> rhoValAE_PS(nRad);
+      rhoValAE_PS.set (0.);
+      SX_LOOP(ipt)  {
+         rhoValAE_PS.plus_assign_ax(foccInit(iSpecies)(ipt)/FOUR_PI,
+                                      nij(phiAE(iSpecies), ipt, ipt)
+                                    - nij(phiPS(iSpecies), ipt, ipt));
+      }
+
+      deltaR3Free(iSpecies) = (  (rhoValAE_PS
+                     + (rhoCoreAE(iSpecies)- rhoCorePS(iSpecies))/sqrt(FOUR_PI))
+                   * rad(iSpecies).cub ().sqr ()//r^3 volume,r^3 integration
+                               ).integrate (logdr) * FOUR_PI;
    }
 
    writePlot ("vbar.dat", rad(iSpecies), vBar(iSpecies));
@@ -2030,6 +2055,31 @@ void SxPAWPot::readVasp (const SxString &filename, int is, bool useProjG)
    rhoInit(is).handle->auxData.is = is;
    rhoInit(is).handle->auxData.l = 0;
    rhoInit(is).handle->auxData.m = 0;
+   /*
+   if (verbose)  {
+      double dr = 0.01;
+      SxVector<Double> rhoInitR = toRSpace(psValG + psCoreG, gMax, 10., dr, 1e-10);
+      FILE *out = sxfopen ("rhoInit-" + prettyName(is)+".dat","w");
+      SX_LOOP(ir)
+         fprintf(out, "%.6f %.16f\n", (int)ir * dr, rhoInitR(ir));
+      SxVector<Double> rhoInitCut(nPts);
+      rhoInitCut.set (0.);
+      fprintf (out, "\n");
+      double gCut = 120.;
+      for (int ig = 1; ig < nPts; ++ig)  {
+         double g = ig * gMax / nPts;
+         if (g*g > gCut) {
+            break;
+         }
+         rhoInitCut(ig) = psValG(ig) + psCoreG(ig);
+      }
+      rhoInitR = toRSpace(rhoInitCut, gMax, 10., dr);
+      SX_LOOP(ir)
+         fprintf(out, "%.6f %.16f\n", (int)ir * dr, rhoInitR(ir));
+      fclose (out);
+
+   }
+   */
 
    //cout << normValPS << endl;
    /*
@@ -2731,12 +2781,16 @@ void SxPAWPot::readVasp (const SxString &filename, int is, bool useProjG)
    double QZc = - nuclearCharge(is)
                 + sqrt(FOUR_PI) * ((rhoCoreAE(is) - rhoCorePS(is))
                                    * rad(is).cub ()).integrate(logdr);
-   rhoInitQ0(is) = Qv;
 
    SxDiracVec<Double> grl = getGrl (is, 0);
    grl.setBasis (&radB);
    grl /= FOUR_PI;
    g0File2 /= FOUR_PI;
+   deltaR3Free(is) = (  (rhoValAE - rhoValPsBare
+                         + (rhoCoreAE(is)- rhoCorePS(is))/sqrt(FOUR_PI))
+                         * rad(is).cub ().sqr () // r^3 volume, r^3 integration
+                     ).integrate (logdr) * FOUR_PI;
+
 
    //cout << FOUR_PI * (grl * rad(is).cub ()).integrate (logdr) << endl;
    //cout << FOUR_PI * (g0File2 * rad(is).cub ()).integrate (logdr) << endl;
@@ -2904,9 +2958,6 @@ void SxPAWPot::readCPPAW (const SxString &filename, int iSpecies)
          dover(i++) = line.subString(idx, idx+colWidth-1).toDouble();
    }
    deltaS(iSpecies) = dover;
-   rhoInitQ0(iSpecies) = 0.;
-   SX_LOOP(ipt) rhoInitQ0(iSpecies) += foccInit(iSpecies)(ipt)
-                                     * deltaS(iSpecies)(ipt, ipt);
 
    // --- read in triple blocks (projector,aephi,psphi) with l=lPhi
    SxDiracMat<Double>  proj (nr,nwave);   // :i,:ir
@@ -2947,6 +2998,20 @@ void SxPAWPot::readCPPAW (const SxString &filename, int iSpecies)
       rMesh(i) = r0 * exp(dex*i);
    rad(iSpecies) = rMesh;
 
+   // --- atomic volume correction
+   SxDiracVec<Double> rhoValAE_PS(nr);
+   rhoValAE_PS.set (0.);
+   SX_LOOP(ipt)  {
+      rhoValAE_PS.plus_assign_ax(foccInit(iSpecies)(ipt)/FOUR_PI,
+                                   nij(phiAE(iSpecies), ipt, ipt)
+                                 - nij(phiPS(iSpecies), ipt, ipt));
+   }
+
+   deltaR3Free(iSpecies) = (  (rhoValAE_PS
+                               + (  rhoCoreAE(iSpecies)
+                                  - rhoCorePS(iSpecies))/sqrt(FOUR_PI))
+                      * rad(iSpecies).cub ().sqr ()//r^3 volume,r^3 integration
+                           ).integrate (dex) * FOUR_PI;
 }
 
 int SxPAWPot::getNProj (int iSpecies) const
@@ -3057,10 +3122,8 @@ SxRadialMesh SxPAWPot::computeRho (const SxMatrix<Double> &Dij, int is,
 SxDiracVec<TPrecCoeffG>
 SxPAWPot::getAtomRhoG(const SxGBasis &G, int iSpecies) const
 {
-   SxDiracVec<TPrecCoeffG> g0 = exp((-0.25 * sqr(rc(iSpecies))) * G.g2)
-                              * rhoInitQ0(iSpecies);
    if (rhoInit(iSpecies).getSize () > 0)  {
-      return (G | rhoInit(iSpecies)) + g0;
+      return (G | rhoInit(iSpecies));
    }
    SxDiracVec<Double> rhoRad (getRadBasis ()((int)iSpecies));
    rhoRad <<= rhoCorePS (iSpecies);
@@ -3090,7 +3153,7 @@ SxPAWPot::getAtomRhoG(const SxGBasis &G, int iSpecies) const
    rhoRad.handle->auxData.is = iSpecies;
    rhoRad.handle->auxData.l  = 0;
    rhoRad.handle->auxData.m  = 0;
-   return ( G | rhoRad) + g0;
+   return ( G | rhoRad);
 }
 
 SxDiracVec<Double> SxPAWPot::getGrl (int is, int l) const

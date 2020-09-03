@@ -9,8 +9,7 @@ include_HEADERS = SxDemo1.h \
 
 lib_LTLIBRARIES       = libsxdemo1.la
 libsxdemo1_la_SOURCES  = $(AUX_SRC)
-libsxdemo1_la_SOURCES += SxDemo1Parser.cpp \
-   SxDemo1Parser.lex.cpp
+libsxdemo1_la_SOURCES += SxDemo1Parser.cpp
 
 libsxdemo1_la_LIBADD   = $(SXIMPORTLIBS)
 libsxdemo1_la_LIBADD  += 

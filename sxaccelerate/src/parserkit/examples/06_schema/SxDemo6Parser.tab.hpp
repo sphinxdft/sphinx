@@ -46,13 +46,13 @@ extern int SxDemo6Parser_debug;
   enum yytokentype
   {
     TK_INTEGER = 258,
-    TK_FLOAT = 259,
+    TK_REAL = 259,
     TK_STRING = 260
   };
 #endif
 /* Tokens.  */
 #define TK_INTEGER 258
-#define TK_FLOAT 259
+#define TK_REAL 259
 #define TK_STRING 260
 
 /* Value type.  */
@@ -60,11 +60,11 @@ extern int SxDemo6Parser_debug;
 
 union YYSTYPE
 {
-#line 21 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/06_schema/SxDemo6Parser.ypp" /* yacc.c:1909  */
+#line 22 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/06_schema/SxDemo6Parser.ypp" /* yacc.c:1909  */
 
    ssize_t   nodeId;
-   ssize_t   intVal;
-   double    floatVal;
+   int64_t   intVal;
+   double    realVal;
    SxString *strPtr;
 
 #line 71 "SxDemo6Parser.tab.hpp" /* yacc.c:1909  */

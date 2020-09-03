@@ -47,6 +47,15 @@ SxFileIO::SxFileIO ()
    SX_TRACE ();
 }
 
+SxFileIO::SxFileIO (const SxString &path_,
+                    const SxString &mode_,
+                    int            permission_)
+   : SxFileIO ()
+{
+   SX_TRACE ();
+   open (path_, mode_, permission_);
+}
+
 SxFileIO::~SxFileIO ()
 {
    SX_TRACE ();

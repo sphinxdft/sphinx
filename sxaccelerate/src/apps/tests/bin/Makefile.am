@@ -19,7 +19,7 @@ BUILT_SOURCES = sxgentests-inc.h sxgentests-map.h
 
 AUX_SRC = $(SXDOC_SRC)
 
-SX_DEPLIBS = $(SXIO) $(SXFS) $(SXIPC) $(SXUTIL) $(SXNONSTD)
+SX_DEPLIBS = $(SXJSON) $(SXIO) $(SXGRAPH) $(SXFS) $(SXIPC) $(SXUTIL) $(SXNONSTD)
 
 EXT_LIBS =
 

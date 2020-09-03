@@ -167,7 +167,7 @@ void SxSpeciesData::readSpecies (const SxSymbolTable *tableIn)
             if (symbol.getSize () == 2
                 && (symbol(1) < 'a' || symbol(1) > 'z'))
                 symbol.resize (1, true);
-            const SxElemDB database = SxElemDB::getElemDB ();
+            const SxElemDB &database = SxElemDB::getElemDB ();
             double mass = database.getAtomicWeight (symbol);
             if (fabs(mass) < 1e-10)  {
                cout << "WARNING: failed to look up element '"

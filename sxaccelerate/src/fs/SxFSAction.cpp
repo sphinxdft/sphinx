@@ -41,6 +41,8 @@ void SxFSAction::chmod (const SxString& target,
                         SxFileInfo::AccessGroup group,
                         SxFileInfo::AccessType type)
 {
+   SX_TRACE ();
+   SX_CHECK (target != "");
    SxFSAction::chmod (SxFileInfo (target), group, type);
 }
 
@@ -48,59 +50,75 @@ void SxFSAction::chmod (const SxFileInfo& target,
                         SxFileInfo::AccessGroup group,
                         SxFileInfo::AccessType type)
 {
+   SX_TRACE ();
    SxFSAuthorAction::chmod (target, group, type);
 }
 
 void SxFSAction::chmod (const SxString &path, int mode)
 {
+   SX_TRACE ();
+   SX_CHECK (path != "");
    SxFSAuthorAction::chmod (SxFileInfo (path), mode);
 }
 
 void SxFSAction::chmod (int perm,
                         const SxString& targetStr)
 {
+   SX_TRACE ();
+   SX_CHECK (targetStr != "");
    SxFSAction::chmod (perm, SxFileInfo (targetStr));
 }
 
 void SxFSAction::chmod (int perm,
                         const SxFileInfo &target)
 {
+   SX_TRACE ();
    SxFSAuthorAction::chmod (perm, target);
 }
 
 void SxFSAction::chmod (const SxString &modStr,
                         const SxString &targetStr)
 {
+   SX_TRACE ();
+   SX_CHECK (modStr != "");
+   SX_CHECK (targetStr != "");
    SxFSAction::chmod (modStr, SxFileInfo (targetStr));
 }
 
 void SxFSAction::chmod (const SxString   &modStr,
                         const SxFileInfo &target)
 {
+   SX_TRACE ();
    SxFSAuthorAction::chmod (modStr, target);
 }
 
 void SxFSAction::chgrp (unsigned int gid,
                         const SxString &target)
 {
+   SX_TRACE ();
+   SX_CHECK (target != "");
    SxFSAction::chgrp (gid, SxFileInfo (target));
 }
 
 void SxFSAction::chgrp (unsigned int gid,
                         const SxFileInfo& target)
 {
+   SX_TRACE ();
    SxFSAuthorAction::chgrp (target, gid);
 }
 
 void SxFSAction::chown (unsigned int uid,
-                        const SxString& target)
+                        const SxString &target)
 {
+   SX_TRACE ();
+   SX_CHECK (target != "");
    SxFSAction::chown (uid, SxFileInfo (target));
 }
 
 void SxFSAction::chown (unsigned int uid,
                         const SxFileInfo& target)
 {
+   SX_TRACE ();
    SxFSAuthorAction::chown (target, uid);
 }
 
@@ -108,12 +126,16 @@ void SxFSAction::chown (unsigned int uid,
 void SxFSAction::mv (const SxString &src,
                      const SxString &dest)
 {
+   SX_TRACE ();
+   SX_CHECK (src != "");
+   SX_CHECK (dest != "");
    SxFSAction::mv (SxFileInfo (src), SxFileInfo (dest));
 }
 
 void SxFSAction::mv (const SxFileInfo &src,
                      const SxFileInfo &dest)
 {
+   SX_TRACE ();
    SxPtr<SxFSMoveAction> mvAct = SxPtr<SxFSMoveAction>::create ();
    mvAct->execute (src, dest);
 }
@@ -121,6 +143,9 @@ void SxFSAction::mv (const SxFileInfo &src,
 void SxFSAction::cp (const SxString &src,
                      const SxString &dest)
 {
+   SX_TRACE ();
+   SX_CHECK (src != "");
+   SX_CHECK (dest != "");
    SxFSAction::cp (SxFileInfo (src), SxFileInfo (dest));
 }
 
@@ -134,23 +159,30 @@ void SxFSAction::cp (const SxFileInfo &src,
 // --- Create-functions
 void SxFSAction::touch (const SxString &target, int mode)
 {
+   SX_TRACE ();
+   SX_CHECK (target != "");
    touch (SxFileInfo (target), mode);
 }
 
 void SxFSAction::touch (const SxFileInfo &target, int mode)
 {
-  SxFSCreateAction::touch (target, mode);
+   SX_TRACE ();
+   SxFSCreateAction::touch (target, mode);
 }
 
 SxFileInfo SxFSAction::ln_sf (const SxString &path,
                               const SxString &newLink)
 {
+   SX_TRACE ();
+   SX_CHECK (path != "");
+   SX_CHECK (newLink != "");
    return SxFSAction::ln_sf (SxFileInfo (path), SxSymLink (newLink));
 }
 
 SxFileInfo SxFSAction::ln_sf (const SxFileInfo &path,
                               const SxFileInfo &newLink)
 {
+   SX_TRACE ();
    if (SxFSAction::test_L (newLink.getAbsPath ()))  {
       SxFSAction::rm_r (newLink.getAbsPath ());
    }
@@ -161,25 +193,31 @@ SxFile SxFSAction::createTmpFile (const SxString &tmpDir,
                                   const SxArray<unsigned char> &
                                   buffer)
 {
+   SX_TRACE ();
    return SxFSCreateAction::createTmpFile (tmpDir, buffer);
 }
 
 void SxFSAction::mkdir (const SxString &subFolder,
                         int umask)
 {
+   SX_TRACE ();
+   SX_CHECK (subFolder != "");
    SxFSAction::mkdir (SxDir (subFolder), umask);
 }
 
 void SxFSAction::mkdir (const SxDir &subFolder,
                         int umask)
 {
+   SX_TRACE ();
    SxFSCreateAction::mkdir (subFolder, umask);
 }
 
 void SxFSAction::mkdir_p (const SxString &destDir,
                           int umask)
 {
-   SX_CHECK (destDir.removeWhiteSpace() != "");
+   SX_TRACE ();
+   SX_CHECK (destDir != "");
+   SX_CHECK (destDir.removeWhiteSpace () != "");
    SX_CHECK (!destDir.contains ("***"), destDir); // avoid markers
    SxFSAction::mkdir_p (SxDir (destDir), umask);
 }
@@ -187,6 +225,7 @@ void SxFSAction::mkdir_p (const SxString &destDir,
 void SxFSAction::mkdir_p (const SxDir &destDir,
                           int umask)
 {
+   SX_TRACE ();
    SX_CHECK (destDir.getPath ().removeWhiteSpace () != "");
    SX_CHECK (!destDir.getPath ().contains ("***"), destDir); // avoid markers
    SxFSCreateAction::mkdir_p (destDir, umask);
@@ -195,6 +234,8 @@ void SxFSAction::mkdir_p (const SxDir &destDir,
 // --- Delete-functions
 void SxFSAction::rm (const SxString &target)
 {
+   SX_TRACE ();
+   SX_CHECK (target != "");
    if (target == "")  {
       SX_THROW ("rm(pathname): Pathname can't be empty string.");
    }
@@ -203,11 +244,14 @@ void SxFSAction::rm (const SxString &target)
 
 void SxFSAction::rm (const SxFile &target)
 {
+   SX_TRACE ();
    SxFSDeleteAction::rm (target);
 }
 
 void SxFSAction::rmdir (const SxString &path)
 {
+   SX_TRACE ();
+   SX_CHECK (path != "");
    if (path == "")  {
       SX_THROW ("rmdir(pathname): Pathname can't be empty string.");
    }
@@ -216,11 +260,15 @@ void SxFSAction::rmdir (const SxString &path)
 
 void SxFSAction::rmdir (const SxDir &path)
 {
+   SX_TRACE ();
    SxFSDeleteAction::rmdir (path);
 }
 
 void SxFSAction::rm_r (const SxString &target)
 {
+   SX_TRACE ();
+   SX_CHECK (target != "");
+
    if (target == "")  {
       SX_THROW("rm_r(pathname): Pathname can't be empty string.");
    }
@@ -229,54 +277,66 @@ void SxFSAction::rm_r (const SxString &target)
 
 void SxFSAction::rm_r (const SxFileInfo &target)
 {
+   SX_TRACE ();
    SxFSDeleteAction::rm_r (target);
 }
 
 // --- Navigate-functions
 void SxFSAction::cd (const SxString &newCWD)
 {
+   SX_TRACE ();
+   SX_CHECK (newCWD != "");
    SxFSAction::cd (SxDir (newCWD));
 }
 
 void SxFSAction::cd (const SxDir &newCWD)
 {
+   SX_TRACE ();
    SxFSNavigateAction::cd (newCWD);
 }
 
 void SxFSAction::pushd (const SxString &dir)
 {
+   SX_TRACE ();
+   SX_CHECK (dir != "");
    SxFSAction::pushd (SxDir (dir));
 }
 
 void SxFSAction::pushd (const SxDir &dir)
 {
+   SX_TRACE ();
    SxFSNavigateAction::pushd (SxDir (dir));
 }
 
 void SxFSAction::popd ()
 {
+   SX_TRACE ();
    SxFSNavigateAction::popd ();
 }
 
 // --- Explore-functions
 SxDir SxFSAction::getHome ()
 {
+   SX_TRACE ();
    return SxFSExploreAction::getHome ();
 }
 
 SxDir SxFSAction::getTmp ()
 {
+   SX_TRACE ();
    return SxFSExploreAction::getTmp ();
 }
 
 SxDir SxFSAction::pwd ()
 {
+   SX_TRACE ();
    return SxFSExploreAction::pwd ();
 }
 
 SxList<SxFileInfo> SxFSAction::find (const SxString &name, bool chdir_)
 {
-   SX_DBG_TRACE("");
+   SX_TRACE ();
+   SX_CHECK (name != "");
 
    // --- support of "dirA/dirB/*.ext"
    SxList<SxString> patternList = name.tokenize ('/');
@@ -300,40 +360,47 @@ SxList<SxFileInfo> SxFSAction::find (const SxString &name, bool chdir_)
 
 SxList<SxFISortedByTime> SxFSAction::ls_t (const SxString &path)
 {
-   SX_DBG_TRACE("");
+   SX_TRACE ();
+   SX_CHECK (path != "");
    return SxFSAction::ls_t (SxFileInfo (path));
 }
 
 SxList<SxFISortedByTime> SxFSAction::ls_t (const SxFileInfo &path)
 {
-   SX_DBG_TRACE("");
+   SX_TRACE ();
    return SxFSExploreAction::ls_t (path);
 }
 
 SxList<SxFISortedBySize> SxFSAction::ls_S (const SxString &path)
 {
-   SX_DBG_TRACE("");
+   SX_TRACE ();
+   SX_CHECK (path != "");
    return SxFSAction::ls_S (SxFileInfo (path));
 }
 
 SxList<SxFISortedBySize> SxFSAction::ls_S (const SxFileInfo &path)
 {
-   SX_DBG_TRACE("");
+   SX_TRACE ();
    return SxFSExploreAction::ls_S (path);
 }
 
 SxList<SxFileInfo> SxFSAction::ls (const SxString &path)
 {
+   SX_TRACE ();
+   SX_CHECK (path != "");
    return SxFSAction::ls (SxFileInfo (path));
 }
 
 SxList<SxFileInfo> SxFSAction::ls (const SxFileInfo &src)
 {
+   SX_TRACE ();
    return SxFSExploreAction::ls (src);
 }
 
 SxString SxFSAction::which (const SxString &file, const SxString &path_)
 {
+   SX_TRACE ();
+   SX_CHECK (file != "");
    SxList<SxString> files = where (file, path_);
    if (files.getSize() == 0)  return "";
    else                       return files.first ();
@@ -342,6 +409,9 @@ SxString SxFSAction::which (const SxString &file, const SxString &path_)
 SxList<SxString> SxFSAction::where (const SxString &file,
                                     const SxString &path_)
 {
+   SX_TRACE ();
+   SX_CHECK (file != "");
+
    SxList<SxString> res;
    SxFile f(file);
    if (f.exists ())  res << f.getAbsPath();
@@ -376,6 +446,8 @@ SxList<SxString> SxFSAction::where (const SxString &file,
 // Collect all filenames in given directory. Recursive.
 SxList<SxString> SxFSAction::listDir (const SxString &path_)
 {
+   SX_TRACE ();
+   SX_CHECK (path_ != "");
    SxList<SxString> result;
 
    SxFSExploreAction::listDir (path_, &result);
@@ -385,51 +457,68 @@ SxList<SxString> SxFSAction::listDir (const SxString &path_)
 
 SxList<SxFile> SxFSAction::getFiles (const SxString &path)
 {
+   SX_TRACE ();
+   SX_CHECK (path != "");
    return SxFSAction::getFiles (SxFileInfo (path));
 }
 
 SxList<SxFile> SxFSAction::getFiles (const SxFileInfo &path)
 {
+   SX_TRACE ();
    return SxFSExploreAction::getFiles (path);
 }
 
 SxList<SxDir> SxFSAction::getDirs (const SxString &path)
 {
+   SX_TRACE ();
+   SX_CHECK (path != "");
    return SxFSAction::getDirs (SxFileInfo (path));
 }
 
 SxList<SxDir> SxFSAction::getDirs (const SxFileInfo &path)
 {
+   SX_TRACE ();
    return SxFSExploreAction::getDirs (path);
 }
 
 SxList<SxSymLink> SxFSAction::getSymLinks (const SxString &path)
 {
+   SX_TRACE ();
+   SX_CHECK (path != "");
    return SxFSAction::getSymLinks (SxFileInfo (path));
 }
 
 SxList<SxSymLink> SxFSAction::getSymLinks (const SxFileInfo &path)
 {
+   SX_TRACE ();
    return SxFSExploreAction::getSymLinks (path);
 }
 
 // --- Meta-functions (for convenience)
 bool SxFSAction::exists (const SxString &str)
 {
+   SX_TRACE ();
+   SX_CHECK (str != "");
    return SxFileInfo (str).exists ();
 }
 
 bool SxFSAction::test_f (const SxString &str)
 {
+   SX_TRACE ();
+   SX_CHECK (str != "");
    return SxFile (str).exists ();
 }
 
 bool SxFSAction::test_d (const SxString &str)
 {
+   SX_TRACE ();
+   SX_CHECK (str != "");
    return SxDir (str).exists ();
 }
 
 bool SxFSAction::test_L (const SxString &str)
 {
+   SX_TRACE ();
+   SX_CHECK (str != "");
    return SxSymLink (str).exists ();
 }

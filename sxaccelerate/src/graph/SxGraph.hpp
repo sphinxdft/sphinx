@@ -59,14 +59,15 @@ SxGraphItState<SValue,SNode,SContainer,IT>::SxGraphItState (
          distMap.append (SxPair<ssize_t,ssize_t>(idx, pathLen));
          visited << idx;
          distMapIdx = -1;
-         procNext ();
+         if (dir == sx::Forward)  procNext ();
+         else                     procPrev ();
       }
    }  else  {
       if (selection.getPtr ())  {
          selectionIt = selection->begin ();
          if (selectionIt.isValid ()) ++selectionIt;
       }
-      node = (idx >= 0) ? &container->nodes->get(idx) : NULL;
+      node = (idx >= 0) ? &container->nodes->get (idx) : NULL;
    }
 }
 
@@ -80,7 +81,7 @@ SxGraphItState<SValue,SNode,SContainer,IT>::SxGraphItState (
 
 template<class SValue,class SNode,class SContainer,class IT>
 SxGraphItState<SValue,SNode,SContainer,IT>::SxGraphItState (
-     SxGraphItState &&in, sx::ItCopyMode cMode_)
+     SxGraphItState &&in, sx::ItCopyMode cMode_) noexcept
 {
    SX_TRACE ();
    move (std::move(in), cMode_);
@@ -97,18 +98,9 @@ void SxGraphItState<SValue,SNode,SContainer,IT>::procNext ()
       return;
    }
 
-   /*idx     = distMap.first().key;
-   if (idx < 0)  {
-      node = NULL;
-      return;
-   }
-   node    = &container->nodes->get(idx);
-   pathLen = distMap.first().value;
-   distMap.removeFirst ();*/
-
    distMapIdx += 1;
 
-   if (distMapIdx >= distMap.getSize()) {
+   if (distMapIdx >= distMap.getSize())  {
       idx = -1;
       node = NULL;
       return;
@@ -120,7 +112,7 @@ void SxGraphItState<SValue,SNode,SContainer,IT>::procNext ()
       return;
    }
 
-   node    = &container->nodes->get(idx);
+   node    = &container->nodes->get (idx);
    pathLen = distMap(distMapIdx).value;
    //distMap.removeFirst ();
 
@@ -128,7 +120,7 @@ void SxGraphItState<SValue,SNode,SContainer,IT>::procNext ()
    if (dir == sx::Forward)  {
       // --- follow outgoing
 
-      const SxArray<SxPair<ssize_t,ssize_t> > &edges = node->out;
+      const SxArray<SxPair<ssize_t,ssize_t> > &edges = node->out ();
       ssize_t n = edges.size;
       if (selection.getPtr ())  {
          for (ssize_t i=0; i < n; ++i)  {
@@ -161,7 +153,7 @@ void SxGraphItState<SValue,SNode,SContainer,IT>::procNext ()
    if (dir == sx::Backward)  {
       // --- follow incoming
 
-      const SxArray<SxPair<ssize_t,ssize_t> > &edges = node->in;
+      const SxArray<SxPair<ssize_t,ssize_t> > &edges = node->in ();
       ssize_t n = edges.size;
       if (selection.getPtr ())  {
          for (ssize_t i=0; i < n; ++i)  {
@@ -202,7 +194,7 @@ void SxGraphItState<SValue,SNode,SContainer,IT>::copy (const CIT &in_,
    idx             = in_.idx;
    dir             = in_.dir;
 
-   if (cMode_ == sx::CopyItData) {
+   if (cMode_ == sx::CopyItData)  {
       maxDepth        = 0;
       pathLen         = 0;
       selectedSizeIn  = 0;
@@ -219,17 +211,18 @@ void SxGraphItState<SValue,SNode,SContainer,IT>::copy (const CIT &in_,
             //distMap << SxPair<ssize_t,ssize_t>(idx, pathLen);
             distMap.append (SxPair<ssize_t,ssize_t>(idx, pathLen));
             visited << idx;
-            procNext ();
+            if (dir == sx::Forward)  procNext ();
+            else                     procPrev ();
          }
       }  else  {
          if (selection.getPtr ())  {
             selectionIt = selection->begin ();
             if (selectionIt.isValid ()) ++selectionIt;
          }
-         node = (idx >= 0) ? &container->nodes->get(idx) : NULL;
+         node = (idx >= 0) ? &container->nodes->get (idx) : NULL;
       }
    }
-   if (cMode_ == sx::CopyItMeta || cMode_ == sx::CopyAll) {
+   if (cMode_ == sx::CopyItMeta || cMode_ == sx::CopyAll)  {
       maxDepth        = in_.maxDepth;
       pathLen         = in_.pathLen;
       selectedSizeIn  = in_.selectedSizeIn;
@@ -255,7 +248,7 @@ void SxGraphItState<SValue,SNode,SContainer,IT>::move
    idx             = in_.idx;
    dir             = in_.dir;
 
-   if (cMode_ == sx::CopyItData) {
+   if (cMode_ == sx::CopyItData)  {
       maxDepth        = 0;
       pathLen         = 0;
       selectedSizeIn  = 0;
@@ -272,18 +265,19 @@ void SxGraphItState<SValue,SNode,SContainer,IT>::move
             //distMap << SxPair<ssize_t,ssize_t>(idx, pathLen);
             distMap.append (SxPair<ssize_t,ssize_t>(idx, pathLen));
             visited << idx;
-            procNext ();
+            if (dir == sx::Forward)  procNext ();
+            else                     procPrev ();
          }
       }  else  {
          if (selection.getPtr ())  {
             selectionIt = selection->begin ();
             if (selectionIt.isValid ()) ++selectionIt;
          }
-         node = (idx >= 0) ? &container->nodes->get(idx) : NULL;
+         node = (idx >= 0) ? &container->nodes->get (idx) : NULL;
       }
    }
 
-   if (cMode_ == sx::CopyItMeta || cMode_ == sx::CopyAll) {
+   if (cMode_ == sx::CopyItMeta || cMode_ == sx::CopyAll)  {
       maxDepth        = in_.maxDepth;
       pathLen         = in_.pathLen;
       selectedSizeIn  = in_.selectedSizeIn;
@@ -338,26 +332,49 @@ template<class SValue,class SNode,class SContainer,class IT>
 void SxGraphItState<SValue,SNode,SContainer,IT>::next ()
 {
    SX_CHECK (container);
-   if (dir != sx::Undefined)  {
+
+   if (dir == sx::Backward)  {
+      if (distMap.getSize () < 1)  {
+         idx  = -1;
+         node = NULL;
+         return;
+      }
+
+      distMapIdx -= 1;
+
+      if (distMapIdx < 0)  {
+         idx = -1;
+         node = NULL;
+         return;
+      }
+
+      idx     = distMap(distMapIdx).key;
+      if (idx < 0)  {
+         node = NULL;
+         return;
+      }
+      node    = &container->nodes->get (idx);
+      pathLen = distMap(distMapIdx).value;
+   }  else if (dir != sx::Undefined)  {
       procNext ();
-   }  else if (selection.getPtr ()) {
+   }  else if (selection.getPtr ())  {
       if (selectionIt.isValid ())  {
          idx = *selectionIt;
-         node = &container->nodes->get(idx);
+         node = &container->nodes->get (idx);
          ++selectionIt;
       }  else  {
          idx = -1;
          node = NULL;
       }
    }  else  {
-      idx = node->next;
-      node = (idx >= 0) ? &container->nodes->get(idx) : NULL;
+      //idx = node->next;
+      idx = container->nodes->next (idx);
+      node = (idx >= 0) ? &container->nodes->get (idx) : NULL;
    }
    // --- reset neighbors in selection
    selectedSizeIn = -1;
    selectedSizeOut = -1;
 
-   // when is depth updated
    if (maxDepth > 0 && getDepth() > maxDepth)  {
       node = NULL;
       idx = -1;
@@ -368,21 +385,59 @@ template<class SValue,class SNode,class SContainer,class IT>
 void SxGraphItState<SValue,SNode,SContainer,IT>::procPrev ()
 {
    SX_TRACE ();
+
    if (distMap.getSize () < 1)  {
       idx  = -1;
       node = NULL;
       return;
    }
 
-   distMapIdx -= 1;
+   distMapIdx += 1;
+
+   if (distMapIdx >= distMap.getSize())  {
+      idx = -1;
+      node = NULL;
+      return;
+   }
 
    idx     = distMap(distMapIdx).key;
    if (idx < 0)  {
       node = NULL;
       return;
    }
-   node    = &container->nodes->get(idx);
+
+   node    = &container->nodes->get (idx);
    pathLen = distMap(distMapIdx).value;
+
+   if (dir == sx::Backward)  {
+      // --- follow incoming
+
+      const SxArray<SxPair<ssize_t,ssize_t> > &edges = node->in ();
+      ssize_t n = edges.size;
+      if (selection.getPtr ())  {
+         for (ssize_t i=0; i < n; ++i)  {
+            ssize_t inIdx = edges(i).value;
+            if (!visited.contains (inIdx)
+                && selection->contains (inIdx))
+            {
+               //distMap << SxPair<ssize_t,ssize_t>(inIdx, pathLen + 1);
+               distMap.append (SxPair<ssize_t,ssize_t>(inIdx, pathLen + 1));
+               visited << inIdx;
+            }
+         }
+      }  else  {
+         for (ssize_t i=0; i < n; ++i)  {
+            ssize_t inIdx = edges(i).value;
+            if (!visited.contains (inIdx))  {
+               //distMap << SxPair<ssize_t,ssize_t>(inIdx, pathLen + 1);
+               distMap.append (SxPair<ssize_t,ssize_t>(inIdx, pathLen + 1));
+               visited << inIdx;
+            }
+         }
+      }
+
+   }
+
 }
 
 
@@ -390,21 +445,43 @@ template<class SValue,class SNode,class SContainer,class IT>
 void SxGraphItState<SValue,SNode,SContainer,IT>::prev ()
 {
    SX_CHECK (container);
-   if (dir != sx::Undefined)  {
+   //SX_CHECK (dir != sx::Forward);
+   if (dir == sx::Forward)  {
+      if (distMap.getSize () < 1)  {
+         idx  = -1;
+         node = NULL;
+         return;
+      }
+
+      distMapIdx -= 1;
+
+      if (distMapIdx < 0)  {
+         idx = -1;
+         node = NULL;
+         return;
+      }
+
+      idx     = distMap(distMapIdx).key;
+      if (idx < 0)  {
+         node = NULL;
+         return;
+      }
+      node    = &container->nodes->get (idx);
+      pathLen = distMap(distMapIdx).value;
+   }  else if (dir != sx::Undefined)  {
       procPrev ();
-   }  else if (selection.getPtr ()) {
-      --selectionIt;
+   }  else if (selection.getPtr ())  {
       if (selectionIt.isValid ())  {
          idx = *selectionIt;
-         node = &container->nodes->get(idx);
-         //++selectionIt;
+         node = &container->nodes->get (idx);
+         ++selectionIt;
       }  else  {
          idx = -1;
          node = NULL;
       }
    }  else  {
-      idx = node->prev;
-      node = (idx >= 0) ? &container->nodes->get(idx) : NULL;
+      idx = container->nodes->prev (idx);
+      node = (idx >= 0) ? &container->nodes->get (idx) : NULL;
    }
    // --- reset neighbors in selection
    selectedSizeIn = -1;
@@ -473,7 +550,7 @@ IT SxGraphItState<SValue,SNode,SContainer,IT>::in (ssize_t idx_) const
       if (selectedSizeIn < 0)  {
          // --- build cache of selected neighbors
          selectedSizeIn = 0;
-         const SxArray<SxPair<ssize_t,ssize_t> > &edgesIn = node->in;
+         const SxArray<SxPair<ssize_t,ssize_t> > &edgesIn = node->in ();
          ssize_t n = edgesIn.size;
          for (ssize_t i=0; i < n; ++i)  {
             if (selection->contains (edgesIn(i).value))  {
@@ -490,10 +567,10 @@ IT SxGraphItState<SValue,SNode,SContainer,IT>::in (ssize_t idx_) const
          }
       }
       return IT (dir, container,
-                 node->in(selectedIn(idx_)).value,
+                 node->in ()(selectedIn(idx_)).value,
                  selection);
    }
-   return IT (dir, container, node->in(idx_).value,
+   return IT (dir, container, node->in ()(idx_).value,
               selection);
 
 }
@@ -508,27 +585,27 @@ IT SxGraphItState<SValue,SNode,SContainer,IT>::out (ssize_t idx_) const
       if (selectedSizeOut < 0)  {
          // --- build cache of selected neighbors
          selectedSizeOut = 0;
-         const SxArray<SxPair<ssize_t,ssize_t> > &edgesOut = node->out;
+         const SxArray<SxPair<ssize_t,ssize_t> > &edgesOut = node->out ();
          ssize_t n = edgesOut.size;
          for (ssize_t i=0; i < n; ++i)  {
-            if (selection->contains (edgesOut(i).value)) {
+            if (selection->contains (edgesOut(i).value))  {
                selectedSizeOut++;
             }
          }
          selectedOut.resize (selectedSizeOut);
          selectedSizeOut = 0;
          for (ssize_t i=0; i < n; ++i)  {
-            if (selection->contains (edgesOut(i).value)) {
+            if (selection->contains (edgesOut(i).value))  {
                selectedOut(selectedSizeOut) = i;
                selectedSizeOut++;
             }
          }
       }
       return IT (dir, container,
-                 node->out(selectedOut(idx_)).value,
+                 node->out ()(selectedOut(idx_)).value,
                  selection);
    }
-   return IT(dir, container, node->out(idx_).value,
+   return IT(dir, container, node->out ()(idx_).value,
              selection);
 
 }
@@ -540,7 +617,9 @@ IT SxGraphItState<SValue,SNode,SContainer,IT>::neighbors (ssize_t maxDepth_) con
    SX_CHECK (maxDepth_ >= 0, maxDepth_);
    IT res; res.copy (*this, sx::CopyItData); // parent
    res.maxDepth = maxDepth_;
-   ++res;                    // iterate to first child
+   // iterate to first child
+   if (res.getDirection () == sx::Forward)  ++res;
+   else                                     --res;
    return res;
 }
 
@@ -564,7 +643,7 @@ SValue &SxGraphItState<SValue,SNode,SContainer,IT>::getIn (ssize_t idx_)
       if (selectedSizeIn < 0)  {
          // --- build cache of selected neighbors
          selectedSizeIn = 0;
-         const SxArray<SxPair<ssize_t,ssize_t> > &edgesIn = node->in;
+         const SxArray<SxPair<ssize_t,ssize_t> > &edgesIn = node->in ();
          ssize_t n = edgesIn.size;
          for (ssize_t i=0; i < n; ++i)  {
             if (selection->contains (edgesIn(i).value))  {
@@ -580,10 +659,10 @@ SValue &SxGraphItState<SValue,SNode,SContainer,IT>::getIn (ssize_t idx_)
             }
          }
       }
-      return container->nodes->get(node->out(
-                                   selectedIn(idx_)).value).element;
+      return container->nodes->get (node->out ()(
+                                    selectedIn(idx_)).value).element;
    }
-   return container->nodes->get(node->in(idx_).value).element;
+   return container->nodes->get (node->in ()(idx_).value).element;
 
 }
 
@@ -597,26 +676,26 @@ SValue &SxGraphItState<SValue,SNode,SContainer,IT>::getOut (ssize_t idx_)
       if (selectedSizeOut < 0)  {
          // --- build cache of selected neighbors
          selectedSizeOut = 0;
-         const SxArray<SxPair<ssize_t,ssize_t> > &edgesOut = node->out;
+         const SxArray<SxPair<ssize_t,ssize_t> > &edgesOut = node->out ();
          ssize_t n = edgesOut.size;
          for (ssize_t i=0; i < n; ++i)  {
-            if (selection->contains (edgesOut(i).value)) {
+            if (selection->contains (edgesOut(i).value))  {
                selectedSizeOut++;
             }
          }
          selectedOut.resize (selectedSizeOut);
          selectedSizeOut = 0;
          for (ssize_t i=0; i < n; ++i)  {
-            if (selection->contains (edgesOut(i).value)) {
+            if (selection->contains (edgesOut(i).value))  {
                selectedOut(selectedSizeOut) = i;
                selectedSizeOut++;
             }
          }
       }
-      return container->nodes->get(node->out(
-                                   selectedOut(idx_)).value).element;
+      return container->nodes->get (node->out ()(
+                                    selectedOut(idx_)).value).element;
    }
-   return container->nodes->get(node->out(idx_).value).element;
+   return container->nodes->get (node->out ()(idx_).value).element;
 
 }
 
@@ -629,7 +708,7 @@ ssize_t SxGraphItState<SValue,SNode,SContainer,IT>::getSizeIn () const
       // --- count selected neighbors
       ssize_t nSelected = 0;
 
-      const SxArray<SxPair<ssize_t,ssize_t> > &edgesIn = node->in;
+      const SxArray<SxPair<ssize_t,ssize_t> > &edgesIn = node->in ();
       ssize_t n = edgesIn.size;
       for (ssize_t i=0; i < n; ++i)  {
          if (selection->contains (edgesIn(i).value))  {
@@ -639,7 +718,7 @@ ssize_t SxGraphItState<SValue,SNode,SContainer,IT>::getSizeIn () const
 
       return nSelected;
    }
-   return node->in.size;
+   return node->in ().size;
 }
 
 template<class SValue,class SNode,class SContainer,class IT>
@@ -651,7 +730,7 @@ ssize_t SxGraphItState<SValue,SNode,SContainer,IT>::getSizeOut () const
       // --- count selected neighbors
       ssize_t nSelected = 0;
 
-      const SxArray<SxPair<ssize_t,ssize_t> > &edgesOut = node->out;
+      const SxArray<SxPair<ssize_t,ssize_t> > &edgesOut = node->out ();
       ssize_t n = edgesOut.size;
       for (ssize_t i=0; i < n; ++i)  {
          if (selection->contains (edgesOut(i).value))  {
@@ -661,7 +740,7 @@ ssize_t SxGraphItState<SValue,SNode,SContainer,IT>::getSizeOut () const
 
       return nSelected;
    }
-   return node->out.size;
+   return node->out ().size;
 }
 
 template<class SValue,class SNode,class SContainer,class IT>
@@ -682,8 +761,8 @@ ssize_t SxGraphItState<SValue,SNode,SContainer,IT>::findEdgeIn (ssize_t idxTo)
 
 // ----------------------------------------------------------------------------
 
-template<class T,template<class> class V>
-SxGraphStorage<T,V>::SxGraphStorage ()
+template<class T,bool isNS>
+SxGraphStorage<T,isNS>::SxGraphStorage ()
    : elems(0, 64),
      firstElement(-1),
      lastElement(-1),
@@ -696,8 +775,8 @@ SxGraphStorage<T,V>::SxGraphStorage ()
    SX_TRACE ();
 }
 
-template<class T,template<class> class V>
-SxGraphStorage<T,V>::SxGraphStorage (const SxGraphStorage<T,V> &in)
+template<class T,bool isNS>
+SxGraphStorage<T,isNS>::SxGraphStorage (const SxGraphStorage<T,isNS> &in)
    : elems(in.elems),
      hashTable(in.hashTable),
      firstElement(in.firstElement),
@@ -711,8 +790,8 @@ SxGraphStorage<T,V>::SxGraphStorage (const SxGraphStorage<T,V> &in)
    SX_TRACE ();
 }
 
-template<class T,template<class> class V>
-SxGraphStorage<T,V>::SxGraphStorage (SxGraphStorage<T,V> &&in)
+template<class T,bool isNS>
+SxGraphStorage<T,isNS>::SxGraphStorage (SxGraphStorage<T,isNS> &&in)
    : elems(std::move(in.elems)),
      hashTable(std::move(in.hashTable)),
      firstElement(in.firstElement),
@@ -733,8 +812,9 @@ SxGraphStorage<T,V>::SxGraphStorage (SxGraphStorage<T,V> &&in)
    in.hashBound = 0;
 }
 
-template<class T,template<class> class V>
-SxGraphStorage<T,V> &SxGraphStorage<T,V>::operator= (const SxGraphStorage<T,V> &in)
+template<class T,bool isNS>
+SxGraphStorage<T,isNS> &
+SxGraphStorage<T,isNS>::operator= (const SxGraphStorage<T,isNS> &in)
 {
    SX_TRACE ();
    if (this == &in)  return *this;
@@ -753,8 +833,9 @@ SxGraphStorage<T,V> &SxGraphStorage<T,V>::operator= (const SxGraphStorage<T,V> &
    return *this;
 }
 
-template<class T,template<class> class V>
-SxGraphStorage<T,V> &SxGraphStorage<T,V>::operator= (SxGraphStorage<T,V> &&in)
+template<class T,bool isNS>
+SxGraphStorage<T,isNS> &
+SxGraphStorage<T,isNS>::operator= (SxGraphStorage<T,isNS> &&in)
 {
    SX_TRACE ();
    if (this == &in)  return *this;
@@ -781,14 +862,14 @@ SxGraphStorage<T,V> &SxGraphStorage<T,V>::operator= (SxGraphStorage<T,V> &&in)
    return *this;
 }
 
-template<class T,template<class> class V>
-SxGraphStorage<T,V>::~SxGraphStorage ()
+template<class T,bool isNS>
+SxGraphStorage<T,isNS>::~SxGraphStorage ()
 {
    removeAll ();
 }
 
-template<class T,template<class> class V>
-ssize_t SxGraphStorage<T,V>::addElem (const T &elem)
+template<class T,bool isNS>
+ssize_t SxGraphStorage<T,isNS>::addElem (const T &elem)
 {
    SX_TRACE ();
    ssize_t idxHash = 0;
@@ -802,7 +883,7 @@ ssize_t SxGraphStorage<T,V>::addElem (const T &elem)
          idx = static_cast<ssize_t>(elems.size);
          elems.resize (elems.size + 1);
       }
-      V<T> &entry   = elems(idx);
+      Elem &entry   = elems(idx);
       entry.element = elem;
       entry.prev    = lastElement;
       entry.next    = -1;
@@ -818,11 +899,12 @@ ssize_t SxGraphStorage<T,V>::addElem (const T &elem)
    return -1;
 }
 
-template<class T,template<class> class V>
-ssize_t SxGraphStorage<T,V>::addElem (T &&elem)
+template<class T,bool isNS>
+ssize_t SxGraphStorage<T,isNS>::addElem (T &&elem)
 {
    SX_TRACE ();
    ssize_t idxHash = 0;
+
    if (!hashContains (elem, &idxHash))  {
       ssize_t idx = 0;
       if (firstFree >= 0)  {
@@ -833,7 +915,7 @@ ssize_t SxGraphStorage<T,V>::addElem (T &&elem)
          idx = static_cast<ssize_t>(elems.size);
          elems.resize (elems.size + 1);
       }
-      V<T> &entry      = elems(idx);
+      Elem &entry   = elems(idx);
       entry.element = std::move(elem);
       entry.prev    = lastElement;
       entry.next    = -1;
@@ -849,15 +931,17 @@ ssize_t SxGraphStorage<T,V>::addElem (T &&elem)
    return -1;
 }
 
-template<class T,template<class> class V>
-void SxGraphStorage<T,V>::removeElem (ssize_t idx)
+template<class T,bool isNS>
+void SxGraphStorage<T,isNS>::removeElem (ssize_t idx)
 {
    SX_TRACE ();
    //SX_CHECK (elems.containsKey (idx));
-   if (containsElem (idx)) {
+   if (containsElem (idx))  {
       ssize_t prevPtr = elems(idx).prev;
       ssize_t nextPtr = elems(idx).next;
-      elems(idx) = V<T>(); // destroy
+      ssize_t hashIdx = hashFindPos (elems(idx).element);
+      if (hashIdx >= 0)  hashTable.elements[hashIdx] = -2; // deleted
+      elems(idx) = Elem(); // destroy
 
       if (prevPtr >= 0) elems(prevPtr).next = nextPtr;
       else              firstElement = nextPtr;
@@ -868,17 +952,18 @@ void SxGraphStorage<T,V>::removeElem (ssize_t idx)
       elems(idx).prev = -1;
       firstFree = idx;
       nElems -= 1;
+
    }
 }
 
-template<class T,template<class> class V>
-bool SxGraphStorage<T,V>::containsElem (ssize_t idx) const
+template<class T,bool isNS>
+bool SxGraphStorage<T,isNS>::containsElem (ssize_t idx) const
 {
-   //if (elems.containsKey (idx)) {
-   if (idx >=0 && idx <= elems.size) {
+   SX_TRACE ();
+   if (idx >=0 && idx < elems.size)  {
       ssize_t freeIdx = firstFree;
-      while (freeIdx >= 0) {
-         if (freeIdx == idx) {
+      while (freeIdx >= 0)  {
+         if (freeIdx == idx)  {
             return false;
          }
          freeIdx = elems(freeIdx).next;
@@ -888,52 +973,84 @@ bool SxGraphStorage<T,V>::containsElem (ssize_t idx) const
    return false;
 }
 
-template<class T,template<class> class V>
-ssize_t SxGraphStorage<T,V>::getIdx (const T &elem)
+template<class T,bool isNS>
+ssize_t SxGraphStorage<T,isNS>::getIdx (const T &elem)
 {
-   return hashFindPos (elem);
+   SX_TRACE ();
+   ssize_t idx = hashFindPos (elem);
+   return (idx >= 0) ? hashTable.elements[idx] : -1;
 }
 
-template<class T,template<class> class V>
-V<T> &SxGraphStorage<T,V>::getElem (ssize_t idx)
+template<class T,bool isNS>
+ssize_t SxGraphStorage<T,isNS>::getFirstIdx () const
 {
+   SX_TRACE ();
+   return firstElement;
+}
+
+template<class T,bool isNS>
+ssize_t SxGraphStorage<T,isNS>::getNextIdx (ssize_t currIdx) const
+{
+   SX_TRACE ();
+   SX_CHECK (currIdx >= 0);
+   SX_CHECK (containsElem (currIdx));
+   return elems(currIdx).next;
+}
+
+template<class T,bool isNS>
+ssize_t SxGraphStorage<T,isNS>::getPrevIdx (ssize_t currIdx) const
+{
+   SX_TRACE ();
+   SX_CHECK (currIdx >= 0);
+   SX_CHECK (containsElem (currIdx));
+   return elems(currIdx).prev;
+}
+
+template<class T,bool isNS>
+typename SxGraphStorage<T,isNS>::Elem &
+SxGraphStorage<T,isNS>::getElem (ssize_t idx)
+{
+   SX_TRACE ();
    SX_CHECK (containsElem (idx));
    return  elems(idx);
 }
 
-template<class T,template<class> class V>
-const V<T> &SxGraphStorage<T,V>::getElem (ssize_t idx) const
+template<class T,bool isNS>
+const typename SxGraphStorage<T,isNS>::Elem &
+SxGraphStorage<T,isNS>::getElem (ssize_t idx) const
 {
+   SX_TRACE ();
    SX_CHECK (containsElem (idx));
    return  elems(idx);
 }
 
-template<class T,template<class> class V>
-ssize_t SxGraphStorage<T,V>::hashFindPos (const T &elem) const
+template<class T,bool isNS>
+ssize_t SxGraphStorage<T,isNS>::hashFindPos (const T &elem) const
 {
    SX_TRACE ();
    if (hashSize > 0)  {
       size_t h = sxHash (elem);
-      ssize_t idx = (ssize_t)h % hashTable.size;
-      ssize_t step = (ssize_t)h % (hashTable.size - 1) + 1;
-      ssize_t lastIdx = idx;
+      size_t tblSize = static_cast<size_t>(hashTable.size);
+      size_t idx = h % tblSize;
+      size_t step = h % (tblSize - 1) + 1;
+      size_t lastIdx = idx;
 
       do {
          if (hashTable.elements[idx] == -1)  {
             return -1;
          }  else if (hashTable.elements[idx] != -2 &&
-                     elems(hashTable.elements[idx]).element == elem)
+                     elems((ssize_t)hashTable.elements[idx]).element == elem)
          {
-            return idx;
+            return static_cast<ssize_t>(idx);
          }
-         idx = (idx + step) % hashTable.size;
+         idx = (idx + step) % tblSize;
       } while (idx != lastIdx);
    }
    return -1;
 }
 
-template<class T,template<class> class V>
-bool SxGraphStorage<T,V>::hashContains (const T &elem_, ssize_t *result_)
+template<class T,bool isNS>
+bool SxGraphStorage<T,isNS>::hashContains (const T &elem_, ssize_t *result_)
 {
    SX_TRACE ();
    SX_CHECK (result_);
@@ -947,36 +1064,37 @@ bool SxGraphStorage<T,V>::hashContains (const T &elem_, ssize_t *result_)
    }
 
    size_t h = sxHash (elem_);
-   ssize_t idx = (ssize_t)h % hashTable.size;
-   ssize_t step = (ssize_t)h % (hashTable.size - 1) + 1;
-   ssize_t lastIdx = idx;
-   ssize_t replaceIdx = hashTable.size;
+   size_t tblSize = static_cast<size_t>(hashTable.size);
+   size_t idx = h % tblSize;
+   size_t step = (h % (tblSize - 1)) + 1;
+   size_t lastIdx = idx;
+   size_t replaceIdx = tblSize;
 
    do {
       if (hashTable.elements[idx] == -1)  {
          // --- insert new element
-         if (replaceIdx != hashTable.size)  {
+         if (replaceIdx != tblSize)  {
             idx = replaceIdx;
          }  else  {
             hashUsed++;
          }
          hashSize++;
-         *result_ = idx;
+         *result_ = static_cast<ssize_t>(idx);
          return false;
       }  else if (hashTable.elements[idx] == -2)  {
          replaceIdx = idx;
-      }  else if (elems(hashTable.elements[idx]).element == elem_)  {
-         *result_ = idx;
+      }  else if (elems((ssize_t)hashTable.elements[idx]).element == elem_)  {
+         *result_ = static_cast<ssize_t>(idx);
          return true;
       }
-      idx = (idx + step) % hashTable.size;
+      idx = (idx + step) % tblSize;
    } while (idx != lastIdx);
 
    throw SxException ("Can not insert.", __FILE__, __LINE__);
 }
 
-template<class T,template<class> class V>
-void SxGraphStorage<T,V>::hashResize (ssize_t newSize_)
+template<class T,bool isNS>
+void SxGraphStorage<T,isNS>::hashResize (ssize_t newSize_)
 {
    SX_TRACE ();
    if (newSize_ >= 1610612741)  {
@@ -988,7 +1106,7 @@ void SxGraphStorage<T,V>::hashResize (ssize_t newSize_)
                         12289, 24593, 49157, 98317, 196613, 393241, 786433,
                         1572869, 3145739, 6291469, 12582917, 25165843, 50331653,
                         100663319, 201326611, 402653189, 805306457, 1610612741};
-   ssize_t idx = 0;
+   size_t idx = 0;
    while (prime[idx] <= newSize_)  {
       idx++;
    }
@@ -1006,12 +1124,13 @@ void SxGraphStorage<T,V>::hashResize (ssize_t newSize_)
       for (i = 0; i < n; i++)  {
          if (hashTable.elements[i] >= 0)  {
             size_t h = sxHash (elems(hashTable.elements[i]).element);
-            idx = (ssize_t)h % newSize_;
-            ssize_t step = (ssize_t)h % (newSize_ - 1) + 1;
-            ssize_t lastIdx = idx;
+            size_t newSiz_ = static_cast<size_t>(newSize_);
+            idx = (h % newSiz_);
+            size_t step = (h % (newSiz_ - 1)) + 1;
+            size_t lastIdx = idx;
 
             while (newTable.elements[idx] >= 0)  {
-               idx = (idx + step) % newSize_;
+               idx = (idx + step) % newSiz_;
                if (idx == lastIdx)  {
                   SX_EXIT;
                }
@@ -1023,21 +1142,28 @@ void SxGraphStorage<T,V>::hashResize (ssize_t newSize_)
       hashUsed = hashSize;
       hashBound = newBound;
       hashTable.resize (newSize_, false);
-      size_t len = sizeof(ssize_t) * (size_t)hashTable.size;// !!
+      size_t len = sizeof(ssize_t) * (size_t)hashTable.size;
       ::memcpy (hashTable.elements, newTable.elements, len);
    }
 }
 
-template<class T,template<class> class V>
-size_t SxGraphStorage<T,V>::getNBytes () const
+template<class T,bool isNS>
+ssize_t SxGraphStorage<T,isNS>::getNElems () const
+{
+   SX_TRACE ();
+   return nElems;
+}
+
+template<class T,bool isNS>
+size_t SxGraphStorage<T,isNS>::getSizeBytes () const
 {
    SX_TRACE ();
    SX_EXIT;
    return 0;
 }
 
-template<class T,template<class> class V>
-void SxGraphStorage<T,V>::removeElems ()
+template<class T,bool isNS>
+void SxGraphStorage<T,isNS>::removeElems ()
 {
    SX_TRACE ();
    elems.removeAll ();
@@ -1054,58 +1180,52 @@ void SxGraphStorage<T,V>::removeElems ()
 }
 
 // ----------------------------------------------------------------------------
-template<class T,class E,template<class> class NT,template<class> class ET,
+template<class N,class E,
+         template<class,bool> class GS,
          template<class,class,class> class ItPair>
-SxGraph<T,E,NT,ET,ItPair>::SxGraph ()
-   : SxThis<SxGraph<T,E,NT,ET,ItPair> > (),
-     nodes(SxPtr<SxGraphStorage<T,NT> >::create()),
-     edges(SxPtr<SxGraphStorage<E,ET> >::create())
+SxGraph<N,E,GS,ItPair>::SxGraph ()
+   : SxThis<SxGraph<N,E,GS,ItPair> > (),
+     nodes(SxPtr<GS<N,true> >::create()),
+     edges(SxPtr<GS<E,false> >::create())
 {
    SX_TRACE ();
 }
 
-template<class T,class E,template<class> class NT,template<class> class ET,
+template<class N,class E,
+         template<class,bool> class GS,
          template<class,class,class> class ItPair>
-SxGraph<T,E,NT,ET,ItPair>::SxGraph (SxPtr<SxGraphStorage<T,NT> > nodes_,
-                                    SxPtr<SxGraphStorage<E,ET> > edges_)
-   : SxThis<SxGraph<T,E,NT,ET,ItPair> > (),
-     nodes(nodes_),
-     edges(edges_)
-{
-   SX_TRACE ();
-}
-
-template<class T,class E,template<class> class NT,template<class> class ET,
-         template<class,class,class> class ItPair>
-SxGraph<T,E,NT,ET,ItPair>::SxGraph (const SxGraph<T,E,NT,ET,ItPair> &in)
-   : SxThis<SxGraph<T,E,NT,ET,ItPair> > (),
+SxGraph<N,E,GS,ItPair>::SxGraph (const SxGraph<N,E,GS,ItPair> &in)
+   : SxThis<SxGraph<N,E,GS,ItPair> > (),
      nodes(in.nodes),
      edges(in.edges)
 {
    SX_TRACE ();
 }
 
-template<class T,class E,template<class> class NT,template<class> class ET,
+template<class N,class E,
+         template<class,bool> class GS,
          template<class,class,class> class ItPair>
-SxGraph<T,E,NT,ET,ItPair>::SxGraph (SxGraph<T,E,NT,ET,ItPair> &&in)
-   : SxThis<SxGraph<T,E,NT,ET,ItPair> > (),
+SxGraph<N,E,GS,ItPair>::SxGraph (SxGraph<N,E,GS,ItPair> &&in)
+   : SxThis<SxGraph<N,E,GS,ItPair> > (),
      nodes(in.nodes),
      edges(in.edges)
 {
    SX_TRACE ();
 }
 
-template<class T,class E,template<class> class NT,template<class> class ET,
+template<class N,class E,
+         template<class,bool> class GS,
          template<class,class,class> class ItPair>
-SxGraph<T,E,NT,ET,ItPair>::~SxGraph ()
+SxGraph<N,E,GS,ItPair>::~SxGraph ()
 {
    SX_TRACE ();
 }
 
-template<class T,class E,template<class> class NT,template<class> class ET,
+template<class N,class E,
+         template<class,bool> class GS,
          template<class,class,class> class ItPair>
-SxGraph<T,E,NT,ET,ItPair> &
-SxGraph<T,E,NT,ET,ItPair>::operator= (const SxGraph<T,E,NT,ET,ItPair> &in)
+SxGraph<N,E,GS,ItPair> &
+SxGraph<N,E,GS,ItPair>::operator= (const SxGraph<N,E,GS,ItPair> &in)
 {
    SX_TRACE ();
    if (this == &in)  return *this;
@@ -1116,10 +1236,11 @@ SxGraph<T,E,NT,ET,ItPair>::operator= (const SxGraph<T,E,NT,ET,ItPair> &in)
    return *this;
 }
 
-template<class T,class E,template<class> class NT,template<class> class ET,
+template<class N,class E,
+         template<class,bool> class GS,
          template<class,class,class> class ItPair>
-SxGraph<T,E,NT,ET,ItPair> &
-SxGraph<T,E,NT,ET,ItPair>::operator= (SxGraph<T,E,NT,ET,ItPair> &&in)
+SxGraph<N,E,GS,ItPair> &
+SxGraph<N,E,GS,ItPair>::operator= (SxGraph<N,E,GS,ItPair> &&in) noexcept
 {
    SX_TRACE ();
    if (this == &in)  return *this;
@@ -1130,36 +1251,39 @@ SxGraph<T,E,NT,ET,ItPair>::operator= (SxGraph<T,E,NT,ET,ItPair> &&in)
    return *this;
 }
 
-template<class T,class E,template<class> class NT,template<class> class ET,
+template<class N,class E,
+         template<class,bool> class GS,
          template<class,class,class> class ItPair>
-typename SxGraph<T,E,NT,ET,ItPair>::ConstIterator
-SxGraph<T,E,NT,ET,ItPair>::createNode (const T &elem)
+typename SxGraph<N,E,GS,ItPair>::ConstIterator
+SxGraph<N,E,GS,ItPair>::createNode (const N &elem)
 {
    SX_TRACE ();
 
    nodes->add (elem);
-   return typename SxGraph<T,E,NT,ET,ItPair>::ConstIterator (sx::Forward, this,
-                                                             findPos (elem),
-                                                             Selection());
+   return typename SxGraph<N,E,GS,ItPair>::ConstIterator (sx::Forward, this,
+                                                          findPos (elem),
+                                                          Selection());
 }
 
-template<class T,class E,template<class> class NT,template<class> class ET,
+template<class N,class E,
+         template<class,bool> class GS,
          template<class,class,class> class ItPair>
-typename SxGraph<T,E,NT,ET,ItPair>::ConstIterator
-SxGraph<T,E,NT,ET,ItPair>::createNode (T &&elem)
+typename SxGraph<N,E,GS,ItPair>::ConstIterator
+SxGraph<N,E,GS,ItPair>::createNode (N &&elem)
 {
    SX_TRACE ();
 
    nodes->add (std::move(elem));
-   return typename SxGraph<T,E,NT,ET,ItPair>::ConstIterator (sx::Forward, this,
-                                                             findPos (elem),
-                                                             Selection());
+   return typename SxGraph<N,E,GS,ItPair>::ConstIterator (sx::Forward, this,
+                                                          findPos (elem),
+                                                          Selection());
 }
 
-template<class T,class E,template<class> class NT,template<class> class ET,
+template<class N,class E,
+         template<class,bool> class GS,
          template<class,class,class> class ItPair>
-void SxGraph<T,E,NT,ET,ItPair>::createEdge (const T &from, const T &to,
-                                            const E &elem)
+void SxGraph<N,E,GS,ItPair>::createEdge (const N &from, const N &to,
+                                         const E &elem)
 {
    SX_TRACE ();
    using namespace sx;
@@ -1175,26 +1299,27 @@ void SxGraph<T,E,NT,ET,ItPair>::createEdge (const T &from, const T &to,
    //handleEdgeEvent (BeforeEdgeInEvent | BeforeEdgeOutEvent, idxFrom, idxTo);
 
    ssize_t idx = edges->add (elem);
-   if (idx >= 0) {
-      ET<E> &e = edges->get(idx);
-      e.in  = idxFrom;
-      e.out = idxTo;
+   if (idx >= 0)  {
+      ET    &e = edges->get (idx);
+      e.in  () = idxFrom;
+      e.out () = idxTo;
 
-      nodes->get(idxFrom).out.append (SxPair<ssize_t,ssize_t>(idx, idxTo));
-      nodes->get(idxTo).in.append (SxPair<ssize_t,ssize_t>(idx, idxFrom));
+      nodes->get (idxFrom).out ().append (SxPair<ssize_t,ssize_t>(idx, idxTo));
+      nodes->get (idxTo).in ().append (SxPair<ssize_t,ssize_t>(idx, idxFrom));
 
       //handleEdgeEvent (sx::AfterEdgeInEvent | sx::AfterEdgeOutEvent,
         //               idxFrom, idxTo);
    }
 }
 
-template<class T,class E,template<class> class NT,template<class> class ET,
+template<class N,class E,
+         template<class,bool> class GS,
          template<class,class,class> class ItPair>
-void SxGraph<T,E,NT,ET,ItPair>::createEdge (typename SxGraph<T,E,NT,ET,ItPair
-                                                            >::ConstIterator &fromIt,
-                                            typename SxGraph<T,E,NT,ET,ItPair
-                                                            >::ConstIterator &toIt,
-                                            const E &elem)
+void SxGraph<N,E,GS,ItPair>::createEdge (typename SxGraph<N,E,GS,ItPair
+                                                       >::ConstIterator &fromIt,
+                                         typename SxGraph<N,E,GS,ItPair
+                                                         >::ConstIterator &toIt,
+                                         const E &elem)
 {
    SX_TRACE ();
    using namespace sx;
@@ -1210,33 +1335,33 @@ void SxGraph<T,E,NT,ET,ItPair>::createEdge (typename SxGraph<T,E,NT,ET,ItPair
    //handleEdgeEvent (BeforeEdgeInEvent | BeforeEdgeOutEvent, idxFrom, idxTo);
 
    ssize_t idx = edges->add (elem);
-   if (idx >= 0) {
-      ET<E> &e = edges->get(idx);
-      e.in  = idxFrom;
-      e.out = idxTo;
+   if (idx >= 0)  {
+      ET    &e = edges->get (idx);
+      e.in  () = idxFrom;
+      e.out () = idxTo;
 
-      nodes->get(idxFrom).out.append (SxPair<ssize_t,ssize_t>(idx, idxTo));
-      nodes->get(idxTo).in.append (SxPair<ssize_t,ssize_t>(idx, idxFrom));
+      nodes->get (idxFrom).out ().append (SxPair<ssize_t,ssize_t>(idx, idxTo));
+      nodes->get (idxTo).in ().append (SxPair<ssize_t,ssize_t>(idx, idxFrom));
 
       //handleEdgeEvent (sx::AfterEdgeInEvent | sx::AfterEdgeOutEvent,
         //               idxFrom, idxTo);
    }
 }
 
-template<class T,class E,template<class> class NT,template<class> class ET,
+template<class N,class E,
+         template<class,bool> class GS,
          template<class,class,class> class ItPair>
-void SxGraph<T,E,NT,ET,ItPair>::removeNode (ssize_t nodeIdx)
+void SxGraph<N,E,GS,ItPair>::removeNode (ssize_t nodeIdx)
 {
    SX_TRACE ();
    // --- remove edges
 
-
-   Node &node = nodes->get(nodeIdx);
-   const SxArray<SxPair<ssize_t,ssize_t> > &edgesOut = node.out;
+   NT &node = nodes->get (nodeIdx);
+   const SxArray<SxPair<ssize_t,ssize_t> > &edgesOut = node.out ();
    for (ssize_t i = 0; i < edgesOut.size; ++i)  {
       unlinkIn (nodeIdx, edgesOut.elements[i].value); // in-->out
    }
-   const SxArray<SxPair<ssize_t, ssize_t> > &edgesIn = node.in;
+   const SxArray<SxPair<ssize_t, ssize_t> > &edgesIn = node.in ();
    for (ssize_t i = 0; i < edgesIn.size; ++i)  {
       unlinkOut (edgesIn.elements[i].value, nodeIdx);
    }
@@ -1245,9 +1370,10 @@ void SxGraph<T,E,NT,ET,ItPair>::removeNode (ssize_t nodeIdx)
    nodes->remove (nodeIdx);
 }
 
-template<class T,class E,template<class> class NT,template<class> class ET,
+template<class N,class E,
+         template<class,bool> class GS,
          template<class,class,class> class ItPair>
-void SxGraph<T,E,NT,ET,ItPair>::removeElement (const T &elem)
+void SxGraph<N,E,GS,ItPair>::removeElement (const N &elem)
 {
    SX_TRACE ();
    ssize_t ptr = findPos (elem);
@@ -1255,9 +1381,10 @@ void SxGraph<T,E,NT,ET,ItPair>::removeElement (const T &elem)
    removeNode (ptr);
 }
 
-template<class T,class E,template<class> class NT,template<class> class ET,
+template<class N,class E,
+         template<class,bool> class GS,
          template<class,class,class> class ItPair>
-void SxGraph<T,E,NT,ET,ItPair>::removeEdge (const T &from, const T &to)
+void SxGraph<N,E,GS,ItPair>::removeEdge (const N &from, const N &to)
 {
    SX_TRACE ();
    ssize_t idxFrom = findPos (from);
@@ -1265,10 +1392,10 @@ void SxGraph<T,E,NT,ET,ItPair>::removeEdge (const T &from, const T &to)
    ssize_t idxTo   = findPos (to);
    SX_CHECK (idxTo >= 0, idxTo);
 
-   SxArray<SxPair<ssize_t,ssize_t> > &edgesOut = nodes->get(idxFrom).out;
+   SxArray<SxPair<ssize_t,ssize_t> > &edgesOut = nodes->get (idxFrom).out ();
    SxList<ssize_t> edgeIdx;
-   for (ssize_t i = 0; i < edgesOut.size; ++i) {
-      if (idxTo == edgesOut.elements[i].value) {
+   for (ssize_t i = 0; i < edgesOut.size; ++i)  {
+      if (idxTo == edgesOut.elements[i].value)  {
          edgeIdx.append (edgesOut.elements[i].key);
       }
    }
@@ -1276,38 +1403,40 @@ void SxGraph<T,E,NT,ET,ItPair>::removeEdge (const T &from, const T &to)
    unlinkOut (idxFrom, idxTo);
    unlinkIn  (idxFrom, idxTo);
 
-   for (auto it = edgeIdx.begin (); it != edgeIdx.end (); ++it) {
+   for (auto it = edgeIdx.begin (); it != edgeIdx.end (); ++it)  {
       edges->remove (*it);
    }
 }
 
-template<class T,class E,template<class> class NT,template<class> class ET,
+template<class N,class E,
+         template<class,bool> class GS,
          template<class,class,class> class ItPair>
-bool SxGraph<T,E,NT,ET,ItPair>::hasOutEdge (ssize_t idxFrom,
-                                            ssize_t idxTo) const
+bool SxGraph<N,E,GS,ItPair>::hasOutEdge (ssize_t idxFrom,
+                                         ssize_t idxTo) const
 {
    SX_TRACE ();
    return findEdgeOut (idxFrom, idxTo) >= 0;
 }
 
-template<class T,class E,template<class> class NT,template<class> class ET,
+template<class N,class E,
+         template<class,bool> class GS,
          template<class,class,class> class ItPair>
-ssize_t SxGraph<T,E,NT,ET,ItPair>::findEdgeOut (ssize_t idxFrom,
-                                                ssize_t idxTo) const
+ssize_t SxGraph<N,E,GS,ItPair>::findEdgeOut (ssize_t idxFrom,
+                                             ssize_t idxTo) const
 {
    SX_TRACE ();
 
-   const SxArray<SxPair<ssize_t,ssize_t> > &edgesOut = nodes->get (idxFrom).out;
-   const SxArray<SxPair<ssize_t,ssize_t> > &edgesIn  = nodes->get (idxTo).in;
+   const SxArray<SxPair<ssize_t,ssize_t> > &edgesOut = nodes->get (idxFrom).out ();
+   const SxArray<SxPair<ssize_t,ssize_t> > &edgesIn  = nodes->get (idxTo).in ();
 
-   if (edgesOut.size < edgesIn.size) {
-      for (ssize_t i = 0; i < edgesOut.size; ++i) {
-         if (edgesOut.elements[i].value == idxTo) {
+   if (edgesOut.size < edgesIn.size)  {
+      for (ssize_t i = 0; i < edgesOut.size; ++i)  {
+         if (edgesOut.elements[i].value == idxTo)  {
             return edgesOut.elements[i].key;
          }
       }
-   } else {
-      for (ssize_t i = 0; i < (edgesIn.size); ++i) {
+   }  else  {
+      for (ssize_t i = 0; i < (edgesIn.size); ++i)  {
          if (edgesIn.elements[i].value == idxFrom)
             return edgesIn.elements[i].key;
       }
@@ -1316,24 +1445,25 @@ ssize_t SxGraph<T,E,NT,ET,ItPair>::findEdgeOut (ssize_t idxFrom,
    return -1;
 }
 
-template<class T,class E,template<class> class NT,template<class> class ET,
+template<class N,class E,
+         template<class,bool> class GS,
          template<class,class,class> class ItPair>
-ssize_t SxGraph<T,E,NT,ET,ItPair>::findEdgeIn (ssize_t idxFrom,
-                                               ssize_t idxTo) const
+ssize_t SxGraph<N,E,GS,ItPair>::findEdgeIn (ssize_t idxFrom,
+                                            ssize_t idxTo) const
 {
    SX_TRACE ();
 
-   const SxArray<SxPair<ssize_t,ssize_t> > &edgesIn  = nodes->get(idxFrom).in;
-   const SxArray<SxPair<ssize_t,ssize_t> > &edgesOut = nodes->get(idxTo).out;
+   const SxArray<SxPair<ssize_t,ssize_t> > &edgesIn  = nodes->get(idxFrom).in ();
+   const SxArray<SxPair<ssize_t,ssize_t> > &edgesOut = nodes->get(idxTo).out ();
 
-   if (edgesIn.size < edgesOut.size) {
-      for (ssize_t i = 0; i < (edgesIn.size); ++i) {
+   if (edgesIn.size < edgesOut.size)  {
+      for (ssize_t i = 0; i < (edgesIn.size); ++i)  {
          if (edgesIn.elements[i].value == idxTo)
             return edgesIn.elements[i].key;
       }
-   } else {
-      for (ssize_t i = 0; i < edgesOut.size; ++i) {
-         if (edgesOut.elements[i].value == idxFrom) {
+   }  else  {
+      for (ssize_t i = 0; i < edgesOut.size; ++i)  {
+         if (edgesOut.elements[i].value == idxFrom)  {
             return edgesOut.elements[i].key;
          }
       }
@@ -1342,13 +1472,14 @@ ssize_t SxGraph<T,E,NT,ET,ItPair>::findEdgeIn (ssize_t idxFrom,
    return -1;
 }
 
-template<class T,class E,template<class> class NT,template<class> class ET,
+template<class N,class E,
+         template<class,bool> class GS,
          template<class,class,class> class ItPair>
-void SxGraph<T,E,NT,ET,ItPair>::unlinkOut (ssize_t idxFrom, ssize_t idxTo)
+void SxGraph<N,E,GS,ItPair>::unlinkOut (ssize_t idxFrom, ssize_t idxTo)
 {
    SX_TRACE ();
    // --- remove all outgoing
-   SxArray<SxPair<ssize_t,ssize_t> > &edgesOut = nodes->get(idxFrom).out;
+   SxArray<SxPair<ssize_t,ssize_t> > &edgesOut = nodes->get(idxFrom).out ();
    ssize_t removeNEdges = 0;
    ssize_t idx = -1;
    const ssize_t n = edgesOut.size;
@@ -1370,13 +1501,14 @@ void SxGraph<T,E,NT,ET,ItPair>::unlinkOut (ssize_t idxFrom, ssize_t idxTo)
 
 }
 
-template<class T,class E,template<class> class NT,template<class> class ET,
+template<class N,class E,
+         template<class,bool> class GS,
          template<class,class,class> class ItPair>
-void SxGraph<T,E,NT,ET,ItPair>::unlinkIn (ssize_t idxFrom, ssize_t idxTo)
+void SxGraph<N,E,GS,ItPair>::unlinkIn (ssize_t idxFrom, ssize_t idxTo)
 {
    SX_TRACE ();
    // --- remove incomming
-   SxArray<SxPair<ssize_t,ssize_t> > &edgesIn = nodes->get(idxTo).in;
+   SxArray<SxPair<ssize_t,ssize_t> > &edgesIn = nodes->get (idxTo).in ();
 
    ssize_t removeNEdges = 0;
    ssize_t idx = -1;
@@ -1399,9 +1531,10 @@ void SxGraph<T,E,NT,ET,ItPair>::unlinkIn (ssize_t idxFrom, ssize_t idxTo)
 
 }
 
-template<class T,class E,template<class> class NT,template<class> class ET,
+template<class N,class E,
+         template<class,bool> class GS,
          template<class,class,class> class ItPair>
-void SxGraph<T,E,NT,ET,ItPair>::removeSelection (const Selection &selection)
+void SxGraph<N,E,GS,ItPair>::removeSelection (const Selection &selection)
 {
    SX_TRACE ();
    if (selection.getPtr ())  {
@@ -1416,28 +1549,31 @@ void SxGraph<T,E,NT,ET,ItPair>::removeSelection (const Selection &selection)
    }
 }
 
-template<class T,class E,template<class> class NT,template<class> class ET,
+template<class N,class E,
+         template<class,bool> class GS,
          template<class,class,class> class ItPair>
-void SxGraph<T,E,NT,ET,ItPair>::removeAll ()
+void SxGraph<N,E,GS,ItPair>::removeAll ()
 {
    SX_TRACE ();
    nodes->removeAll ();
    edges->removeAll ();
 }
 
-template<class T,class E,template<class> class NT,template<class> class ET,
+template<class N,class E,
+         template<class,bool> class GS,
          template<class,class,class> class ItPair>
-bool SxGraph<T,E,NT,ET,ItPair>::containsNode (const T &elem) const
+bool SxGraph<N,E,GS,ItPair>::containsNode (const N &elem) const
 {
    SX_TRACE ();
    return findPos (elem) >= 0;
 }
 
-template<class T,class E,template<class> class NT,template<class> class ET,
+template<class N,class E,
+         template<class,bool> class GS,
          template<class,class,class> class ItPair>
-ssize_t SxGraph<T,E,NT,ET,ItPair>::findPath (const T &from, const T &to,
-                                             ssize_t maxPathLen,
-                                             const Selection &selection) const
+ssize_t SxGraph<N,E,GS,ItPair>::findPath (const N &from, const N &to,
+                                          ssize_t maxPathLen,
+                                          const Selection &selection) const
 {
    SX_TRACE ();
    ssize_t idxFrom = findPos (from);
@@ -1473,25 +1609,28 @@ ssize_t SxGraph<T,E,NT,ET,ItPair>::findPath (const T &from, const T &to,
    return 0;
 }
 
-template<class T,class E,template<class> class NT,template<class> class ET,
+template<class N,class E,
+         template<class,bool> class GS,
          template<class,class,class> class ItPair>
-SxList<typename SxGraph<T,E,NT,ET,ItPair>::ConstIterator>
-SxGraph<T,E,NT,ET,ItPair>::getPath (const T &from, const T &to, ssize_t maxPathLen,
-                                    const Selection &selection) const
+SxList<typename SxGraph<N,E,GS,ItPair>::ConstIterator>
+SxGraph<N,E,GS,ItPair>::getPath (const N &from, const N &to,
+                                 ssize_t maxPathLen,
+                                 const Selection &selection) const
 {
    SX_TRACE ();
    return getPath (begin(from), begin(to), maxPathLen, selection);
 }
 
 
-template<class T,class E,template<class> class NT,template<class> class ET,
+template<class N,class E,
+         template<class,bool> class GS,
          template<class,class,class> class ItPair>
-SxList<typename SxGraph<T,E,NT,ET,ItPair>::ConstIterator>
-SxGraph<T,E,NT,ET,ItPair>::getPath (
-      const typename SxGraph<T,E,NT,ET,ItPair>::ConstIterator &from,
-      const typename SxGraph<T,E,NT,ET,ItPair>::ConstIterator &to,
-      ssize_t                                                 maxPathLen,
-      const Selection                                         &selection) const
+SxList<typename SxGraph<N,E,GS,ItPair>::ConstIterator>
+SxGraph<N,E,GS,ItPair>::getPath (
+      const typename SxGraph<N,E,GS,ItPair>::ConstIterator &from,
+      const typename SxGraph<N,E,GS,ItPair>::ConstIterator &to,
+      ssize_t                                              maxPathLen,
+      const Selection                                      &selection) const
 {
    SX_TRACE ();
    SxList<ConstIterator> res;
@@ -1530,7 +1669,7 @@ SxGraph<T,E,NT,ET,ItPair>::getPath (
                visited.removeElement (ptr);
                // --- parent
 
-               const SxArray<SxPair<ssize_t,ssize_t> > &edgesIn = nodes->get(ptr).in;
+               const SxArray<SxPair<ssize_t,ssize_t> > &edgesIn = nodes->get(ptr).in ();
                ssize_t n = edgesIn.size;
                bool found = false;
                for (ssize_t i=0; i < n; ++i)  {
@@ -1552,13 +1691,14 @@ SxGraph<T,E,NT,ET,ItPair>::getPath (
    return res;
 }
 
-template<class T,class E,template<class> class NT,template<class> class ET,
+template<class N,class E,
+         template<class,bool> class GS,
          template<class,class,class> class ItPair>
-void SxGraph<T,E,NT,ET,ItPair>::nextLevel (ssize_t ptr, ssize_t pathLen,
-                                           ssize_t maxPathLen,
-                                           const Selection &selection,
-                                           SxList<SxPair<ssize_t,ssize_t> > *distMap,
-                                           SxSet<ssize_t> *visited) const
+void SxGraph<N,E,GS,ItPair>::nextLevel (ssize_t ptr, ssize_t pathLen,
+                                        ssize_t maxPathLen,
+                                        const Selection &selection,
+                                        SxList<SxPair<ssize_t,ssize_t> > *distMap,
+                                        SxSet<ssize_t> *visited) const
 {
    SX_TRACE ();
    if (maxPathLen == 0 || pathLen + 1 < maxPathLen)  {
@@ -1567,7 +1707,7 @@ void SxGraph<T,E,NT,ET,ItPair>::nextLevel (ssize_t ptr, ssize_t pathLen,
       SX_CHECK (visited);
 
       // --- search in children
-      const SxArray<SxPair<ssize_t,ssize_t> > &edgesOut = nodes->get(ptr).out;
+      const SxArray<SxPair<ssize_t,ssize_t> > &edgesOut = nodes->get(ptr).out ();
       if (selection.getPtr ())  {
          for (ssize_t i = 0; i < edgesOut.size; ++i)  {
             ssize_t key = edgesOut.elements[i].value;
@@ -1593,25 +1733,26 @@ void SxGraph<T,E,NT,ET,ItPair>::nextLevel (ssize_t ptr, ssize_t pathLen,
    }
 }
 
-template<class T,class E,template<class> class NT,template<class> class ET,
+template<class N,class E,
+         template<class,bool> class GS,
          template<class,class,class> class ItPair>
-SxList<T> SxGraph<T,E,NT,ET,ItPair>::topsort (const Selection &selection_) const
+SxList<N> SxGraph<N,E,GS,ItPair>::topsort (const Selection &selection_) const
 {
    SX_TRACE ();
-   SxList<T> res;
+   SxList<N> res;
    SxList<ssize_t> s;
    ssize_t ptr = 0;
 
    // --- number of incoming edges for each vertex and start nodes
 
-   ssize_t len = nodes->elems.getSize ();
+   ssize_t len = nodes->getSize ();
    SxArray<ssize_t> edges_(len);
    edges_.set (0);
    if (selection_.getPtr ())  {
       typename SxList<ssize_t>::ConstIterator it;
       for (it = selection_->begin(); it != selection_->end(); ++it)  {
          ssize_t nSelected = 0;
-         const SxArray<SxPair<ssize_t,ssize_t> > &edgesIn = nodes->get(*it).in;
+         const SxArray<SxPair<ssize_t,ssize_t> > &edgesIn = nodes->get(*it).in ();
          for (ssize_t i = 0; i < edgesIn.size; ++i)  {
             if (selection_->contains (edgesIn(i).value))  {
                nSelected++;
@@ -1621,11 +1762,11 @@ SxList<T> SxGraph<T,E,NT,ET,ItPair>::topsort (const Selection &selection_) const
          if (nSelected < 1)  s << (*it);
       }
    }  else  {
-      ptr = nodes->elems.firstElement;
+      ptr = nodes->first ();
       while (ptr >= 0)  {
-         edges_(ptr) = nodes->get(ptr).in.size;
-         if (nodes->get(ptr).in.size < 1)  s << ptr;
-         ptr = nodes->get(ptr).next;
+         edges_(ptr) = nodes->get (ptr).in ().size;
+         if (nodes->get (ptr).in ().size < 1)  s << ptr;
+         ptr = nodes->next (ptr);
       }
    }
 
@@ -1633,9 +1774,9 @@ SxList<T> SxGraph<T,E,NT,ET,ItPair>::topsort (const Selection &selection_) const
    while (s.getSize () > 0)  {
       ptr = s.first ();
       s.removeFirst ();
-      res << nodes->get(ptr).element;
+      res << nodes->get (ptr).element;
 
-      const SxArray<SxPair<ssize_t,ssize_t> > &edgesOut = nodes->get(ptr).out;
+      const SxArray<SxPair<ssize_t,ssize_t> > &edgesOut = nodes->get(ptr).out ();
       for (ssize_t i = 0; i < edgesOut.size; ++i)  {
          ssize_t idxTo = edgesOut(i).value;
          if (edges_(idxTo) > 0)  {
@@ -1658,9 +1799,10 @@ SxList<T> SxGraph<T,E,NT,ET,ItPair>::topsort (const Selection &selection_) const
 // K.A. Hawick and H.A. James
 // Proc. 2008 Int. Conf. on Foundations of Computer Science (FCS’08), p 14-20
 // 2008
-template<class T,class E,template<class> class NT,template<class> class ET,
+template<class N,class E,
+         template<class,bool> class GS,
          template<class,class,class> class ItPair>
-SxList<SxList<ssize_t> > SxGraph<T,E,NT,ET,ItPair>::getCyclesIdx (
+SxList<SxList<ssize_t> > SxGraph<N,E,GS,ItPair>::getCyclesIdx (
    const Selection &selection_) const
 {
    SX_TRACE ();
@@ -1670,7 +1812,7 @@ SxList<SxList<ssize_t> > SxGraph<T,E,NT,ET,ItPair>::getCyclesIdx (
    SxArray<SxArray<ssize_t> > B; // recursive block/unblock
    SxList<ssize_t> stack;            // curent circuit
 
-   ssize_t len = nodes->elems.getSize ();
+   ssize_t len = nodes->getSize ();
    blocked.resize (len);
    B.resize (len);
    visited.resize (len);
@@ -1692,7 +1834,7 @@ SxList<SxList<ssize_t> > SxGraph<T,E,NT,ET,ItPair>::getCyclesIdx (
       }
    }  else  {
       if (len > 0)  visited.set (false);
-      ssize_t ptr = nodes->firstElement;
+      ssize_t ptr = nodes->first ();
       while (ptr >= 0)  {
          blocked.set (false);
          for (ssize_t i=0; i < len; i++)  {
@@ -1700,22 +1842,23 @@ SxList<SxList<ssize_t> > SxGraph<T,E,NT,ET,ItPair>::getCyclesIdx (
          }
          circuit (ptr, ptr, stack, visited, blocked, B, &circuits);
          visited(ptr) = true;
-         ptr = nodes->get(ptr).next;
+         ptr = nodes->next (ptr);
       }
    }
    return circuits;
 }
 
-template<class T,class E,template<class> class NT,template<class> class ET,
+template<class N,class E,
+         template<class,bool> class GS,
          template<class,class,class> class ItPair>
-SxArray<SxArray<T> > SxGraph<T,E,NT,ET,ItPair>::getCycles (
+SxArray<SxArray<N> > SxGraph<N,E,GS,ItPair>::getCycles (
    const Selection &selection_) const
 {
    SX_TRACE ();
    SxList<SxList<ssize_t> > circuits = getCyclesIdx (selection_);
 
    // --- convert graph indices to elements in found circuits
-   SxArray<SxArray<T> > res;
+   SxArray<SxArray<N> > res;
    res.resize (circuits.getSize ());
    SxList<SxList<ssize_t> >::ConstIterator it;
    ssize_t i = 0;
@@ -1724,7 +1867,7 @@ SxArray<SxArray<T> > SxGraph<T,E,NT,ET,ItPair>::getCycles (
       SxList<ssize_t>::ConstIterator it2;
       ssize_t j = 0;
       for (it2 = it->begin(); it2 != it->end(); ++it2)  {
-         res(i)(j) = nodes->get(*it2).element;
+         res(i)(j) = nodes->get (*it2).element;
          j++;
       }
       i++;
@@ -1733,14 +1876,15 @@ SxArray<SxArray<T> > SxGraph<T,E,NT,ET,ItPair>::getCycles (
 }
 
 // getCycles
-template<class T,class E,template<class> class NT,template<class> class ET,
+template<class N,class E,
+         template<class,bool> class GS,
          template<class,class,class> class ItPair>
-bool SxGraph<T,E,NT,ET,ItPair>::circuit (ssize_t idx, ssize_t start,
-                                         SxList<ssize_t> &stack,
-                                         SxArray<bool> &visited,
-                                         SxArray<bool> &blocked,
-                                         SxArray<SxArray<ssize_t> > &B,
-                                         SxList<SxList<ssize_t> > *circuits) const
+bool SxGraph<N,E,GS,ItPair>::circuit (ssize_t idx, ssize_t start,
+                                      SxList<ssize_t> &stack,
+                                      SxArray<bool> &visited,
+                                      SxArray<bool> &blocked,
+                                      SxArray<SxArray<ssize_t> > &B,
+                                      SxList<SxList<ssize_t> > *circuits) const
 {
    SX_TRACE ();
    SX_CHECK (circuits);
@@ -1750,7 +1894,7 @@ bool SxGraph<T,E,NT,ET,ItPair>::circuit (ssize_t idx, ssize_t start,
    blocked(idx) = true;
 
 
-   const SxArray<SxPair<ssize_t,ssize_t> > &edgesOut = nodes->get(idx).out;
+   const SxArray<SxPair<ssize_t,ssize_t> > &edgesOut = nodes->get (idx).out ();
    for (ssize_t i = 0; i < edgesOut.size; ++i)  {
       ssize_t to = edgesOut(i).value;
       if (!visited(to))  {
@@ -1783,11 +1927,12 @@ bool SxGraph<T,E,NT,ET,ItPair>::circuit (ssize_t idx, ssize_t start,
 }
 
 // getCycles
-template<class T,class E,template<class> class NT,template<class> class ET,
+template<class N,class E,
+         template<class,bool> class GS,
          template<class,class,class> class ItPair>
-void SxGraph<T,E,NT,ET,ItPair>::unblock (ssize_t idx,
-                                         SxArray<bool> &blocked,
-                                         SxArray<SxArray<ssize_t> > &B) const
+void SxGraph<N,E,GS,ItPair>::unblock (ssize_t idx,
+                                      SxArray<bool> &blocked,
+                                      SxArray<SxArray<ssize_t> > &B) const
 {
    SX_TRACE ();
    blocked(idx) = false;
@@ -1802,14 +1947,15 @@ void SxGraph<T,E,NT,ET,ItPair>::unblock (ssize_t idx,
    }
 }
 
-template<class T,class E,template<class> class NT,template<class> class ET,
+template<class N,class E,
+         template<class,bool> class GS,
          template<class,class,class> class ItPair>
-typename SxGraph<T,E,NT,ET,ItPair>::EdgeEvent &
-SxGraph<T,E,NT,ET,ItPair>::getSignal (const Iterator &it, sx::GraphEvent e)
+typename SxGraph<N,E,GS,ItPair>::EdgeEvent &
+SxGraph<N,E,GS,ItPair>::getSignal (const Iterator &it, sx::GraphEvent e)
 {
    using namespace sx;
    ssize_t idx = it.getIdx ();
-   switch (e) {
+   switch (e)  {
       case BeforeEdgeInEvent  : return sigBeforeEdgeIn(idx);
       case BeforeEdgeOutEvent : return sigBeforeEdgeOut(idx);
       case AfterEdgeInEvent   : return sigAfterEdgeIn(idx);
@@ -1819,10 +1965,12 @@ SxGraph<T,E,NT,ET,ItPair>::getSignal (const Iterator &it, sx::GraphEvent e)
    return sigBeforeEdgeOut (0); // dummy to make it compile
 }
 
-template<class T,class E,template<class> class NT,template<class> class ET,
+template<class N,class E,
+         template<class,bool> class GS,
          template<class,class,class> class ItPair>
-void SxGraph<T,E,NT,ET,ItPair>::handleEdgeEvent (unsigned int e,
-                                                 ssize_t idxFrom, ssize_t idxTo)
+void SxGraph<N,E,GS,ItPair>::handleEdgeEvent (unsigned int e,
+                                              ssize_t idxFrom,
+                                              ssize_t idxTo)
 {
    Selection sel;
    Iterator i1 (sx::Forward, this, idxFrom, sel);
@@ -1840,56 +1988,62 @@ void SxGraph<T,E,NT,ET,ItPair>::handleEdgeEvent (unsigned int e,
 
 
 
-template<class T,class E,template<class> class NT,template<class> class ET,
+template<class N,class E,
+         template<class,bool> class GS,
          template<class,class,class> class ItPair>
-void SxGraph<T,E,NT,ET,ItPair>::print () const
+void SxGraph<N,E,GS,ItPair>::print () const
 {
 
    SxUniqueList<ssize_t> visited;
-   for (ssize_t i = 0; i < nodes->nElems; ++i)  {
-      SxArray<SxPair<ssize_t,ssize_t> > edgesOut = nodes->get(i).out;
-      for (ssize_t j = 0; j < edgesOut.getSize (); ++j) {
-         std::cout << nodes->get(i).element
+   for (ssize_t i = 0; i < nodes->getSize (); ++i)  {
+      const SxArray<SxPair<ssize_t,ssize_t> > &edgesOut = nodes->get (i).out ();
+      for (ssize_t j = 0; j < edgesOut.getSize (); ++j)  {
+         std::cout << nodes->get (i).element
                    << " --> "
-                   << nodes->get(edgesOut.elements[j].value).element
+                   << nodes->get (edgesOut.elements[j].value).element
                    << "\n";
       }
    }
 
 }
 
-template<class T,class E,template<class> class NT,template<class> class ET,
+template<class N,class E,
+         template<class,bool> class GS,
          template<class,class,class> class ItPair>
-void SxGraph<T,E,NT,ET,ItPair>::print (typename SxGraph<T,E,NT,ET,ItPair>::Iterator it,
-                                       std::ostream &s,
-                                       const SxString &opt) const
+void
+SxGraph<N,E,GS,ItPair>::print (typename SxGraph<N,E,GS,ItPair>::Iterator it,
+                               std::ostream &s,
+                               const SxString &opt) const
 {
    SxUniqueList<ssize_t> visited;
-   typename SxGraph<T,E,NT,ET,ItPair>::Iterator itEnd;
+   typename SxGraph<N,E,GS,ItPair>::Iterator itEnd;
    for (; it != itEnd; ++it)  {
       visited << it.getIdx ();
    }
    print (visited, s, opt);
 }
 
-template<class T,class E,template<class> class NT,template<class> class ET,
+template<class N,class E,
+         template<class,bool> class GS,
          template<class,class,class> class ItPair>
-void SxGraph<T,E,NT,ET,ItPair>::print (typename SxGraph<T,E,NT,ET,ItPair>::ConstIterator it,
-                                       std::ostream &s,
-                                       const SxString &opt) const
+void
+SxGraph<N,E,GS,ItPair>::print (typename SxGraph<N,E,GS,ItPair>::ConstIterator it,
+                               std::ostream &s,
+                               const SxString &opt) const
 {
    SxUniqueList<ssize_t> visited;
-   typename SxGraph<T,E,NT,ET,ItPair>::ConstIterator itEnd;
+   typename SxGraph<N,E,GS,ItPair>::ConstIterator itEnd;
    for (; it != itEnd; ++it)  {
       visited << it.getIdx ();
    }
    print (visited, s, opt);
 }
 
-template<class T,class E,template<class> class NT,template<class> class ET,
+template<class N,class E,
+         template<class,bool> class GS,
          template<class,class,class> class ItPair>
-void SxGraph<T,E,NT,ET,ItPair>::print (const SxUniqueList<ssize_t> &visited,
-                                       std::ostream &s, const SxString &opt) const
+void SxGraph<N,E,GS,ItPair>::print (const SxUniqueList<ssize_t> &visited,
+                                    std::ostream &s, const SxString &opt) const
 {
    s << "digraph G {" << endl;
    if (opt != "")  {
@@ -1898,16 +2052,16 @@ void SxGraph<T,E,NT,ET,ItPair>::print (const SxUniqueList<ssize_t> &visited,
 
    typename SxList<ssize_t>::ConstIterator itIdx;
    for (itIdx = visited.begin(); itIdx != visited.end(); ++itIdx)  {
-      const Node *node = &nodes->get(*itIdx);
-      if (node->out.size < 1 && node->in.size < 1)  {
+      const NT *node = &nodes->get (*itIdx);
+      if (node->out ().size < 1 && node->in ().size < 1)  {
          s << "   \"" << node->element << "\"" << endl;
       }  else  {
-         const SxArray<SxPair<ssize_t,ssize_t> > &edgesOut = node->out;
+         const SxArray<SxPair<ssize_t,ssize_t> > &edgesOut = node->out ();
          bool someEdgeVisited = false;
          for (ssize_t i = 0; i < edgesOut.size; ++i)  {
             if (visited.contains (edgesOut(i).value))  {
                s << "   \"" << node->element << "\" -> \""
-                 << nodes->get(edgesOut(i).value).element
+                 << nodes->get (edgesOut(i).value).element
                  << "\"" << endl;
                someEdgeVisited = true;
             }
@@ -1920,46 +2074,20 @@ void SxGraph<T,E,NT,ET,ItPair>::print (const SxUniqueList<ssize_t> &visited,
 
 }
 
-template<class T,class E,template<class> class NT,template<class> class ET,
+template<class N,class E,
+         template<class,bool> class GS,
          template<class,class,class> class ItPair>
-void SxGraph<T,E,NT,ET,ItPair>::printDebug () const
-{
-   size_t nBytesNodes = 0;
-   size_t nBytesEdges = 0;
-   ssize_t ptr = nodes->firstElement;
-
-   while (ptr >= 0)  {
-      nBytesNodes += sizeof(nodes->get(ptr))
-                  + ::getNBytes (nodes->get(ptr).element)
-                  - sizeof(nodes->get(ptr).element);
-      const SxArray<SxPair<ssize_t,ssize_t> > &edgesOut = nodes->get(ptr).out;
-      for (ssize_t i = 0; i < edgesOut.size; ++i)  {
-         nBytesEdges += ::getNBytes (edgesOut.elements[i].value);
-      }
-      nBytesEdges += 2 * sizeof(ssize_t) * nodes->get(ptr).in.size;
-      ptr = nodes->get(ptr).next;
-   }
-
-   cout << "nodes : " << nodes->nElems << " ... " << nBytesNodes << " bytes" << endl;
-   cout << "edges : " << edges->nElems << " ... " << nBytesEdges << " bytes" << endl;
-   cout << "mem   : " << getNBytes() << " bytes" << endl;
-   //sxprintf ("ptr   : %p\n", (void*)nodes.elems.map);
-}
-
-
-template<class T,class E,template<class> class NT,template<class> class ET,
-         template<class,class,class> class ItPair>
-ssize_t SxGraph<T,E,NT,ET,ItPair>::findPos (const T &elem) const
+ssize_t SxGraph<N,E,GS,ItPair>::findPos (const N &elem) const
 {
    SX_TRACE ();
-   ssize_t idx = nodes->hashFindPos (elem);
-   return (idx >= 0) ? nodes->hashTable.elements[idx] : -1;
+   return nodes->findPos (elem);
 }
 
 
-template<class T,class E,template<class> class NT,template<class> class ET,
+template<class N,class E,
+         template<class,bool> class GS,
          template<class,class,class> class ItPair>
-size_t SxGraph<T,E,NT,ET,ItPair>::getNBytes () const
+size_t SxGraph<N,E,GS,ItPair>::getNBytes () const
 {
    SX_TRACE ();
    size_t nBytes = sizeof(*this)
@@ -1969,231 +2097,251 @@ size_t SxGraph<T,E,NT,ET,ItPair>::getNBytes () const
 }
 
 
-template<class T,class E,template<class> class NT,template<class> class ET,
+template<class N,class E,
+         template<class,bool> class GS,
          template<class,class,class> class ItPair>
-size_t getNBytes (const SxGraph<T,E,NT,ET,ItPair> &in)
+size_t getNBytes (const SxGraph<N,E,GS,ItPair> &in)
 {
    return in.getNBytes ();
 }
 // ---------------------------------------------------------------------------
 
-template<class T,class E,template<class> class NT,template<class> class ET,
+template<class N,class E,
+         template<class,bool> class GS,
          template<class,class,class> class ItPair>
-typename SxGraph<T,E,NT,ET,ItPair>::Iterator
-SxGraph<T,E,NT,ET,ItPair>::begin (ssize_t nodeIdx, sx::Direction dir_)
+typename SxGraph<N,E,GS,ItPair>::Iterator
+SxGraph<N,E,GS,ItPair>::begin (ssize_t nodeIdx, sx::Direction dir_)
 {
    SX_TRACE ();
    if (!nodes->contains(nodeIdx))
       nodeIdx = -1;
-   return typename SxGraph<T,E,NT,ET,ItPair>::Iterator (dir_, this, nodeIdx,
-                                                        Selection());
+   return typename SxGraph<N,E,GS,ItPair>::Iterator (dir_, this, nodeIdx,
+                                                     Selection());
 }
 
-template<class T,class E,template<class> class NT,template<class> class ET,
+template<class N,class E,
+         template<class,bool> class GS,
          template<class,class,class> class ItPair>
-typename SxGraph<T,E,NT,ET,ItPair>::ConstIterator
-SxGraph<T,E,NT,ET,ItPair>::begin (ssize_t nodeIdx, sx::Direction dir_) const
+typename SxGraph<N,E,GS,ItPair>::ConstIterator
+SxGraph<N,E,GS,ItPair>::begin (ssize_t nodeIdx, sx::Direction dir_) const
 {
    SX_TRACE ();
    if (!nodes->contains(nodeIdx))
       nodeIdx = -1;
-   return typename SxGraph<T,E,NT,ET,ItPair>::ConstIterator (dir_, this, nodeIdx,
-                                                             Selection());
+   return typename SxGraph<N,E,GS,ItPair>::ConstIterator (dir_, this,
+                                                          nodeIdx,
+                                                          Selection());
 }
 
-template<class T,class E,template<class> class NT,template<class> class ET,
+template<class N,class E,
+         template<class,bool> class GS,
          template<class,class,class> class ItPair>
-typename SxGraph<T,E,NT,ET,ItPair>::Iterator
-SxGraph<T,E,NT,ET,ItPair>::begin (const Selection &selection_)
+typename SxGraph<N,E,GS,ItPair>::Iterator
+SxGraph<N,E,GS,ItPair>::begin (const Selection &selection_)
 {
    SX_TRACE ();
    ssize_t idx = -1;
    if (selection_.getPtr ())  {
       if (selection_->getSize () > 0) idx = selection_->first ();
    }  else  {
-      idx = nodes->firstElement;
+      idx = nodes->first ();
    }
 
-   return typename SxGraph<T,E,NT,ET,ItPair>::Iterator (sx::Undefined, this,
-                                                        idx, selection_);
+   return typename SxGraph<N,E,GS,ItPair>::Iterator (sx::Undefined, this,
+                                                     idx, selection_);
 }
 
-template<class T,class E,template<class> class NT,template<class> class ET,
+template<class N,class E,
+         template<class,bool> class GS,
          template<class,class,class> class ItPair>
-typename SxGraph<T,E,NT,ET,ItPair>::ConstIterator
-SxGraph<T,E,NT,ET,ItPair>::begin (const Selection &selection_) const
+typename SxGraph<N,E,GS,ItPair>::ConstIterator
+SxGraph<N,E,GS,ItPair>::begin (const Selection &selection_) const
 {
    SX_TRACE ();
    ssize_t idx = -1;
    if (selection_.getPtr ())  {
       if (selection_->getSize () > 0) idx = selection_->first ();
    }  else  {
-      idx = nodes->firstElement;
+      idx = nodes->first ();
    }
-   return typename SxGraph<T,E,NT,ET,ItPair>::ConstIterator (sx::Undefined,
-                                                             this, idx,
-                                                             selection_);
+   return typename SxGraph<N,E,GS,ItPair>::ConstIterator (sx::Undefined,
+                                                          this, idx,
+                                                          selection_);
 
 }
 
-template<class T,class E,template<class> class NT,template<class> class ET,
+template<class N,class E,
+         template<class,bool> class GS,
          template<class,class,class> class ItPair>
-typename SxGraph<T,E,NT,ET,ItPair>::Iterator
-SxGraph<T,E,NT,ET,ItPair>::begin (sx::Direction dir_, const T &elem_,
-                                  const Selection &selection_)
+typename SxGraph<N,E,GS,ItPair>::Iterator
+SxGraph<N,E,GS,ItPair>::begin (sx::Direction dir_, const N &elem_,
+                               const Selection &selection_)
 {
    SX_TRACE ();
    ssize_t idx = findPos (elem_);
    if (selection_.getPtr () && !selection_->contains (idx)) idx = -1;
-   return typename SxGraph<T,E,NT,ET,ItPair>::Iterator (dir_, this, idx,
-                                                        selection_);
+   return typename SxGraph<N,E,GS,ItPair>::Iterator (dir_, this, idx,
+                                                     selection_);
 }
 
-template<class T,class E,template<class> class NT,template<class> class ET,
+template<class N,class E,
+         template<class,bool> class GS,
          template<class,class,class> class ItPair>
-typename SxGraph<T,E,NT,ET,ItPair>::ConstIterator
-SxGraph<T,E,NT,ET,ItPair>::begin (sx::Direction dir_, const T &elem_,
+typename SxGraph<N,E,GS,ItPair>::ConstIterator
+SxGraph<N,E,GS,ItPair>::begin (sx::Direction dir_, const N &elem_,
+                               const Selection &selection_) const
+{
+   SX_TRACE ();
+   ssize_t idx = findPos (elem_);
+   if (selection_.getPtr () && !selection_->contains (idx)) idx = -1;
+   return typename SxGraph<N,E,GS,ItPair>::ConstIterator (dir_, this, idx,
+                                                          selection_);
+}
+
+template<class N,class E,
+         template<class,bool> class GS,
+         template<class,class,class> class ItPair>
+typename SxGraph<N,E,GS,ItPair>::Iterator
+SxGraph<N,E,GS,ItPair>::begin (const N &elem_, const Selection &selection_)
+{
+   SX_TRACE ();
+   ssize_t idx = findPos (elem_);
+   if (selection_.getPtr () && !selection_->contains (idx)) idx = -1;
+   return typename SxGraph<N,E,GS,ItPair>::Iterator (sx::Forward, this, idx,
+                                                     selection_);
+}
+
+template<class N,class E,
+         template<class,bool> class GS,
+         template<class,class,class> class ItPair>
+typename SxGraph<N,E,GS,ItPair>::ConstIterator
+SxGraph<N,E,GS,ItPair>::begin (const N &elem_,
+                               const Selection &selection_) const
+{
+   SX_TRACE ();
+   ssize_t idx = findPos (elem_);
+   if (selection_.getPtr () && !selection_->contains (idx)) idx = -1;
+   return typename SxGraph<N,E,GS,ItPair>::ConstIterator(sx::Forward, this,
+                                                         idx, selection_);
+}
+
+template<class N,class E,
+         template<class,bool> class GS,
+         template<class,class,class> class ItPair>
+typename SxGraph<N,E,GS,ItPair>::Iterator
+SxGraph<N,E,GS,ItPair>::beginIn (const N &elem_, const Selection &selection_)
+{
+   SX_TRACE ();
+   ssize_t idx = findPos (elem_);
+   if (selection_.getPtr () && !selection_->contains (idx)) idx = -1;
+   return typename SxGraph<N,E,GS,ItPair>::Iterator(sx::Backward, this, idx,
+                                                    selection_);
+}
+
+template<class N,class E,
+         template<class,bool> class GS,
+         template<class,class,class> class ItPair>
+typename SxGraph<N,E,GS,ItPair>::Iterator
+SxGraph<N,E,GS,ItPair>::beginBoth (const N &elem_,
+                                   const Selection &selection_)
+{
+   SX_TRACE ();
+   ssize_t idx = findPos (elem_);
+   if (selection_.getPtr () && !selection_->contains (idx)) idx = -1;
+   return typename SxGraph<N,E,GS,ItPair>::Iterator(sx::Both, this, idx,
+                                                    selection_);
+}
+
+template<class N,class E,
+         template<class,bool> class GS,
+         template<class,class,class> class ItPair>
+typename SxGraph<N,E,GS,ItPair>::ConstIterator
+SxGraph<N,E,GS,ItPair>::beginIn  (const N &elem_,
                                   const Selection &selection_) const
 {
    SX_TRACE ();
    ssize_t idx = findPos (elem_);
    if (selection_.getPtr () && !selection_->contains (idx)) idx = -1;
-   return typename SxGraph<T,E,NT,ET,ItPair>::ConstIterator (dir_, this, idx,
-                                                             selection_);
+   return typename SxGraph<N,E,GS,ItPair>::ConstIterator(sx::Backward, this,
+                                                         idx, selection_);
 }
 
-template<class T,class E,template<class> class NT,template<class> class ET,
+template<class N,class E,
+         template<class,bool> class GS,
          template<class,class,class> class ItPair>
-typename SxGraph<T,E,NT,ET,ItPair>::Iterator
-SxGraph<T,E,NT,ET,ItPair>::begin (const T &elem_, const Selection &selection_)
+typename SxGraph<N,E,GS,ItPair>::ConstIterator
+SxGraph<N,E,GS,ItPair>::beginBoth (const N &elem_,
+                                   const Selection &selection_) const
 {
    SX_TRACE ();
    ssize_t idx = findPos (elem_);
    if (selection_.getPtr () && !selection_->contains (idx)) idx = -1;
-   return typename SxGraph<T,E,NT,ET,ItPair>::Iterator (sx::Forward, this, idx,
-                                                        selection_);
+   return typename SxGraph<N,E,GS,ItPair>::ConstIterator(sx::Both, this,
+                                                         idx, selection_);
 }
 
-template<class T,class E,template<class> class NT,template<class> class ET,
+template<class N,class E,
+         template<class,bool> class GS,
          template<class,class,class> class ItPair>
-typename SxGraph<T,E,NT,ET,ItPair>::ConstIterator
-SxGraph<T,E,NT,ET,ItPair>::begin (const T &elem_,
-                                  const Selection &selection_) const
+typename SxGraph<N,E,GS,ItPair>::Iterator
+SxGraph<N,E,GS,ItPair>::end ()
 {
-   SX_TRACE ();
-   ssize_t idx = findPos (elem_);
-   if (selection_.getPtr () && !selection_->contains (idx)) idx = -1;
-   return typename SxGraph<T,E,NT,ET,ItPair>::ConstIterator(sx::Forward, this,
-                                                            idx, selection_);
+   return typename SxGraph<N,E,GS,ItPair>::Iterator ();
 }
 
-template<class T,class E,template<class> class NT,template<class> class ET,
+template<class N,class E,
+         template<class,bool> class GS,
          template<class,class,class> class ItPair>
-typename SxGraph<T,E,NT,ET,ItPair>::Iterator
-SxGraph<T,E,NT,ET,ItPair>::beginIn (const T &elem_, const Selection &selection_)
+typename SxGraph<N,E,GS,ItPair>::ConstIterator
+SxGraph<N,E,GS,ItPair>::end () const
 {
-   SX_TRACE ();
-   ssize_t idx = findPos (elem_);
-   if (selection_.getPtr () && !selection_->contains (idx)) idx = -1;
-   return typename SxGraph<T,E,NT,ET,ItPair>::Iterator(sx::Backward, this, idx,
-                                                       selection_);
+   return typename SxGraph<N,E,GS,ItPair>::ConstIterator ();
 }
-
-template<class T,class E,template<class> class NT,template<class> class ET,
+template<class N,class E,
+         template<class,bool> class GS,
          template<class,class,class> class ItPair>
-typename SxGraph<T,E,NT,ET,ItPair>::Iterator
-SxGraph<T,E,NT,ET,ItPair>::beginBoth (const T &elem_,
-                                      const Selection &selection_)
-{
-   SX_TRACE ();
-   ssize_t idx = findPos (elem_);
-   if (selection_.getPtr () && !selection_->contains (idx)) idx = -1;
-   return typename SxGraph<T,E,NT,ET,ItPair>::Iterator(sx::Both, this, idx,
-                                                       selection_);
-}
-
-template<class T,class E,template<class> class NT,template<class> class ET,
-         template<class,class,class> class ItPair>
-typename SxGraph<T,E,NT,ET,ItPair>::ConstIterator
-SxGraph<T,E,NT,ET,ItPair>::beginIn  (const T &elem_,
-                                     const Selection &selection_) const
-{
-   SX_TRACE ();
-   ssize_t idx = findPos (elem_);
-   if (selection_.getPtr () && !selection_->contains (idx)) idx = -1;
-   return typename SxGraph<T,E,NT,ET,ItPair>::ConstIterator(sx::Backward, this,
-                                                            idx, selection_);
-}
-
-template<class T,class E,template<class> class NT,template<class> class ET,
-         template<class,class,class> class ItPair>
-typename SxGraph<T,E,NT,ET,ItPair>::ConstIterator
-SxGraph<T,E,NT,ET,ItPair>::beginBoth (const T &elem_,
-                                      const Selection &selection_) const
-{
-   SX_TRACE ();
-   ssize_t idx = findPos (elem_);
-   if (selection_.getPtr () && !selection_->contains (idx)) idx = -1;
-   return typename SxGraph<T,E,NT,ET,ItPair>::ConstIterator(sx::Both, this,
-                                                            idx, selection_);
-}
-
-template<class T,class E,template<class> class NT,template<class> class ET,
-         template<class,class,class> class ItPair>
-typename SxGraph<T,E,NT,ET,ItPair>::Iterator
-SxGraph<T,E,NT,ET,ItPair>::end ()
-{
-   return typename SxGraph<T,E,NT,ET,ItPair>::Iterator ();
-}
-
-template<class T,class E,template<class> class NT,template<class> class ET,
-         template<class,class,class> class ItPair>
-typename SxGraph<T,E,NT,ET,ItPair>::ConstIterator
-SxGraph<T,E,NT,ET,ItPair>::end () const
-{
-   return typename SxGraph<T,E,NT,ET,ItPair>::ConstIterator ();
-}
-template<class T,class E,template<class> class NT,template<class> class ET,
-         template<class,class,class> class ItPair>
-typename SxGraph<T,E,NT,ET,ItPair>::Iterator
-SxGraph<T,E,NT,ET,ItPair>::getIterator (const typename SxGraph<T,E,NT,ET,ItPair>::SelIdx &idx)
+typename SxGraph<N,E,GS,ItPair>::Iterator
+SxGraph<N,E,GS,ItPair>::getIterator (const typename SxGraph<N,E,GS,ItPair>::SelIdx &idx)
 {
    SX_TRACE ();
    ssize_t ptr = idx;
    if (!nodes->contains (ptr))  ptr = -1;
 
-   return typename SxGraph<T,E,NT,ET,ItPair>::Iterator (sx::Forward, this,
-                                                        ptr, Selection());
+   return typename SxGraph<N,E,GS,ItPair>::Iterator (sx::Forward, this,
+                                                     ptr, Selection());
 }
 
-template<class T,class E,template<class> class NT,template<class> class ET,
+template<class N,class E,
+         template<class,bool> class GS,
          template<class,class,class> class ItPair>
-typename SxGraph<T,E,NT,ET,ItPair>::ConstIterator
-SxGraph<T,E,NT,ET,ItPair>::getIterator (const typename SxGraph<T,E,NT,ET,ItPair>::SelIdx &idx) const
+typename SxGraph<N,E,GS,ItPair>::ConstIterator
+SxGraph<N,E,GS,ItPair>::getIterator (const typename SxGraph<N,E,GS,ItPair>::SelIdx &idx) const
 {
    SX_EXIT;
    SX_TRACE ();
    ssize_t ptr = idx;
    if (!nodes->contains (ptr))  ptr = -1;
 
-   return typename SxGraph<T,E,NT,ET,ItPair>::ConstIterator (sx::Forward, this,
-                                                             ptr, Selection());
+   return typename SxGraph<N,E,GS,ItPair>::ConstIterator (sx::Forward, this,
+                                                          ptr, Selection());
 }
 
-template<class T,class E,template<class> class NT,template<class> class ET,
+template<class N,class E,
+         template<class,bool> class GS,
          template<class,class,class> class ItPair>
-typename SxGraph<T,E,NT,ET,ItPair>::ConstIterator
-SxGraph<T,E,NT,ET,ItPair>::getConstIterator (const typename SxGraph<T,E,NT,ET,ItPair>::Iterator &it) const
+typename SxGraph<N,E,GS,ItPair>::ConstIterator
+SxGraph<N,E,GS,ItPair>::getConstIterator (const typename SxGraph<N,E,GS,ItPair>::Iterator &it) const
 {
    SX_EXIT;
    SX_TRACE ();
    return it;
 }
 
-template<class T,class E,template<class> class NT,template<class> class ET,
+template<class N,class E,
+         template<class,bool> class GS,
          template<class,class,class> class ItPair>
-SxPtr<SxGraph<T,E,NT,ET,ItPair> >
-SxGraph<T,E,NT,ET,ItPair>::getContainer () const
+SxPtr<SxGraph<N,E,GS,ItPair> >
+SxGraph<N,E,GS,ItPair>::getContainer () const
 {
    SX_EXIT;
    SX_TRACE ();

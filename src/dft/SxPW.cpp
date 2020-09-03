@@ -593,8 +593,7 @@ void SxPW::setOrthogonal (SxDiracVec<TPrecCoeffG> *psiPtr,
              firstN, getNStates (ik));
    SX_CHECK (threshold >= 0., threshold);
    SX_CHECK (   normal == DONT_NORMALIZE
-             || normal == NORMALIZE
-             || normal == RENORMALIZE);
+             || normal == NORMALIZE);
 
    SX_CHECK (psiPtr);
    if (firstN == 0)  {
@@ -604,11 +603,6 @@ void SxPW::setOrthogonal (SxDiracVec<TPrecCoeffG> *psiPtr,
    SxDiracVec<TPrecCoeffG> &psi = *psiPtr;
    int nPsi = (int)psi.nCols ();
    if (nPsi == 0) nPsi = 1;
-
-   // psi must be normalized
-   SX_CHECK (! (normal == RENORMALIZE)
-             || fabs (1. - dot(psi,psi).re) < 1e-7,
-             1. - dot(psi,psi).re        );
 
    int j;
    SxDiracVec<TPrecCoeffG> psiJ;
@@ -621,8 +615,8 @@ void SxPW::setOrthogonal (SxDiracVec<TPrecCoeffG> *psiPtr,
       // this should be the zdotc / gemv crossover for nPsi == 1
       // this should be the gemv / gemm crossover for nPsi > 1
       SX_CHECK (stored == InMemory || loadedK == ik, loadedK, ik);
-      SX_CHECK  (loadedK >= 0, loadedK);
-      SX_CHECK  (loadedSpin >= 0, loadedSpin);
+      SX_CHECK (stored == InMemory || loadedK >= 0, loadedK);
+      SX_CHECK (stored == InMemory || loadedSpin >= 0, loadedSpin);
 
       SxDiracVec<TPrecCoeffG> *allStates
          = (stored == InMemory) ? &(waves(ik)(iSpin))
@@ -635,13 +629,7 @@ void SxPW::setOrthogonal (SxDiracVec<TPrecCoeffG> *psiPtr,
       lowerStates.reshape(ng, firstN);
       // --- get <j|psi> for all 0 <= j < firstN
 
-      SxDiracVec<TPrecCoeffG> scps;
-      if (nPsi > firstN)
-         // --- variant 1 (proper for XPress)
-         scps = lowerStates.adjoint () ^ psi;
-      else
-         // --- variant 2
-         scps = (psi.adjoint () ^ lowerStates).adjoint ();
+      SxDiracVec<TPrecCoeffG> scps = lowerStates.overlap (psi);
 
       // --- subtract |j><j|psi>
       // bool loopSubtr = (firstN < 500); // axpy / gemv crossover, to be tested
@@ -667,34 +655,16 @@ void SxPW::setOrthogonal (SxDiracVec<TPrecCoeffG> *psiPtr,
          psi -= (lowerStates ^ scps);
       }
 
-      // --- renormalize
-      if (normal == RENORMALIZE)  {
-         SX_CHECK (nPsi == 1, nPsi);
-         double deltaNorm = dot (scps, scps).re;
-         if (deltaNorm > threshold)  {
-            psi /= sqrt(1. - deltaNorm);
-         }
-      }
-
    } else {
       // --- conventional BLAS1 approach
-      double norm = 1.;
       double scp2;
       for (j=0; j < firstN; j++)  {
          psiJ = operator() (j,iSpin,ik);
          scp = dot (psiJ, psi); // <j|psi>
          scp2 = scp.absSqr ();
-         if (normal == RENORMALIZE) norm -= scp2;
 //       psi -= psiJ * scp;
          if (scp2 > threshold)
             psi.plus_assign_ax (-scp, psiJ); // psi -= |j><j|psi>
-      }
-
-      // --- renormalization
-      if (normal == RENORMALIZE)  {
-         if (fabs(1. - norm) > threshold)  {
-            psi /= sqrt(norm);
-         }
       }
    }
 
@@ -704,17 +674,6 @@ void SxPW::setOrthogonal (SxDiracVec<TPrecCoeffG> *psiPtr,
       else
          for (int i = 0; i < nPsi; ++i) psi.colRef(i).normalize ();
    }
-
-   /*
-   // --- check normalization
-   if (normal == RENORMALIZE)  {
-      double x = 1. - dot(psi, psi).re;
-      if (fabs(x) > threshold)  {
-        cout << x << endl;
-        psi.normalize ();
-      }
-   }
-   */
 }
 
 SxPW

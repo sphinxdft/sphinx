@@ -61,7 +61,7 @@ void SxTimerThread::main ()
       timeWait = timeoutSec;
    }
    
-   mutex.lock ();
+   SX_MUTEX (mutex)  {
       while (!stopCmd)  {
          // --- do not wait longer than timeout
          if (timeoutSec > 0. && t1 + timeWait > timeStart + timeoutSec)  {
@@ -92,6 +92,6 @@ void SxTimerThread::main ()
             break;
          }
       }
-   mutex.unlock ();
+   }
 }
 

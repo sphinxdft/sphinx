@@ -31,6 +31,7 @@
 #include <SxParallelHierarchy.h>
 #include <SxPAWSet.h>
 #include <SxHubbardMO.h>
+
 #ifdef USE_OPENMP
 #include <omp.h>
 #endif
@@ -49,6 +50,7 @@ SxPAWHamiltonian::SxPAWHamiltonian ()
    : SxHamiltonian (),
      hContrib(CalcAll),
      eTotal (0.),
+     applyVDWCorrection(false),
      rPtr (NULL)
 {
    // empty
@@ -66,6 +68,7 @@ SxPAWHamiltonian::SxPAWHamiltonian (const SxGBasis  &G,
 */
    : hContrib(CalcAll),
      eTotal (0.),
+     applyVDWCorrection(false),
      potPtr(potPtrIn),
      rPtr (NULL),
      pawRho (potPtrIn)
@@ -153,6 +156,21 @@ void SxPAWHamiltonian::read (const SxSymbolTable *table)
          e.print ();
          SX_EXIT;
       }
+   }
+   // --- vdW correction
+   if (hamGroup->containsGroup ("vdwCorrection")) {
+      applyVDWCorrection = true;
+      vdwCorrection = SxVDW(structure, hamGroup);
+      if (!vdwCorrection.needEffVolumes ())  {
+         SxArray<double> effectiveVolumes (structure.nTlAtoms);
+         effectiveVolumes.set (1.);
+         vdwCorrection.update (effectiveVolumes);
+         vdwCorrection.compute ();
+      }
+   }
+
+   if (hamGroup->contains("writeHirshfeldCharges")) {
+      writeHirshfeldCharges = true;
    }
 
    if (hamGroup->containsGroup ("HubbardU"))  {
@@ -307,6 +325,16 @@ void SxPAWHamiltonian::backToDefault (const SxSymbolTable *)
    }
    hContrib |= CalcDipoleC;
 
+}
+
+void SxPAWHamiltonian::changeTau (const SxAtomicStructure &str)
+{
+   structure = str;
+   if (applyVDWCorrection)  {
+      vdwCorrection.update (str);
+      // compute here if VDW is independent of density
+      if (!vdwCorrection.needEffVolumes ()) vdwCorrection.compute();
+   }
 }
 
 const SxSymbolTable *
@@ -476,7 +504,7 @@ SX_REGISTER_TIMERS (LocTimer)
 
 void SxPAWHamiltonian::computeRhoTerms ()
 {
-   SX_CLOCK (Timer::ComputeHamRho);
+   SX_START_TIMER (Timer::ComputeHamRho);
    const SxRadMat &Dij = pawRho.Dij;
    const RhoR &rhoPSR = pawRho.pwRho.rhoR;
    SX_START_TIMER (Setup);
@@ -1433,7 +1461,83 @@ void SxPAWHamiltonian::computeRhoTerms ()
       eDoubleCounting = eDCmaster;
    }
 #endif
+   SX_STOP_TIMER (Timer::ComputeHamRho);
 
+   if (applyVDWCorrection && vdwCorrection.needEffVolumes ()) {
+      // Something like this...
+      SxArray<double> effectiveVolumes;
+      //SxArray<double> effectiveCharges(structure.nTlAtoms);
+      const SxGBasis &G = rPtr->getGBasis ();
+      if (refRho.getSize () != structure.getNSpecies ())  {
+         // --- preparation (once)
+         refRho.resize (structure.getNSpecies ());
+         refRhoR3.resize (structure.getNSpecies ());
+         r3Free.resize (structure.getNSpecies ());
+         double rMax = 20.;
+         int nrRad = 1000; // ad hoc
+         SxRadRBasis radR(0.,rMax,nrRad,SxRadRBasis::Linear);
+         double gMax = sqrt(G.g2(G.ng-1))*1.05;
+         int ngRad = 1000; // ad hoc
+         SxRadGBasis radG(0., gMax, ngRad, SxRadGBasis::Linear);
+         SX_LOOP(is)  {
+            refRho(is) = potPtr->getAtomRhoG(rPtr->getGBasis (), (int)is);
+            SxDiracVec<Double> filter(potPtr->rhoInit(is).getSize ());
+            double filterSize = double(filter.getSize ());
+            SX_LOOP(ig)  {
+               if (double(ig) < 0.8 * filterSize)
+                  filter(ig) = 1.;
+               else {
+                  double x = (double(ig) - 0.8 * filterSize)/(0.2 * filterSize);
+                  filter(ig) = 1. + x*x*x*(-10. + x*(15. - 6.*x));
+               }
+            }
+            SxDiracVec<Double> rhoAtomFree = radR | (potPtr->rhoInit(is) * filter);
+            writePlot ("rhoAtomFree.dat", radR.getRadRFunc (), rhoAtomFree);
+            SxDiracVec<Double> rhoAtomR3 = rhoAtomFree * radR.getRadRFunc ().cub ();
+            writePlot ("rhoAtomFreeR3.dat", radR.getRadRFunc (), rhoAtomR3);
+            // --- make sure that rhoAtomR3 goes smoothly to zero at rMax
+            cout <<  FOUR_PI * radR.integrate (rhoAtomR3) << endl;
+            int irCut = (int)(0.8 * nrRad);
+            for (int ir = irCut; ir < nrRad; ir++)  {
+               double x = (ir - irCut) / double(nrRad - irCut);
+               rhoAtomR3(ir) *= 1. - x * x * (3. - 2. * x);
+            }
+            refRhoR3(is) = G | (radG | rhoAtomR3);
+            r3Free(is) = FOUR_PI * radR.integrate (rhoAtomR3)
+                       /  sqrt(FOUR_PI); // * Y00
+            cout << r3Free(is) << " = " << refRhoR3(is)(0) * sqrt(structure.cell.volume) << endl;
+         }
+      }
+      // --- compute reference density (all atoms)
+      PsiG allAtomsG(G);
+      allAtomsG.set (0.);
+      SX_LOOP(is) allAtomsG += refRho(is) * G.structureFactors(is);
+      // --- get total density
+      SxDiracVec<Double> rhoTot;
+      if (pawRho.getNSpin () == 1)
+         rhoTot = pawRho.pwRho(0);
+      else
+         rhoTot = pawRho.pwRho(0) + pawRho.pwRho(1);
+      // get rho / refRho in G space
+      PsiG rhoByRef = G | (rhoTot / sqrt((*rPtr | allAtomsG).real ().sqr () + 1e-10));
+      PsiG rhoByRefR = rhoTot / sqrt((*rPtr | allAtomsG).absSqr () + 1e-10);
+      effectiveVolumes.resize (structure.nTlAtoms);
+      SX_LOOP(is)  {
+         PsiG rhoRefR3 = rhoByRef * refRhoR3(is);
+         SX_LOOP(ia)  {
+            effectiveVolumes(structure.getIAtom(is,ia))
+               = dot (rhoRefR3, G.getPhaseFactors(is,ia)) / r3Free(is);
+         }
+      }
+      //effectiveVolumes = pawRho.pwRho.getHirshfeldEffVolumes
+      //   (structure, refRho, *potPtr, gMax);
+      //effectiveCharges = pawRho.pwRho.getHirshfeldEffCharges
+      //   (structure, atomRhoG, *potPtr, gMax);
+      //cout << "Effective Charges: " << effectiveCharges << endl;
+
+      vdwCorrection.update(effectiveVolumes);
+      vdwCorrection.compute();
+   }
    //cout << "eXc = " << eXc << endl;
    //cout << "eExt = " << eExt << endl;
    //cout << "eHartree = " << eHartree << endl;
@@ -1474,7 +1578,7 @@ void SxPAWHamiltonian::compute (const SxPWSet &waves, const SxFermi &fermi,
 
    //sxprintf ("eHarrisFoulkes = %20.16f\n", getHarrisEnergy (fermi));
 
-   // --- Hartree & xc parts
+   // --- Hartree & xc parts & VDW if Tkatchenko-Scheffler
    computeRhoTerms ();
 
 
@@ -1486,12 +1590,10 @@ void SxPAWHamiltonian::compute (const SxPWSet &waves, const SxFermi &fermi,
       eDoubleCounting -= SxXCFunctional::alphaHybrid * eX;
    }
 
-
    // kinetic energy
    double eKin = 0.;
    // --- pseudo-kinetic enery
    int nSpin = waves.getNSpin ();
-
 
    if (hContrib & CalcKinPS)  {
       SX_NEW_LOOP (waves);
@@ -1560,16 +1662,29 @@ void SxPAWHamiltonian::compute (const SxPWSet &waves, const SxFermi &fermi,
    sxprintf ("eXc       = % 19.12f H\n", eXc);
    sxprintf ("eBar      = % 19.12f H\n", eBar);
    sxprintf ("eCore     = % 19.12f H\n", eCore);
+   if (applyVDWCorrection) {
+      eVDW = vdwCorrection.totalEnergy;
+      sxprintf ("eVDW     = % 19.12f H\n", eVDW);
+   }
    if (vExt.getSize () > 0)
       sxprintf ("eExt      = %19.12f H\n", eExt);
    eTotal = eKin + eHartree + eXc + eBar - eCore + eExt;
+   if (applyVDWCorrection) {
+      eTotal += eVDW;
+      eDoubleCounting += eVDW;
+   }
    if (hubbardU) {
       SX_CHECK (fabs(fermi.fFull * nSpin - 2.) < 1e-12, fermi.fFull, nSpin);
       sxprintf ("eHubbard  = % 19.12f H\n", hubbardU->energy);
       eTotal += hubbardU->energy;
    }
+
    sxprintf ("eTot(Val) = % 19.12f H\n", eTotal);
 
+   if (applyVDWCorrection) {
+      cout << "VDW Effective Volumes: " << vdwCorrection.effectiveVolume << endl;
+      sxprintf ("Total VDW Pairs: % 8d \n", vdwCorrection.nPairs);
+   }
 }
 
 double SxPAWHamiltonian::computeU (SxArray<SxArray<SxVector<Double> > > *dEdQrl)
@@ -2057,6 +2172,10 @@ void SxPAWHamiltonian::computeForces (const SxPWSet &waves, SxFermi &fermi)
 
    // force is - dE/dR
    forces *= -1.0;
+
+   if (applyVDWCorrection) {
+      forces += vdwCorrection.forces;
+   }
 
    // --- final symmetrize forces
    SxForceSym forceSymmetrizer;

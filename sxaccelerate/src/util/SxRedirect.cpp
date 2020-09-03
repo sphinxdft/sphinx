@@ -72,6 +72,7 @@ SxRedirect::SxRedirect (const std::ostream &src, std::streambuf *dest, bool tee)
 
 SxRedirect::SxRedirect (const std::ostream &src, SxRedirect::ZeroDevice)
    : srcStream (const_cast<std::ostream *>(&src)),
+     destStream(NULL),
      srcBuf(NULL),
      destBuf(NULL),
      origBuf(srcStream->rdbuf()),

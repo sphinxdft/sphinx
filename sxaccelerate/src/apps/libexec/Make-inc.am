@@ -6,7 +6,14 @@
 
 include_HEADERS = 
 
-libexec_PROGRAMS  = sxloghash sxmsvcproj sxprint sxtee sxtestproc 
+libexec_PROGRAMS  = sx2json sxloghash sxmsvcproj sxprint sxtee sxtestproc 
+
+sx2json_SOURCES   = $(AUX_SRC)
+sx2json_SOURCES  += Sx2JSON.cpp
+sx2json_CPPFLAGS  = $(AM_CPPFLAGS) -DSXLIBTOOL="\"@SXLIBTOOL@\""
+sx2json_LDADD     =  $(SXIMPORTLIBS)
+sx2json_LDADD    +=  
+sx2json_LDADD    +=  $(SXIMPORTOBJS)
 
 sxloghash_SOURCES   = $(AUX_SRC)
 sxloghash_SOURCES  += SxLogHash.cpp

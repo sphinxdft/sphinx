@@ -38,6 +38,11 @@ class SX_EXPORT_DFT SxBlockDensityMatrix : public SxDensity
          rho = in.rho;
       }
 
+      /// Empty constructor
+      SxBlockDensityMatrix () = default;
+      /// Copy constructor
+      SxBlockDensityMatrix (const SxBlockDensityMatrix&) = default;
+
       /// Get number of spins
       int getNSpin () const { return int(rho.getDim(0)); }
       /// Get number of sites

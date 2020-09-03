@@ -117,6 +117,18 @@ class SX_EXPORT_DFT SxHamiltonian
       static bool withDipoleCorrection (const SxSymbolTable *);
       /** \brief Current structure */
       SxAtomicStructure structure;
+
+      /** \brief Change structure
+
+          \note This should be overloaded by a derived class
+                if any internals depend on the structure. Don't forget
+                to update SxHamiltonian::structure in this case!
+        */
+      virtual void changeTau (const SxAtomicStructure &str)
+      {
+         structure = str;
+      }
+
       virtual PrecEnergy getETrial()   {
          return 0.;
       }

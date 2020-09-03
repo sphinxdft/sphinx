@@ -126,6 +126,9 @@ SxUtil::SxUtil ()
          pthread_mutex_init (&logMutex, &logMutexAttr);
 #     endif
 #  endif
+
+   // seed intialization, needed for SxUUIDv4
+   mtEngine  = mt19937(random_device{}());
 }
 
 

@@ -17,7 +17,7 @@
 #include <stdlib.h>
 
 #ifdef MSVC
-double cbrt (double x)
+_Check_return_ double __cdecl cbrt (_In_ double x)
 {
    return pow (x, 0.333333333333333333333333333333);
 }
@@ -34,7 +34,7 @@ double cbrt (double x)
 #endif /* WIN32 */
 
 
-SxSymbol::SxSymbol ()
+SxSymbol::SxSymbol () : func(NULL), strfunc(NULL)
 {
    name = ""; type = 0; status = Defined; initialized = binary = false;
    parserLineNumber = 0;
@@ -44,6 +44,7 @@ SxSymbol::SxSymbol ()
 
 
 SxSymbol::SxSymbol (const SxString &name_, double val_)
+   : func(NULL), strfunc(NULL)
 {
    name   = name_.removeWhiteSpace ();
    type   = VAR;
@@ -57,7 +58,7 @@ SxSymbol::SxSymbol (const SxString &name_, double val_)
 }
 
 SxSymbol::SxSymbol (const SxString &name_, const SxString &str_, 
-                    enum AutoCast autoCast)
+                    enum AutoCast autoCast) : type(0), func(NULL), strfunc(NULL)
 {
    name   = name_.removeWhiteSpace ();
    val = 0.;

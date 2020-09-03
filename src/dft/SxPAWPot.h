@@ -140,9 +140,6 @@ class SX_EXPORT_DFT SxPAWPot : public SxSpeciesData
       /// Basis set for rhoInit
       SxArray<SxPtr<SxBasis> > rhoInitBasis;
 
-      /// Compensation charge monopole for init density
-      SxArray<double> rhoInitQ0;
-
       /// Basis set for pPS
       SxArray<SxPtr<SxBasis> > projBasis;
 
@@ -194,6 +191,9 @@ class SX_EXPORT_DFT SxPAWPot : public SxSpeciesData
           \f]
        */
                                    coreX;
+
+      /// Atomic volume corrections for the free atom
+      SxArray<double> deltaR3Free;
 
       /// Get number of species
       int getNSpecies () const  {

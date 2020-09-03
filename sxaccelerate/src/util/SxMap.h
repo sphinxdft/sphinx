@@ -13,7 +13,6 @@
 #ifndef _SX_MAP_H_
 #define _SX_MAP_H_
 
-#include <SxException.h>
 #include <SxHashTable.h>
 #include <SxSelection.h>
 #include <SxPtr.h>
@@ -72,7 +71,7 @@ class SxMap : public SxThis<SxMap<K,V,H> >
 
          public:
 
-            State () {}
+            State () : dir(sx::Direction::Undefined), container(NULL), itK(ITK()), itV(ITV()) {}
 
             State (sx::Direction dir_,
                    SContainer *container_, ITK itK_,
@@ -85,7 +84,7 @@ class SxMap : public SxThis<SxMap<K,V,H> >
                SX_UNUSED (cmode_);
             }
 
-            State (State &&in, sx::ItCopyMode cmode_ = sx::CopyAll)
+            State (State &&in, sx::ItCopyMode cmode_ = sx::CopyAll) noexcept
                : dir(in.dir), container(in.container), itK(std::move(in.itK)),
                  itV(std::move(in.itV))
             {
@@ -200,7 +199,7 @@ class SxMap : public SxThis<SxMap<K,V,H> >
                        typename SxList<V>::ConstIterator> (in, cmode_) { }
 
             ConstIterator (ConstIterator &&in,
-                           sx::ItCopyMode cmode_ = sx::CopyAll)
+                           sx::ItCopyMode cmode_ = sx::CopyAll) noexcept
                : State<const K, const V, const Container, ConstIterator,
                        typename SxList<K>::ConstIterator,
                        typename SxList<V>::ConstIterator>
@@ -239,7 +238,7 @@ class SxMap : public SxThis<SxMap<K,V,H> >
                        typename SxList<K>::Iterator,
                        typename SxList<V>::Iterator> (in, cmode_) { }
 
-            Iterator (Iterator &&in, sx::ItCopyMode cmode_ = sx::CopyAll)
+            Iterator (Iterator &&in, sx::ItCopyMode cmode_ = sx::CopyAll) noexcept
                : State<const K, V, Container, Iterator,
                        typename SxList<K>::Iterator,
                        typename SxList<V>::Iterator> (std::move(in), cmode_)
@@ -256,7 +255,7 @@ class SxMap : public SxThis<SxMap<K,V,H> >
        */
       SxMap ();
       SxMap (const SxMap<K,V,H> &);
-      SxMap (SxMap<K,V,H> &&);
+      SxMap (SxMap<K,V,H> &&) noexcept;
       SxMap (const std::initializer_list<SxPair<K,V> > &);
 
       /** \brief Destructor
@@ -277,7 +276,7 @@ class SxMap : public SxThis<SxMap<K,V,H> >
 
       // -- Assignment
       SxMap<K,V,H> &operator= (const SxMap<K,V,H> &);
-      SxMap<K,V,H> &operator= (SxMap<K,V,H> &&);
+      SxMap<K,V,H> &operator= (SxMap<K,V,H> &&) noexcept;
       SxMap<K,V,H> &operator= (const std::initializer_list<SxPair<K,V> > &);
 
       /** \brief Find hash table index of a key.

@@ -1,18 +1,18 @@
 // ---------------------------------------------------------------------------
-//                                          
-//      The ab-initio based multiscale library 
-//     
+//
+//      The ab-initio based multiscale library
+//
 //                  S / P H I / n X
 //                  http://www.sphinxlib.de
-//     
+//
 //      Contact:    Sixten Boeck, boeck@mpie.de
 //                  Algorithm Design and Modeling Group
 //                  Computational Materials Design
 //                  Max-Planck-Institute for Iron Research
 //                  40237 Duesseldorf, Germany
-//     
+//
 //      Authors:    see src/AUTHORS
-//     
+//
 // ---------------------------------------------------------------------------
 
 #include <SxCLI.h>
@@ -37,7 +37,7 @@ class SxIntegrator
       double last[4];
       ssize_t n;
    public:
-      SxIntegrator () : val(0.), n(0L) { }
+      SxIntegrator () : val(0.), last {0.,0.,0.,0.}, n(0L) { }
 
       inline void operator+= (double x)
       {
@@ -54,7 +54,7 @@ class SxIntegrator
       }
 
       double integral (double dx = 1.) const
-      { 
+      {
          SX_CHECK (n>=3, n);
          double res = (2. * val - last[n & 3]) /3.;
          if ((n & 1) == 0)  {
@@ -91,7 +91,7 @@ class ChargeDistribution
                double dz = (z - posZ) / betaZ;
                return Q / (sqrt(TWO_PI) * betaZ)
                       * exp(-0.5 * (sqr(dz) + sqr(kPara * betaPara)));
-            } 
+            }
       };
       class Slab {
          public:
@@ -118,7 +118,7 @@ ChargeDistribution::ChargeDistribution (const SxSymbolTable *table)
       FOREACH_SYMBOLGROUP("Qslab")  {
          slabStack << Slab(SYMBOLGROUP_TABLE);
       }
-   } 
+   }
    charges = stack;
    slabs = slabStack;
 }
@@ -141,7 +141,7 @@ SxVector<Double> ChargeDistribution::getQ(double k, ssize_t N, double delta) con
       SX_LOOP(is)  {
          int from = int(slabs(is).fromZ / delta);
          int to = int(slabs(is).toZ / delta);
-         if (to == from) to++; // sheet charge layer 
+         if (to == from) to++; // sheet charge layer
          double val = slabs(is).Q / ((to - from) * delta);
          for (ssize_t iz = from; iz < to; ++iz)  {
             ssize_t izMod = iz % N; if (izMod < 0) izMod += N;
@@ -171,7 +171,7 @@ SxVector<Double> ChargeDistribution::getQ(double k, ssize_t N, double delta,
       SX_LOOP(is)  {
          int from = int(slabs(is).fromZ / delta);
          int to = int(slabs(is).toZ / delta);
-         if (to == from) to++; // sheet charge layer 
+         if (to == from) to++; // sheet charge layer
          double val = slabs(is).Q / ((to - from) * delta);
          for (ssize_t iz = from; iz < to; ++iz)  {
             ssize_t izMod = iz + shiftZ;
@@ -210,7 +210,7 @@ SxMatrix<Double> setupLayer(const SxVector<Double> &eps,
    ssize_t N = eps.getSize ();
    SxMatrix<Double> DQ2(2*N, 2*N);
    DQ2.set (0.);
-   SX_LOOP(i)  
+   SX_LOOP(i)
    {
       // [eps(z) - eps(z+delta)] / [eps(z) + eps(z+delta)]
       double dezp = (i < N - 1) ? ((eps(i) - eps(i+1))/(eps(i) + eps(i+1)))
@@ -244,18 +244,18 @@ SxMatrix<Double> setupLayer(const SxVector<Double> &eps,
 
 /* @brief return potential V(z,k) * k via the image charge method
    \f[
-     V(z,k) = \frac{2\pi}{k \epsilon(z)} 
+     V(z,k) = \frac{2\pi}{k \epsilon(z)}
               \left(q(z,0) + \sum_{n=1}^{\infty} exp(-k \Delta n)
               (q(z,n) + q(z,-n))\right)
    \f]
    where q(z,n) is the image charge for layer z situated at z+n*delta.
    These image charges are generated iteratively from n->n+1
-              
+
    @param q     charge distribution
    @param dk    \f$\Delta k\f$
    @param pbc   periodic boundary condition?
    */
-SxVector<Double> 
+SxVector<Double>
 imageChargeMethod (const SxVector<Double> &q,
                    const SxVector<Double> &eps,
                    double dk,
@@ -356,7 +356,7 @@ imageChargeMethod (const SxVector<Double> &q,
 
          for (ssize_t i = 0; i < N; ++i)
             cout << "% " << work(6*i+dest+0) << ' ' << work(6*i+dest+1) << endl;
-         SX_EXIT; 
+         SX_EXIT;
       }
 
       // switch source and dest
@@ -395,7 +395,7 @@ SxVector<Double> Vk0 (const SxVector<Double> &q,
    double Q = 0.; // total charge, proportional to eps(z) dV/dz
    // starting Q is arbitrary, will be corrected below
    double avgV = 0.;
-   // --- integrate 
+   // --- integrate
    //       d/dz eps(z) d/dz V(z) = q(z)
    //    layerwise: charges sit in the center of each layer
    //    potential is piecewise linear in [0,1/2] and [1/2,1]
@@ -443,7 +443,7 @@ SxVector<Double> Vk0cut (const SxVector<Double> &q,
    if (VF) (*VF)(cut) = 0.;
    double Q = 0.; // total charge, proportional to eps(z) dV/dz
    // starting Q is arbitrary, will be corrected below
-   // --- integrate 
+   // --- integrate
    //       d/dz eps(z) d/dz V(z) = q(z)
    //    layerwise: charges sit in the center of each layer
    //    potential is piecewise linear in [0,1/2] and [1/2,1]
@@ -488,12 +488,13 @@ void addDrop (SxVector<Double> *V0,
    (*V0) -= (dropV / VE) * VF;
    for (int i = cutZ; i < N; i++) (*V0)(i) += dropV;
 }
-             
+
 
 int main (int argc, char **argv)
 {
    // --- command line parsing
    SxCLI cli(argc, argv);
+   cli.version ("1.1");
 
    SxString inputFile = cli.option("-i|--input","input file",
                                    "input file").toString ("system.sx");
@@ -531,21 +532,23 @@ int main (int argc, char **argv)
    SxString defPotFile = cli.option ("--vdef", "potential file",
                                      "defect potential")
                          .toString ();
-   bool defIsEV = !cli.option ("--defInHartree", 
+   bool defIsEV = !cli.option ("--defInHartree",
                                "defect potential file in Hartree").toBool ();
-   bool refIsEV = !cli.option ("--refInHartree", 
+   bool refIsEV = !cli.option ("--refInHartree",
                                "reference pot file in Hartree").toBool ();
    double avgWidth = cli.option ("--average", "length", "local average (bohr)")
                      .toDouble (0., 0.);
+   double slopeWidth = cli.option ("--slopeAvg", "length", "slope average (bohr)")
+                     .toDouble (2., 0.);
    FileType fileType = getFileType (cli);
    //bool printOrigPot
    //   = cli.option ("--printPot", "print defect and reference potential")
    //     .toBool ();
    //SxString structDefFile
-   //   = cli.option ("--structDef", "SPHInX structure file", 
+   //   = cli.option ("--structDef", "SPHInX structure file",
    //                 "evaluate potentials at atomic coordinates given in the SPHInX file").toString ("");
    //SxString structRefFile
-   //   = cli.option ("--structRef", "SPHInX structure file", 
+   //   = cli.option ("--structRef", "SPHInX structure file",
    //                 "evaluate potentials at atomic coordinates given in the SPHInX file").toString ("");
    //double betaAvg = cli.option ("--atomAverage","length",
    //                             "Gaussian broadening for atomic-sphere averages").toDouble (1.5, 0.);
@@ -554,7 +557,7 @@ int main (int argc, char **argv)
    //     .toBool ();
 
    cli.finalize ();
-   
+
    initSPHInXMath ();
 
    // --- read cell
@@ -598,11 +601,11 @@ int main (int argc, char **argv)
       cout << "Periodic supercell taken from " << defPotFile << endl;
       cout << cell << endl;
    } else {
-      cout << "Periodic supercell must be specified in input file '" 
+      cout << "Periodic supercell must be specified in input file '"
            << inputFile << "'." << endl;
       SX_QUIT;
    }
-   
+
    // --- check cell orientation
    if (   fabs(cell.basis(2) ^ Coord(1,1,0)) > 1e-6
        || fabs(cell.basis(0) ^ Coord(0,0,1)) > 1e-6
@@ -618,7 +621,7 @@ int main (int argc, char **argv)
    }
 
    cout << "Cutoff = " << ecut << " Ry" << endl;
-   if (Np > 1) 
+   if (Np > 1)
       cout << "Points per FFT mesh: " << Np << endl;
    SxMesh3D mesh = SxGBasis::getMeshSize (ecut, cell);
    if (N > 0)
@@ -718,7 +721,7 @@ int main (int argc, char **argv)
             double cut = SYMBOLGET("cut");
             cutZ = int(lround(cut/delta) % N);
             if (cutZ < 0) cutZ += (int)N;
-            zField = (SYMBOLGET("zField") || 0.) / HA2EV; 
+            zField = (SYMBOLGET("zField") || 0.) / HA2EV;
             double electrode = SYMBOLGET("zElectrode") || 0.;
             electrodeZ = int(lround(electrode/delta));
          }
@@ -726,15 +729,15 @@ int main (int argc, char **argv)
          dropV /= HA2EV;
       }
    }
-   
+
    if (fabs(shiftZ0) > 1e-12)  {
       SX_LOOP(iq) charges.charges(iq).posZ += shiftZ0;
-      SX_LOOP(is) {
+      for (int is = 0; is < charges.slabs.getSize (); is++)  {
          charges.slabs(is).fromZ += shiftZ0;
          charges.slabs(is).toZ += shiftZ0;
       }
    }
-   
+
    // --- periodic case
    cout << "--- Periodic" << endl;
    SxMesh3D mesh2D(mesh(0), mesh(1), 1);
@@ -753,7 +756,7 @@ int main (int argc, char **argv)
          V0 -= V0.sum () / double(N);
       } else  {
          V0 = Vk0cut(qk, eps, delta, cutZ, &VF);
-         V0 += VF * zField;
+         V0 += VF * zField * area;
          double VR = V0(cutZ-1)/area
                    - (zField - FOUR_PI * Q/area)*(cutZ-1 - electrodeZ) * delta;
          V0 -= VR * area;
@@ -775,7 +778,7 @@ int main (int argc, char **argv)
                   : (effPos - ifPos) * eps(0)/eps(N-1))
                  << endl;
          } else {
-            cout << "Dielectric position shift: " 
+            cout << "Dielectric position shift: "
                  << (VF(N-1) * eps(0) - delta * double(N-1)) << endl;
             cout << "Effective position: " << dot(VF, qk) * delta / Q * eps(0)
                  << endl;
@@ -811,7 +814,7 @@ int main (int argc, char **argv)
             cout << "      Effective background field: "
                  << bgDropV / (delta * double(N) * epsInvAvg)
                  << " Hartree/bohr" << endl;
-         } 
+         }
 
       }
       if (FILE *fp = fopen("system-profile.dat","w"))  {
@@ -827,6 +830,29 @@ int main (int argc, char **argv)
          vRef = readLine (refCell, refMesh, refPot, 2, N, defCell,refPotFile);
          vDef = readLine (defCell, defMesh, defPot, 2, N, defCell,defPotFile);
          vLR = V0;
+
+         // --- print slope and value at iso boundaries
+         SxVector<Double> vSR = average(vDef - vRef - vLR/area, slopeWidth/delta);
+         double slopeBottom = (  vSR((isoBottom     + 1) % N)
+                               - vSR((isoBottom + N - 1) % N)) / (2. * delta);
+         double slopeTop    = (  vSR((isoTop        + 1) % N)
+                               - vSR((isoTop    + N - 1) % N)) / (2. * delta);
+         cout << "short-range potential with averaging width = " << slopeWidth << " bohr" << endl;
+         cout << "Slope bottom (@z=" << int(isoBottom % N) * delta << ")= " << slopeBottom * HA2EV
+              << " eV/bohr, value = " << vSR(isoBottom % N) * HA2EV << " eV" << endl;
+         cout << "Slope top (@z=" << int(isoTop % N) * delta << ")   = " << slopeTop * HA2EV
+              << " eV/bohr, value = " << vSR(isoTop % N) * HA2EV << " eV" << endl;
+
+         if (cutZ >=0)  {
+            ssize_t cutZ1 = (cutZ - 1 + N ) % N;
+            cout << "step at z=" << cutZ * delta << " bohr: "
+                 << ( vDef(cutZ) - vDef(cutZ1)
+                     -vRef(cutZ) + vRef(cutZ1)
+                     -(vLR(cutZ) - vLR(cutZ1)) /area) * HA2EV
+                 << endl;
+         }
+         cout << "---" << endl;
+
          if (avgWidth > 1e-16)  {
             vRef = average (vRef, avgWidth / delta);
             vDef = average (vDef, avgWidth / delta);
@@ -841,8 +867,12 @@ int main (int argc, char **argv)
          fclose (fp);
       }
       if (onlyProfile) return 0;
+#ifdef USE_OPENMP
+#pragma omp parallel for reduction(+:periodic) schedule(dynamic,50)
+#endif
       for (int i = 1; i < meshSize; ++i)  {
          double g2 = recCell.relToCar(mesh2D.getMeshVec(i, SxMesh3D::Origin)).normSqr ();
+         if (g2 >= ecut) continue;
          SxVector<Double> qkp = charges.getQ(sqrt(g2), N, delta);
          SxVector<Double> Vk = imageChargeMethod(qkp,eps,sqrt(g2)*delta,true,false);
          periodic += dot (qkp, Vk) * sqr(delta) / sqrt(g2);
@@ -851,11 +881,11 @@ int main (int argc, char **argv)
       periodic *= 0.5;
       periodic += shiftV * Q;
       if (cutZ >= 0 && fabs(dropV) <= 1e-6)  {
-         double VL = V0(cutZ)/area 
+         double VL = V0(cutZ)/area
                    + zField * double(N - cutZ + electrodeZ) * delta;
          double VR = V0(cutZ-1)/area
                    - (zField - FOUR_PI * Q/area)*(cutZ-1 - electrodeZ) * delta;
-         double QL = zField / FOUR_PI * area;
+         double QL = -zField / FOUR_PI * area;
          double QR = - (QL + Q);
          cout << "Electrode @ z=" << electrodeZ * delta << endl;
          cout << "QL = " << QL << " VL=" << VL * HA2EV << " eV" << endl;
@@ -876,7 +906,7 @@ int main (int argc, char **argv)
    cout << V0.sum () << endl;
    cout << V0.normSqr () << endl;
    //while (k > 1e-6)   {
-      SxVector<Double> Vk = imageChargeMethod(qk,eps,k*delta,true,true) 
+      SxVector<Double> Vk = imageChargeMethod(qk,eps,k*delta,true,true)
                           * delta * delta;
       Vk -= Vk.sum () / N;
       cout << Vk.sum () << endl;
@@ -884,7 +914,7 @@ int main (int argc, char **argv)
       double Ek = dot (qk, imageChargeMethod(qk,eps,k*delta,true,false)),
              Edeka = dot (qk, imageChargeMethod(qk,eps,k*delta,true,true))
                    * delta;
-      cout << k << ' ' 
+      cout << k << ' '
            << Ek
            << ' '
            << Edeka
@@ -898,7 +928,7 @@ int main (int argc, char **argv)
    //}
    */
    cout.precision (12);
-   SxIntegrator itg; 
+   SxIntegrator itg;
 
    // shift Z=0 to isolated case's bottom
    double shiftIso = 0.;
@@ -910,7 +940,7 @@ int main (int argc, char **argv)
       SX_LOOP(iz) epsNew(iz) = eps( (iz + isoBottom) % eps.getSize ());
       shiftIso = -isoBottom * delta;
       eps = epsNew;
-      cout << "Isolated from " << isoBottom * delta -shiftZ0 << " to " 
+      cout << "Isolated from " << isoBottom * delta -shiftZ0 << " to "
            << isoTop * delta -shiftZ0 << " (" << N << " points)" << endl;
 
       // --- k = 0
@@ -932,18 +962,18 @@ int main (int argc, char **argv)
          cout << "E-field dependence left:  zeff = " << (ifPos + effPosIf)
               << endl;
          cout << "zR = " << (isoTop * delta - shiftZ0) << " eps = " << eps(N-1) << endl;
-         cout << "E-field dependence right: zeff = " 
+         cout << "E-field dependence right: zeff = "
               << (ifPos + effPosIf * eps(N-1)/eps(0)) << endl;
       } else {
          cout << "No dielectric interface detected." << endl;
          double dielShift = VF(N-1) * eps(0) - delta * double(N-1);
-         cout << "Dielectric position shift: " 
+         cout << "Dielectric position shift: "
               << dielShift << endl;
          double zeffL = dot(VF, qk) * delta / Q * eps(0) - shiftIso - shiftZ0;
          cout << "zL = " << (isoBottom * delta - shiftZ0) << " eps = " << eps(0) << endl;
          cout << "E-field dependence left:  zeff = " << zeffL << endl;
          cout << "zR = " << (isoTop * delta - shiftZ0) << " eps = " << eps(N-1) << endl;
-         cout << "E-field dependence right: zeff = " << (zeffL - dielShift) 
+         cout << "E-field dependence right: zeff = " << (zeffL - dielShift)
               << endl;
       }
       // SX_LOOP(iz) cout << (delta * iz - shiftIso) << ' ' << eps(iz) << ' ' << qk(iz) << endl;

@@ -70,7 +70,7 @@ extern int SxParser_debug;
 
 union YYSTYPE
 {
-#line 38 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.ypp" /* yacc.c:1909  */
+#line 38 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.ypp" /* yacc.c:1909  */
 
    char     *str;
    double    val;

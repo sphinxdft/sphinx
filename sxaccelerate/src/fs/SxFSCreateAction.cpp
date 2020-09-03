@@ -214,7 +214,13 @@ SxFile SxFSCreateAction::createTmpFile (const SxString &tmpDir,
       SxString const &resStr = res.getAbsPath ();
 
       // --- Writing the passed content to the file in one chunk
-      ssize_t error = write (fd, buffer.elements, static_cast<size_t>(buffer.getSize ()));
+#     ifdef WIN32
+         ssize_t error = write (fd, buffer.elements,
+                                (uint32_t)(buffer.getSize ()));
+#     else
+         ssize_t error = write (fd, buffer.elements,
+                                (size_t)(buffer.getSize ()));
+#     endif
       if (error == -1)  {
          SX_THROW ("Can't write to temporary file '"
                    + resStr + "'. " + SxFSError::getWriteErrMsg ());

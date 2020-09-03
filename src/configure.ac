@@ -13,7 +13,7 @@
 #
 # ---------------------------------------------------------------------------
 
-AC_INIT([SPHInX],[2.6.1], [https://sxrepo.mpie.de])
+AC_INIT([SPHInX],[2.7], [https://sxrepo.mpie.de])
 SHARED_VERSION_INFO="1:7:0"
 
 AC_CANONICAL_HOST

@@ -17,8 +17,6 @@ SxJSONParser::SxJSONParser ()
      SxParserAst ()
 {
    SX_TRACE ();
-   ssize_t rootId = 0;
-   push (rootId);
 }
 
 SxJSONParser::~SxJSONParser ()
@@ -32,7 +30,7 @@ void SxJSONParser::push (ssize_t id)
    stack.append (&(*(ast->begin(sx::Forward, id))));
 }
 
-SxGProps *SxJSONParser::push (const SxVariantType::DataType &type_)
+SxGProps *SxJSONParser::push (const SxParserAst::ElemType &type_)
 {
    SX_TRACE ();
    SxGProps *res = addNode (type_);
@@ -55,7 +53,6 @@ SxGProps *SxJSONParser::peek ()
    return stack.last ();
 }
 
-
 SxGProps *SxJSONParser::getParent ()
 {
    SX_TRACE ();
@@ -69,6 +66,11 @@ SxGProps *SxJSONParser::getRoot ()
    SX_TRACE ();
    SX_CHECK (stack.getSize ()>0, stack.getSize ());
    return stack.first ();
+}
+
+SxParserKit::SxSymbol SxJSONParser::getRootSymbol () const
+{
+   return SxParserKit::SxSymbol (getAst (), 0);
 }
 
 int SxJSONParser_parse (SxJSONParser *); // defined by LEX

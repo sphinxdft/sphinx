@@ -29,15 +29,18 @@
     node out of the selected path object.
 
  */
+
+template<class N,class E=SxBlankEdge,
+         template<class,bool> class GS=SxGraphStorage>
 class SxGPathList
 {
    public:
 
       typedef SxPtr<SxUniqueList<ssize_t> > Selection;
-      typedef SxPtr<SxList<Selection> >  SelSet;
+      typedef SxPtr<SxList<Selection> >     SelSet;
 
-      typedef SxGPath               T;
-      typedef SxGPathList   Container;
+      typedef SxGPath<N,E,GS>       T;
+      typedef SxGPathList<N,E,GS>   Container;
 
       // ------- Iterators -------
 
@@ -81,7 +84,7 @@ class SxGPathList
             Container *container;
             ssize_t idx;
             SxList<Selection>::Iterator selIt;
-            SxGPath currObj;
+            SValue currObj;
 
             void copy (const IT &in) {
                dir = in.dir; container = in.container; selIt = in.selIt;
@@ -114,15 +117,17 @@ class SxGPathList
                SX_CHECK (container);
                ++selIt;
                if (valid ())
-                  currObj = SxGPath(container->gPtr, *selIt);
+                  currObj = SValue(container->gPtr, *selIt);
             }
             void prev () {
                SX_CHECK (container);
                --selIt;
                if (valid ())
-                  currObj = SxGPath(container->gPtr, *selIt);
+                  currObj = SValue(container->gPtr, *selIt);
             }
-            bool valid () const { return (container != NULL && selIt.isValid ()); }
+            bool valid () const {
+               return (container != NULL && selIt.isValid ());
+            }
             SValue &getRef () {
                SX_CHECK (container);
                SX_CHECK (valid ());
@@ -191,15 +196,15 @@ class SxGPathList
       };
 
 
-      SxGPathList (const SxPtr<SxGraph<SxGProps> > &gPtr_,
+      SxGPathList (const SxPtr<SxGraph<N,E,GS> > &gPtr_,
                    const SelSet &sels_);
-      SxGPathList (const SxPtr<SxGraph<SxGProps> > &gPtr_,
+      SxGPathList (const SxPtr<SxGraph<N,E,GS> > &gPtr_,
                    const Selection &sel_);
      ~SxGPathList ();
 
       ssize_t getSize () const;
       ssize_t getPathSize () const;
-      SxGPath operator() (ssize_t selIdx);
+      SxGPath<N,E,GS> operator() (ssize_t selIdx);
 
       // --------------------
 
@@ -217,16 +222,37 @@ class SxGPathList
       template<class Fn>
       void foreach (Fn fn) const;
 
+      friend std::ostream &operator<< (std::ostream &s,
+                                       const Iterator &in)
+      {
+         SX_TRACE ();
+         ssize_t i = 0;
+         in->foreach ([&](auto it)  {
+                        if (i != 0)  s << " - ";
+                        s << it->getId ();
+                        i++;
+                     });
+         return s;
+      }
+
+      friend std::ostream &operator<< (std::ostream &s,
+                                       const ConstIterator &in)
+      {
+         SX_TRACE ();
+         ssize_t i = 0;
+         in->foreach ([&](auto it)  {
+                        if (i != 0)  s << " - ";
+                        s << it->getId ();
+                        i++;
+                     });
+         return s;
+      }
+
+
    protected:
-      SxPtr<SxGraph<SxGProps> > gPtr;
+      SxPtr<SxGraph<N,E,GS> > gPtr;
       SelSet sels;
 };
-
-inline std::ostream &operator<< (std::ostream &s,
-                                 const SxGPathList::ConstIterator &in);
-
-inline std::ostream &operator<< (std::ostream &s,
-                                 const SxGPathList::Iterator &in);
 
 #include <SxGPathList.hpp>
 

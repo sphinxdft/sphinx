@@ -19,25 +19,21 @@
 
 namespace SxVariantType {
 
-   enum DataType { Undefined, Any, Int, Double, Bool, String, List, Group };
+   enum DataType { Undefined, Any, Int, Double, Bool, String, List,
+                   StringArray, IntArray, FloatArray, DoubleArray };
 
-   template<class T, size_t N=0> class ScalarType { };
+   template<class T, size_t N=0> class ScalarType {
+      public: enum { Type = Undefined };
+   };
 
-   template<> class ScalarType<int> {
+   template<> class ScalarType<int32_t> {
       public:
          enum { Type = Int };
          typedef int64_t AtomType;
          inline static int64_t minVal () { return INT64_MIN ;}
          inline static int64_t maxVal () { return INT64_MAX; }
    };
-   template<> class ScalarType<long> {
-      public:
-         enum { Type = Int };
-         typedef int64_t AtomType;
-         inline static int64_t minVal () { return INT64_MIN ;}
-         inline static int64_t maxVal () { return INT64_MAX; }
-   };
-   template<> class ScalarType<long long> {
+   template<> class ScalarType<int64_t> {
       public:
          enum { Type = Int };
          typedef int64_t AtomType;
@@ -95,6 +91,39 @@ namespace SxVariantType {
          inline static char minVal () { return CHAR_MIN; }
          inline static char maxVal () { return CHAR_MAX; }
    };
+
+   template<class T> class ArrayType {
+      public: enum { Type = Undefined };
+   };
+   template<> class ArrayType<SxString> : public ScalarType<SxString> {
+      public:
+         enum { Type = StringArray };
+         typedef SxArray<SxString> Array;
+   };
+   template<> class ArrayType<int32_t> : public ScalarType<int32_t> {
+      public:
+         enum { Type = IntArray };
+         typedef SxArray<int64_t> Array;
+   };
+   template<> class ArrayType<int64_t> : public ScalarType<int64_t> {
+      public:
+         enum { Type = IntArray };
+         typedef SxArray<int64_t> Array;
+   };
+   template<> class ArrayType<float> : public ScalarType<float> {
+      public:
+         enum { Type = FloatArray };
+         typedef SxArray<float> Array;
+   };
+   template<> class ArrayType<double> : public ScalarType<double> {
+      public:
+         enum { Type = DoubleArray };
+         typedef SxArray<double> Array;
+   };
+   template<> class ArrayType<char> : public ScalarType<char []> {
+      public:
+         enum { Type = String };
+   };
 }
 
 /** \brief Variant of simplest data types
@@ -110,91 +139,132 @@ class SX_EXPORT_UTIL SxVariant
       enum CastType { ExactCast, ImplicitCast, ExplicitCastRequired,
                       IncompatibleTypes };
 
-      SxVariant ();
+      inline SxVariant ();
 
-      SxVariant (const SxVariant &in);
+      inline SxVariant (const SxVariant &in);
       void operator= (const SxVariant &in);
 
-      template<class T> SxVariant (const T &in, const SxString &tag="");
+      template<class T>
+      inline explicit SxVariant (const T &in, const SxString &tag="");
 
-      template<class A, class B, class T> SxVariant (const T &in,
-                                                     const A &min,
-                                                     const B &max,
-                                                     const SxString &tag="");
+      template<class A, class B, class T>
+      inline  SxVariant (const T &in,
+                         const A &min,
+                         const B &max,
+                         const SxString &tag="");
 
-      ~SxVariant ();
+      // --- arrays
+      template<class T> inline SxVariant (const SxArray<T> &in);
+      template<class T> inline void operator= (const SxArray<T> &in);
+      template<class T> inline void set (const SxArray<T> &in);
 
-      bool  operator== (const SxVariant &) const;
-      bool  operator!= (const SxVariant &) const;
-      bool  operator< (const SxVariant &) const;
+      inline SxVariant (int32_t in);
+      inline SxVariant (int64_t in);
+      inline SxVariant (bool in);
+      inline SxVariant (float in);
+      inline SxVariant (double in);
+      inline SxVariant (const char *in);
+      inline SxVariant (const SxString &in);
+      inline SxVariant (const SxList<SxVariant> &in);
+
+      inline ~SxVariant ();
+
+      inline bool  operator== (const SxVariant &) const;
+      inline bool  operator!= (const SxVariant &) const;
+      inline bool  operator< (const SxVariant &) const;
 
       // --- Set value (with type/range/regex check)
-      template<class T> void operator= (const T in);
-                        void operator= (const SxString &in);
+      template<class T> inline void operator= (const T in);
+                        inline void operator= (const SxString &in);
 
-      template<class T> void set (const T in);
-                        void set (const SxString &in);
-                        void set (const SxVariant &, bool allowTypecast=false);
-                        void set (const SxList<SxVariant> &in);
+      // new set functions
+      void set (int32_t);
+      void set (int64_t);
+      void set (bool);
+      void set (float);
+      void set (double);
+      inline void set (const char *in);
+      inline void set (const SxString &in);
+      inline void set (const SxVariant &, bool allowTypecast=false);
+      inline void set (const SxList<SxVariant> &in);
+      inline void set (const SxVariantType::DataType in);
 
       // --- List
       void append (const SxVariant &in);
 
-      int     getRank () const;
-      ssize_t getListSize () const;
+      inline int     getRank () const;
+      inline ssize_t getListSize () const;
 
       // --- List iterators
-      SxList<SxVariant>::Iterator begin ();
-      SxList<SxVariant>::ConstIterator begin () const;
-      SxList<SxVariant>::Iterator end ();
-      SxList<SxVariant>::ConstIterator end () const;
+      inline SxList<SxVariant>::Iterator begin ();
+      inline SxList<SxVariant>::ConstIterator begin () const;
+      inline SxList<SxVariant>::Iterator end ();
+      inline SxList<SxVariant>::ConstIterator end () const;
 
       // --- Limits
       template<class A, class B>
-      SxVariant &setLimits (const A &min, const B &max);
+      inline SxVariant &setLimits (const A &min, const B &max);
 
       template<class A, class B>
-      SxVariant &getLimits (A *min, B *max);
+      inline SxVariant &getLimits (A *min, B *max);
 
-      template<class A> SxVariant &setMin (const A &min);
-      template<class A> SxVariant &setMax (const A &max);
+      template<class A> inline SxVariant &setMin (const A &min);
+      template<class A> inline SxVariant &setMax (const A &max);
 
       void resetLimits ();
 
-      SxVariant &setRegex (const SxString &, const SxString & = "");
-      SxString getRegex () const;
+      inline SxVariant &setRegex (const SxString &, const SxString & = "");
+      inline SxString   getRegex () const;
 
       // --- Match
       bool match (const SxVariant &in, bool withLimits=false) const;
       bool matchLimits (const SxVariant &in) const;
       CastType castDiff (const SxVariant &in) const;
 
-      // --- Values 
-      int64_t getInt () const;
-      double getDouble () const;
-      bool   getBool () const;
-      const SxString &getString () const;
+      // --- Values
+      inline int64_t getInt () const;
+      inline double getDouble () const;
+      inline bool   getBool () const;
+      inline const SxString &getString () const;
 
       // --- Values with cast
-      int64_t toInt () const;
-      double toDouble () const;
-      bool   toBool ()  const;
-      SxString toString () const;
-      SxString toByteArray () const;
+      inline int64_t toInt () const;
+      inline double toDouble () const;
+      inline bool   toBool ()  const;
+      inline SxString toString () const;
+      inline SxString toByteArray () const;
+
+      // --- arrays
+      const SxArray<SxString> &toStringArray () const;
+      SxArray<SxString> &toStringArray ();
+
+      const SxArray<int64_t> &toIntArray () const;
+      SxArray<int64_t> &toIntArray ();
+
+      const SxArray<float> &toFloatArray () const;
+      SxArray<float> &toFloatArray ();
+
+      const SxArray<double> &toDoubleArray () const;
+      SxArray<double> &toDoubleArray ();
+
+      int getTypeSize () const;
 
       // --- explicit type initialization
       void setType (int type);
 
-      bool isInitialized () const;
-      int getType () const;
-      SxString getTypeName () const;
-      int getDataType () const;
-      const SxString &getTag () const;
-      void setTag (const SxString &);
+      inline bool isInitialized () const;
+      inline int  getType () const;
+      inline int  getDataType () const;
+      inline const SxString &getTag () const;
+      inline void setTag (const SxString &);
 
       SxString printToString () const;
       SxString getTypeArgs () const;
+      SxString getTypeName () const;
       SxString getDescription (bool withTypeArgs=false) const;
+
+      SxArray<char> pack () const;
+      ssize_t unpack (const char *data, ssize_t len);
 
 
       static SxString getTypeStr (int type);
@@ -215,8 +285,8 @@ class SX_EXPORT_UTIL SxVariant
 
       SxString tag;
 
-      template<class T> void setTypeT (const T in);
-                        void setTypeT (const SxString &in);
+      template<class T> inline void setTypeT (const T in);
+                        inline void setTypeT (const SxString &in);
 
 
       bool hasStringLimits () const;
@@ -228,17 +298,18 @@ class SX_EXPORT_UTIL SxVariant
 
       void reset ();
 
-      int64_t minInt () const;
-      int64_t maxInt () const;
-      double minDouble () const;
-      double maxDouble () const;
+      inline int64_t minInt () const;
+      inline int64_t maxInt () const;
+      inline double minDouble () const;
+      inline double maxDouble () const;
 };
 
 #ifdef WIN32
-   SX_EXPORT_UTIL std::wostream &operator<< (std::wostream &, const SxVariant &);
+   SX_EXPORT_UTIL inline std::wostream &operator<< (std::wostream &,
+                                                    const SxVariant &);
 #endif
-SX_EXPORT_UTIL std::ostream &operator<< (std::ostream &, const SxVariant &);
-SX_EXPORT_UTIL SxVariant operator+ (const SxVariant &, const SxVariant &);
+SX_EXPORT_UTIL inline std::ostream &operator<< (std::ostream &,
+                                                const SxVariant &);
 
 #include <SxVariant.hpp>
 

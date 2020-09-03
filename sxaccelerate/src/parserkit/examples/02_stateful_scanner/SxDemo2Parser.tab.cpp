@@ -68,7 +68,7 @@
 
 
 /* Copy the first part of user declarations.  */
-#line 9 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/02_stateful_scanner/SxDemo2Parser.ypp" /* yacc.c:339  */
+#line 9 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/02_stateful_scanner/SxDemo2Parser.ypp" /* yacc.c:339  */
 
 #  define YYDEBUG 1
 #  include <SxMacroLib.h>
@@ -127,7 +127,7 @@ extern int SxDemo2Parser_debug;
 
 union YYSTYPE
 {
-#line 21 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/02_stateful_scanner/SxDemo2Parser.ypp" /* yacc.c:355  */
+#line 21 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/02_stateful_scanner/SxDemo2Parser.ypp" /* yacc.c:355  */
 
    ssize_t   nodeId;
    SxString *strPtr;
@@ -706,25 +706,25 @@ yy_symbol_value_print (FILE *yyoutput, int yytype, YYSTYPE const * const yyvalue
   switch (yytype)
     {
           case 3: /* TK_STRING  */
-#line 36 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/02_stateful_scanner/SxDemo2Parser.ypp" /* yacc.c:684  */
+#line 36 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/02_stateful_scanner/SxDemo2Parser.ypp" /* yacc.c:684  */
       { fprintf (yyoutput, "TK_STRING, val='%s'", ((*yyvaluep).strPtr)->getElems ()); }
 #line 712 "SxDemo2Parser.tab.cpp" /* yacc.c:684  */
         break;
 
     case 4: /* TK_COLON  */
-#line 37 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/02_stateful_scanner/SxDemo2Parser.ypp" /* yacc.c:684  */
+#line 37 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/02_stateful_scanner/SxDemo2Parser.ypp" /* yacc.c:684  */
       { fprintf (yyoutput, "TK_COLON"); }
 #line 718 "SxDemo2Parser.tab.cpp" /* yacc.c:684  */
         break;
 
     case 6: /* main  */
-#line 39 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/02_stateful_scanner/SxDemo2Parser.ypp" /* yacc.c:684  */
+#line 39 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/02_stateful_scanner/SxDemo2Parser.ypp" /* yacc.c:684  */
       { fprintf (yyoutput, "main"); }
 #line 724 "SxDemo2Parser.tab.cpp" /* yacc.c:684  */
         break;
 
     case 7: /* input  */
-#line 40 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/02_stateful_scanner/SxDemo2Parser.ypp" /* yacc.c:684  */
+#line 40 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/02_stateful_scanner/SxDemo2Parser.ypp" /* yacc.c:684  */
       { fprintf (yyoutput, "input"); }
 #line 730 "SxDemo2Parser.tab.cpp" /* yacc.c:684  */
         break;
@@ -1074,7 +1074,7 @@ yydestruct (const char *yymsg, int yytype, YYSTYPE *yyvaluep, YYLTYPE *yylocatio
   switch (yytype)
     {
           case 3: /* TK_STRING  */
-#line 29 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/02_stateful_scanner/SxDemo2Parser.ypp" /* yacc.c:1257  */
+#line 29 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/02_stateful_scanner/SxDemo2Parser.ypp" /* yacc.c:1257  */
       { delete ((*yyvaluep).strPtr); }
 #line 1080 "SxDemo2Parser.tab.cpp" /* yacc.c:1257  */
         break;
@@ -1368,7 +1368,7 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 43 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/02_stateful_scanner/SxDemo2Parser.ypp" /* yacc.c:1646  */
+#line 43 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/02_stateful_scanner/SxDemo2Parser.ypp" /* yacc.c:1646  */
     {
                   SX_DBG_YACC ("input#1: " << (yyvsp[0].nodeId));
                }
@@ -1376,7 +1376,7 @@ yyreduce:
     break;
 
   case 3:
-#line 49 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/02_stateful_scanner/SxDemo2Parser.ypp" /* yacc.c:1646  */
+#line 49 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/02_stateful_scanner/SxDemo2Parser.ypp" /* yacc.c:1646  */
     {
                   SX_DBG_YACC ("KEY: " << *(yyvsp[-2].strPtr));
                   SX_DBG_YACC ("VALUE: " << *(yyvsp[0].strPtr));

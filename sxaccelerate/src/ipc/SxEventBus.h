@@ -118,9 +118,20 @@ class SX_EXPORT_IPC SxEventBus
 std::ostream &operator<< (std::ostream &s, SxEventBus &bus);
 
 // --- Subscribing and Publish Macro
-#define SX_EVENT_BUS_SUB(EvName, layout, listener)                            \
+#ifdef MSVC
+// disable integral constant overflow warning
+#  define SX_EVENT_BUS_SUB(EvName, layout, listener)                          \
+      __pragma(warning (suppress:4307))                                       \
       listener.setSubscribeTag (EvName ""_SX, SX_TAG);                        \
-      SxEventBus::subscribe<EvName ""_SX>(&listener, SxList<uint8_t>() << layout)
+      __pragma(warning (suppress:4307))                                       \
+      SxEventBus::subscribe<EvName ""_SX>(&listener,                          \
+                                          SxList<uint8_t>() << layout)
+#else
+#  define SX_EVENT_BUS_SUB(EvName, layout, listener)                          \
+      listener.setSubscribeTag (EvName ""_SX, SX_TAG);                        \
+      SxEventBus::subscribe<EvName ""_SX>(&listener,                          \
+                                          SxList<uint8_t>() << layout)
+#endif
 
 #define _SX_EVENT_BUS_PUB2(EvName, arg1)                                      \
    SxEventBus::pub<EvName ""_SX> ((arg1), SX_TAG, EvName)
@@ -132,7 +143,8 @@ std::ostream &operator<< (std::ostream &s, SxEventBus &bus);
    SxEventBus::pub<EvName ""_SX> ((arg1), (arg2), (arg3), SX_TAG, EvName)
 
 #define _SX_EVENT_BUS_PUB5(EvName, arg1, arg2, arg3, arg4)                    \
-   SxEventBus::pub<EvName ""_SX> ((arg1), (arg2), (arg3), (arg4), SX_TAG, EvName)
+   SxEventBus::pub<EvName ""_SX> ((arg1), (arg2), (arg3), (arg4),             \
+                                  SX_TAG, EvName)
 
 #define SX_EVENT_BUS_PUB6(EvName, arg1, arg2, arg3, arg4, arg5)               \
    SxEventBus::pub<EvName ""_SX> ((arg1), (arg2), (arg3), (arg4),             \
@@ -142,7 +154,14 @@ std::ostream &operator<< (std::ostream &s, SxEventBus &bus);
    SxEventBus::pub<EvName ""_SX> ((arg1), (arg2), (arg3), (arg4),             \
                                   (arg5), (arg6), SX_TAG, EvName)
 
-#define SX_EVENT_BUS_PUB(...) SX_VMACRO(_SX_EVENT_BUS_PUB, __VA_ARGS__)
+#ifdef MSVC
+// disable integral constant overflow warning
+#  define SX_EVENT_BUS_PUB(...)                                               \
+      __pragma(warning (suppress:4307))                                       \
+      SX_VMACRO(_SX_EVENT_BUS_PUB, __VA_ARGS__)
+#else
+#  define SX_EVENT_BUS_PUB(...) SX_VMACRO(_SX_EVENT_BUS_PUB, __VA_ARGS__)
+#endif
 
 #include <SxEventBus.hpp>
 

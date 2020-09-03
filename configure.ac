@@ -14,7 +14,7 @@
 # ---------------------------------------------------------------------------
 
 
-AC_INIT([S/PHI/nX], [2.6.1], [https://sxrepo.mpie.de], [sphinx])
+AC_INIT([S/PHI/nX], [2.7], [https://sxrepo.mpie.de], [sphinx])
 
 ac_default_prefix=`pwd`
 

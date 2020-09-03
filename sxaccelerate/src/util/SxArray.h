@@ -110,7 +110,7 @@ class SxArray : public SxMemConsumer,
                SX_UNUSED (cmode_);
             }
 
-            State (State &&in, sx::ItCopyMode cmode_ = sx::CopyAll)
+            State (State &&in, sx::ItCopyMode cmode_ = sx::CopyAll) noexcept
                : dir(in.dir), container(in.container), idx(in.idx)
             {
                SX_UNUSED (cmode_);
@@ -177,10 +177,10 @@ class SxArray : public SxMemConsumer,
                       : State<T, Container,Iterator> (dir_, c, i)
                       { }
 
-            Iterator (const Iterator &in, sx::ItCopyMode cmode_ = sx::CopyAll)
+            Iterator (const Iterator &in, sx::ItCopyMode cmode_ = sx::CopyAll) noexcept
                : State<T,Container,Iterator> (in, cmode_) { }
 
-            Iterator (Iterator &&in, sx::ItCopyMode cmode_ = sx::CopyAll)
+            Iterator (Iterator &&in, sx::ItCopyMode cmode_ = sx::CopyAll) noexcept
                : State<T,Container,Iterator> (std::move(in), cmode_) { }
       };
 
@@ -228,7 +228,7 @@ class SxArray : public SxMemConsumer,
       explicit SxArray (ssize_t, ssize_t chunkSizeIn=1);
       /** Copy constructor. */
       SxArray (const SxArray<T> &, ssize_t chunkSizeIn=1);
-      SxArray (SxArray<T> &&, ssize_t chunkSizeIn=1);
+      SxArray (SxArray<T> &&, ssize_t chunkSizeIn=1) noexcept;
 
 
       /** Creates an array (unfragmented memory) from a SxList<T> object, which
@@ -304,7 +304,7 @@ class SxArray : public SxMemConsumer,
       /** Standard assignment operator. */
       SxArray<T> &operator= (const SxArray<T> &);
       /** Move assignment operator. */
-      SxArray<T> &operator= (SxArray<T> &&);
+      SxArray<T> &operator= (SxArray<T> &&) noexcept;
       /** Assignment from SxList. */
       SxArray<T> &operator= (const SxList<T> &);
       /** \brief Assignment from SxStack
@@ -515,7 +515,7 @@ SxArray<T>::SxArray (const SxArray<T> &in, ssize_t chunkSizeIn)
 }
 
 template<class T>
-SxArray<T>::SxArray (SxArray<T> &&in, ssize_t chunkSizeIn)
+SxArray<T>::SxArray (SxArray<T> &&in, ssize_t chunkSizeIn) noexcept
    : SxMemConsumer (in),
      SxThis<SxArray<T> > ()
 {
@@ -553,7 +553,7 @@ SxArray<T>::SxArray (const SxList<T> &in, ssize_t chunkSizeIn)
    chunkSize = chunkSizeIn;
    sizeAlloc = getSizeAlloc (n);
 
-   if (n == 0)  {
+   if (n == 0 || sizeAlloc == 0)  {
       elements = NULL;
    }  else  {
       elements = new T [static_cast<size_t>(sizeAlloc)];
@@ -591,31 +591,69 @@ SxArray<T>::SxArray (const SxCList<T> &in)
    TRACK_MALLOC (*this, 1);
 }
 
+namespace {
+   /// Auxiliary class to do partial specialization
+   template<class T, bool useMemCopy = std::is_trivially_copyable<T>::value>
+   class SxArrayCopy;
+
+   /// Copy -- implementation via memcpy
+   template <class T>
+   class SxArrayCopy<T,true>  {
+      public:
+        SxArrayCopy (T* dest, const T* src, ssize_t n)  {
+           memcpy (dest, src, (size_t)(n * sizeof(T)));
+        }
+   };
+
+   /// Copy -- implementation via for loop
+   template <class T>
+   class SxArrayCopy<T,false>  {
+      public:
+        SxArrayCopy (T* dest, const T* src, ssize_t n)  {
+           T* last = dest + n;
+           for (; dest != last; ) *dest++ = *src++;
+        }
+   };
+}
+
+/** \brief Copy a contiguous array
+    @param dest  destination
+    @param src   source
+    @param n     number of elements to copy
+
+    @note The implementation uses memcpy if this is possible,
+    i.e., when T is trivially copyable.
+*/
+template<class T>
+inline void sxCopyArray (T* dest, const T* src, ssize_t n)
+{
+   SX_CHECK (n >= 0, n);
+   SxArrayCopy<T> (dest, src, n);
+}
 
 template<class T>
-SxArray<T>::SxArray (const T *in, ssize_t n, ssize_t chunkSizeIn)
+SxArray<T>::SxArray (const T *in, ssize_t nElems, ssize_t chunkSizeIn)
    : SxMemConsumer (),
      SxThis<SxArray<T> > ()
 {
-   SX_CHECK (in || (!in && n==0));
+   SX_CHECK (nElems >= 0, nElems);
    SX_CHECK (chunkSizeIn > 0, chunkSizeIn);
+   SX_CHECK (in || nElems == 0, nElems);
 
-   if (n == 0)  {
-      elements  = NULL;
+   if (nElems == 0)  {
+      chunkSize = 1;
       size      = 0;
       sizeAlloc = 0;
-      chunkSize = 1;
+      elements  = NULL;
    }  else  {
-
       chunkSize  = chunkSizeIn;
-      sizeAlloc  = getSizeAlloc (n);
+      size       = nElems;
+      sizeAlloc  = getSizeAlloc (nElems);
       T *destPtr = elements = new T [static_cast<size_t>(sizeAlloc)];
-      const T *srcPtr = in;
-      for (ssize_t i=0; i < n; i++)  {
-         //     elements[i]  = in[i]
-         *destPtr++    = *srcPtr++;
-      }
-      size = n;
+
+      // --- Copy required elements
+      sxCopyArray (destPtr, in, nElems);
+
       TRACK_MALLOC (*this, 1);
    }
 }
@@ -663,12 +701,12 @@ SxArray<T>::SxArray (const std::initializer_list<T> &in, ssize_t chunkSizeIn)
    SX_CHECK (in.size () >= 0, in.size ());
    SX_CHECK (chunkSizeIn > 0, chunkSizeIn);
 
-   ssize_t n = in.size();
+   ssize_t n = static_cast<ssize_t>(in.size());
 
    chunkSize = chunkSizeIn;
    sizeAlloc = getSizeAlloc (n);
 
-   if (n == 0)  {
+   if (n == 0 || sizeAlloc == 0)  {
       elements = NULL;
    }  else  {
       elements = new T [static_cast<size_t>(sizeAlloc)];
@@ -715,7 +753,7 @@ SxArray<T> &SxArray<T>::operator= (const SxArray<T> &in)
 
 
 template<class T>
-SxArray<T> &SxArray<T>::operator= (SxArray<T> &&in)
+SxArray<T> &SxArray<T>::operator= (SxArray<T> &&in) noexcept
 {
    if (&in == this)  return *this;
 
@@ -1188,28 +1226,10 @@ SxArray<T> SxArray<T>::join (const SxList<SxArray<T> > &list)
    result.resize (size);
    size = 0;
 
-   // Trivial type. Memcpy.
-   if (std::is_trivially_copyable<T>::value)  {
-
-      size = 0;
-      uint64_t nBytes = 0;
-      // Copy memory directly.
-      for (const SxArray<T> &elem : list) {
-         nBytes = sizeof (T) * elem.getSize ();
-         memcpy ((char *)result.elements + size,
-                 (char *)elem.elements,
-                 nBytes);
-         size += nBytes;
-      }
-
-   // Non-trivial type. Element copy.
-   } else {
-      for (const SxArray<T> &listElem : list)  {
-         for (const T &arrayElem : listElem)  {
-            result(size) = arrayElem;
-            size++;
-         }
-      }
+   for (const SxArray<T> &listElem : list)  {
+      ssize_t nElem = listElem.getSize ();
+      sxCopyArray (result.elements + size, listElem.elements, nElem);
+      size += nElem;
    }
    return result;
 }
@@ -1263,7 +1283,7 @@ void SxArray<T>::remove (ssize_t idx, ssize_t count)
       // --- remove during reallocation
       T *buffer = NULL;
       if (newSizeAlloc > 0)  { 
-         buffer = new T [newSizeAlloc];
+         buffer = new T [(size_t)newSizeAlloc];
          for (i=0; i < idx; i++)  {
             buffer[i] = elements[i];
          }
@@ -1351,38 +1371,8 @@ inline void SxArray<T>::resize (ssize_t newSize, bool keep)
       if (newSizeAlloc > 0)  {
          buffer = new T [static_cast<size_t>(newSizeAlloc)];
          if (keep)  {
-            ssize_t i, min = (size < newSize) ? size : newSize;
-            for (i=0; i < min; i++)   buffer[i] = elements[i];
-         }
-      }
-      if (sizeAlloc)  delete [] elements;
-      sizeAlloc = newSizeAlloc;
-      elements  = buffer;
-      buffer    = NULL;
-      TRACK_MALLOC (*this, 1);
-   }
-   size = newSize;
-}
-
-template<>
-inline void SxArray<char>::resize (ssize_t newSize, bool keep)
-{
-   SX_CHECK (newSize >= 0, newSize);
-   if (newSize == size)  return;
-
-   ssize_t newSizeAlloc = newSize;
-   if (chunkSize > 1)  {
-      newSizeAlloc = getSizeAlloc(newSize);
-   }
-   if (newSizeAlloc != sizeAlloc)  {
-      char *buffer = NULL;
-      if (newSizeAlloc > 0)  {
-         buffer = new char [static_cast<size_t>(newSizeAlloc)];
-         if (keep)  {
             ssize_t min = (size < newSize) ? size : newSize;
-            // --- TODO: memcpy only for large n
-            ::memcpy (buffer, elements, static_cast<size_t>(min));
-            //for (i=0; i < min; i++)   buffer[i] = elements[i];
+            sxCopyArray (buffer, elements, min);
          }
       }
       if (sizeAlloc)  delete [] elements;
@@ -1411,6 +1401,9 @@ ssize_t SxArray<T>::getSizeAlloc () const
 template<class T>
 ssize_t SxArray<T>::getSizeAlloc (ssize_t newSize) const
 {
+   SX_CHECK (chunkSize > 0, chunkSize);
+   SX_CHECK (newSize >= 0, newSize);
+
    return ((newSize/chunkSize)*chunkSize) + (newSize%chunkSize > 0?chunkSize:0);
 }
 

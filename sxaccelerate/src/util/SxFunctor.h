@@ -244,7 +244,7 @@ class SxBoundStorage : public SxFunctorStorage
          memFunc = func_;
       }
 
-      SxBoundStorage (const SxBoundStorage &in)
+      SxBoundStorage (const SxBoundStorage &in) noexcept
          : callee(in.callee)
       {
          if (callee)  {  // member function pointer
@@ -436,7 +436,7 @@ class SxFunctor<RES,SxNull,SxNull,SxNull,SxNull,SxNull,SxNull,SxNull>
    : public SxFunctorBase
 {
    public:
-      SxFunctor () : SxFunctorBase () { /* empty */ }
+      SxFunctor () : SxFunctorBase (), metaFunc(NULL) { /* empty */ }
       SxFunctor (const SxFunctor &in) : SxFunctorBase(in), metaFunc(in.metaFunc)
                                         { }
       SxFunctor &operator= (const SxFunctor &in) {
@@ -479,7 +479,7 @@ class SxFunctor<RES,P1,SxNull,SxNull,SxNull,SxNull,SxNull,SxNull>
    : public SxFunctorBase
 {
    public:
-      SxFunctor () : SxFunctorBase () { /* empty */ }
+      SxFunctor () : SxFunctorBase (), metaFunc(NULL) { /* empty */ }
       SxFunctor (const SxFunctor &in) : SxFunctorBase(in), metaFunc(in.metaFunc)
                                         { }
       SxFunctor &operator= (const SxFunctor &in) {
@@ -521,7 +521,7 @@ class SxFunctor<RES,P1,P2,SxNull,SxNull,SxNull,SxNull,SxNull>
    : public SxFunctorBase
 {
    public:
-      SxFunctor () : SxFunctorBase () { /* empty */ }
+      SxFunctor () : SxFunctorBase (), metaFunc(NULL) { /* empty */ }
       SxFunctor (const SxFunctor &in) : SxFunctorBase(in), metaFunc(in.metaFunc)
                                         { }
       SxFunctor &operator= (const SxFunctor &in) {

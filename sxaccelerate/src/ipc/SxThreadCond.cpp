@@ -22,8 +22,10 @@ SxThreadCond::SxThreadCond ()
 #  else
       int err = pthread_mutex_init (&mutex, NULL);
       SX_CHECK (err == 0);
+      SX_UNUSED (err);
       err = pthread_cond_init (&cond, NULL);
       SX_CHECK (err == 0);
+      SX_UNUSED (err);
 #  endif /* WIN32 */
 }
 
@@ -34,8 +36,10 @@ SxThreadCond::~SxThreadCond ()
 #  else
       int err = pthread_cond_destroy (&cond);
       SX_CHECK (err == 0);
+      SX_UNUSED (err);
       err = pthread_mutex_destroy (&mutex);
       SX_CHECK (err == 0);
+      SX_UNUSED (err);
 #  endif /* WIN32 */
 }
 
@@ -69,11 +73,12 @@ bool SxThreadCond::wait (SxMutex *mutex_, double sec_)
 #  else
       int err = pthread_mutex_lock (&mutex);
       SX_CHECK (err == 0);
-   
+      SX_UNUSED (err);
+
       mutex_->unlock ();
       bool result = wait (sec_);
       mutex_->lock ();
-   
+
       return result;
 #  endif /* WIN32 */
 }
@@ -82,9 +87,9 @@ bool SxThreadCond::wait (SxMutex *mutex_, double sec_)
 bool SxThreadCond::wait (double sec_)
 {
    bool timeout = false; // true if time limit exceeded
-   
+
       int err = 0;
-      
+
       if (sec_ < 0.)  {
          err = pthread_cond_wait (&cond, &mutex);
       }  else  {
@@ -104,19 +109,18 @@ bool SxThreadCond::wait (double sec_)
          struct timespec deadline;
          deadline.tv_sec  = (time_t)(sec_);
          deadline.tv_nsec = (long)((sec_ - (double)deadline.tv_sec) * 1e9);
-            
+
          err = pthread_cond_timedwait (&cond, &mutex, &deadline);
       }
 
-      if (err == ETIMEDOUT)  {
-         timeout = true;
-      }  else if (err == EINVAL)  {
-         SX_CHECK (err == 0);
-      }
-      // --- do not EXIT on undocumented errors (err > 0)
-      
-      err = pthread_mutex_unlock (&mutex);
+   if (err == ETIMEDOUT)  {
+      timeout = true;
+   }  else if (err == EINVAL)  {
       SX_CHECK (err == 0);
+   }
+   // --- do not EXIT on undocumented errors (err > 0)
+   err = pthread_mutex_unlock (&mutex);
+   SX_CHECK (err == 0);
 
    return timeout;
 }
@@ -129,13 +133,15 @@ void SxThreadCond::wakeOne ()
 #  else
       int err = pthread_mutex_lock (&mutex);
       SX_CHECK (err == 0);
+      SX_UNUSED (err);
       err = pthread_cond_signal (&cond);
       SX_CHECK (err == 0);
+      SX_UNUSED (err);
       err = pthread_mutex_unlock (&mutex);
       SX_CHECK (err == 0);
+      SX_UNUSED (err);
 #  endif /* WIN32 */
 }
-
 
 void SxThreadCond::wakeAll ()
 {
@@ -144,9 +150,12 @@ void SxThreadCond::wakeAll ()
 #  else
       int err = pthread_mutex_lock (&mutex);
       SX_CHECK (err == 0);
+      SX_UNUSED (err);
       err = pthread_cond_broadcast (&cond);
       SX_CHECK (err == 0);
+      SX_UNUSED (err);
       err = pthread_mutex_unlock (&mutex);
       SX_CHECK (err == 0);
-#  endif /* WIN32 */      
+      SX_UNUSED (err);
+#  endif /* WIN32 */
 }

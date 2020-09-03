@@ -675,7 +675,7 @@ static const flex_int32_t yy_rule_can_match_eol[5] =
 #define yymore() yymore_used_but_not_detected
 #define YY_MORE_ADJ 0
 #define YY_RESTORE_YY_MORE_OFFSET
-#line 1 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/01_hello/SxDemo1Parser.lpp"
+#line 1 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/01_hello/SxDemo1Parser.lpp"
 /* ---------------------------------------------------------------------------
 //
 //           The general purpose cross platform C/C++ framework
@@ -687,14 +687,13 @@ static const flex_int32_t yy_rule_can_match_eol[5] =
 //           Authors:    see src/AUTHORS
 //
 // ------------------------------------------------------------------------ */
-#line 22 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/01_hello/SxDemo1Parser.lpp"
+#line 22 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/01_hello/SxDemo1Parser.lpp"
 #define SXPARSER_TYPE SxDemo1Parser
 #define lexerPtr (static_cast<SxDemo1Parser *> (yyextra))
-#include <SxParserBase.h>
 #include <SxDemo1Parser.h>
 #include <SxDemo1Parser.tab.hpp>
+#line 696 "SxDemo1Parser.lex.cpp"
 #line 697 "SxDemo1Parser.lex.cpp"
-#line 698 "SxDemo1Parser.lex.cpp"
 
 #define INITIAL 0
 
@@ -984,10 +983,10 @@ YY_DECL
 		}
 
 	{
-#line 29 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/01_hello/SxDemo1Parser.lpp"
+#line 28 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/01_hello/SxDemo1Parser.lpp"
 
 
-#line 991 "SxDemo1Parser.lex.cpp"
+#line 990 "SxDemo1Parser.lex.cpp"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -1058,7 +1057,7 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 31 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/01_hello/SxDemo1Parser.lpp"
+#line 30 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/01_hello/SxDemo1Parser.lpp"
 { yylval->strPtr=new SxString(yytext);
                   SXPARSER_SEND(TK_STRING);
                }
@@ -1067,7 +1066,7 @@ YY_RULE_SETUP
 case 2:
 /* rule 2 can match eol */
 YY_RULE_SETUP
-#line 36 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/01_hello/SxDemo1Parser.lpp"
+#line 35 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/01_hello/SxDemo1Parser.lpp"
 {
    SXPARSER_POP_STATE ();
    SXPARSER_ERROR (SxString("Unexpected character ") + yytext);
@@ -1076,7 +1075,7 @@ YY_RULE_SETUP
 case 3:
 /* rule 3 can match eol */
 YY_RULE_SETUP
-#line 40 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/01_hello/SxDemo1Parser.lpp"
+#line 39 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/01_hello/SxDemo1Parser.lpp"
 {
    SX_DBG_LEX (".");
    SXPARSER_ERROR (SxString("Unexpected character ") + yytext);
@@ -1084,10 +1083,10 @@ YY_RULE_SETUP
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 45 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/01_hello/SxDemo1Parser.lpp"
+#line 44 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/01_hello/SxDemo1Parser.lpp"
 ECHO;
 	YY_BREAK
-#line 1091 "SxDemo1Parser.lex.cpp"
+#line 1090 "SxDemo1Parser.lex.cpp"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -2332,7 +2331,7 @@ void yyfree (void * ptr , yyscan_t yyscanner)
 
 #define YYTABLES_NAME "yytables"
 
-#line 45 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/01_hello/SxDemo1Parser.lpp"
+#line 44 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/01_hello/SxDemo1Parser.lpp"
 
 SXPARSER_FOOTER
 

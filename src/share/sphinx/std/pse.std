@@ -26,5 +26,10 @@ chemElements           { type="group"; nItems=1;
       atomicRadius     { type="real"; min=0; }
       gyromagneticRatio { type="real"; optional; }
       CPKcolor         { type="vector"; dim=3; }
+      polarizability   { type="real"; min=0; }
+      C6D2             { type="real"; min=0; }
+      C6TS             { type="real"; min=0; }
+      vdwRadiusD2      { type="real"; min=0; }
+      vdwRadiusTS      { type="real"; min=0; }
    }
 }

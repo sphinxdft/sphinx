@@ -644,44 +644,45 @@ SxFFT2d1d::getN231 (const SxVector<TPrecFFTIdx> &n123)
 
 void SxFFT2d1d::fftForward (SxComplex16 *out)
 {
-#ifdef USE_FFTW
-   fftw_execute_dft(plan2F, (fftw_complex*)meshData, (fftw_complex*)meshData);
-#else
-   SX_EXIT;
-#endif
+#  ifdef USE_FFTW
+      fftw_execute_dft(plan2F, (fftw_complex*)meshData,
+                       (fftw_complex*)meshData);
+#  else
+      SX_EXIT;
+#  endif
 
    ssize_t N3  = realMesh(2);
    ssize_t N12 = realMesh(0) * realMesh(1);
-#ifdef USE_OPENMP
-#pragma omp parallel
-#endif
+#  ifdef USE_OPENMP
+#  pragma omp parallel
+#  endif
    {
       SxComplex16 *meshes;
-#ifdef USE_FFTW
-      meshes  = (SxComplex16*)fftw_malloc(N3 * 4 * 2 * sizeof(SxComplex16));
-#else
-   SX_EXIT;
-#endif
+#     ifdef USE_FFTW
+         meshes  = (SxComplex16*)fftw_malloc(N3 * 4 * 2 * sizeof(SxComplex16));
+#     else
+         SX_EXIT;
+#     endif
 
-#ifdef USE_OPENMP
-#pragma omp for
-#endif
+#     ifdef USE_OPENMP
+#     pragma omp for
+#     endif
       for (int i12 = 0; i12 < N12; i12 += 4)  {
          // copy in lower non-zero part
          fourStreamCopy(nonZero, meshData + i12, N12p,
                         meshes         , meshes +     N3,
                         meshes + 2 * N3, meshes + 3 * N3);
-#if defined(__GNUG__) && defined(__AVX__)
          // --- set middle part to zero
-         v2df zero = {0.,0.};
-         for (int j12 = 0; j12 < 4; ++j12)  {
-            SxComplex16 *dest = meshes + j12 * N3 + nonZero;
-            for (int i3 = nonZero; i3 < N3 - nonZero; i3++)
-               store(dest++, zero);
-         }
-#else
-         SX_EXIT;
-#endif
+#        if defined(__GNUG__) && defined(__AVX__)
+            v2df zero = {0.,0.};
+            for (int j12 = 0; j12 < 4; ++j12)  {
+               SxComplex16 *dest = meshes + j12 * N3 + nonZero;
+               for (int i3 = nonZero; i3 < N3 - nonZero; i3++)
+                  store(dest++, zero);
+            }
+#        else
+            SX_EXIT;
+#        endif
 
          // copy in upper non-zero part
          fourStreamCopy(nonZero, meshData + i12 + N12p * nonZero, N12p,
@@ -689,15 +690,15 @@ void SxFFT2d1d::fftForward (SxComplex16 *out)
                         meshes + 3 * N3 - nonZero, meshes + 4 * N3 - nonZero);
 
          // do the 1D FFT on the current 4 meshes
-#ifdef USE_FFTW
-         fftw_execute_dft (plan1F, (fftw_complex*)meshes,
-                                   (fftw_complex*)meshes + 4 * N3);
-#else
-         SX_EXIT;
-#endif
+#        ifdef USE_FFTW
+            fftw_execute_dft (plan1F, (fftw_complex*)meshes,
+                                      (fftw_complex*)meshes + 4 * N3);
+#        else
+            SX_EXIT;
+#        endif
 
          // copy result to "out"
-#if defined(__GNUG__) && defined(__AVX__)
+#        if defined(__GNUG__) && defined(__AVX__)
          {
             ssize_t offset = N3 * i12;
             ssize_t iv;
@@ -725,17 +726,17 @@ void SxFFT2d1d::fftForward (SxComplex16 *out)
             for (; iv < N3 * 4; iv++, workPlace++, outWork++)
                store(outWork, load(workPlace));
          }
-#else
-         (void)out;
-         SX_EXIT;
-#endif
+#        else
+            (void)out;
+            SX_EXIT;
+#        endif
 
       }
-#ifdef USE_FFTW
-      fftw_free(meshes);
-#else
-      SX_EXIT;
-#endif
+#     ifdef USE_FFTW
+         fftw_free(meshes);
+#     else
+         SX_EXIT;
+#     endif
    }
 }
 
@@ -743,23 +744,23 @@ void SxFFT2d1d::fftBackward (const SxComplex16 *in)
 {
    ssize_t N3  = realMesh(2);
    ssize_t N12 = realMesh(0) * realMesh(1);
-#ifdef USE_OPENMP
-#pragma omp parallel
-#endif
+#  ifdef USE_OPENMP
+#  pragma omp parallel
+#  endif
    {
       SxComplex16 *meshes;
-#ifdef USE_FFTW
-      meshes  = (SxComplex16*)fftw_malloc(N3 * 4 * 2 * sizeof(SxComplex16));
-#else
-   SX_EXIT;
-#endif
+#     ifdef USE_FFTW
+         meshes  = (SxComplex16*)fftw_malloc(N3 * 4 * 2 * sizeof(SxComplex16));
+#     else
+         SX_EXIT;
+#     endif
 
-#ifdef USE_OPENMP
-#pragma omp for
-#endif
+#     ifdef USE_OPENMP
+#     pragma omp for
+#     endif
       for (int i12 = 0; i12 < N12; i12 += 4)  {
          // copy data from "in"
-#if defined(__GNUG__) && defined(__AVX__)
+#        if defined(__GNUG__) && defined(__AVX__)
          {
             ssize_t offset = N3 * i12;
             ssize_t iv;
@@ -787,17 +788,18 @@ void SxFFT2d1d::fftBackward (const SxComplex16 *in)
             for (; iv < N3 * 4; iv++, workPlace++, inWork++)
                store(workPlace, load(inWork));
          }
-#else
-         (void)out;
-         SX_EXIT;
-#endif
+#        else
+            (void)in;
+            SX_EXIT;
+#        endif
 
          // --- backward transform
-#ifdef USE_FFTW
-         fftw_execute_dft(plan1B, (fftw_complex*)meshes + 4 * N3, (fftw_complex*)meshes);
-#else
-         SX_EXIT;
-#endif
+#        ifdef USE_FFTW
+            fftw_execute_dft(plan1B, (fftw_complex*)meshes + 4 * N3,
+                             (fftw_complex*)meshes);
+#        else
+            SX_EXIT;
+#        endif
          // copy out lower non-zero part
          fourStreamCopyOut(nonZero, meshData + i12, N12p,
                            meshes         , meshes +     N3,
@@ -810,19 +812,18 @@ void SxFFT2d1d::fftBackward (const SxComplex16 *in)
                            meshes + 4 * N3 - nonZero);
 
       }
-#ifdef USE_FFTW
-      fftw_free(meshes);
-#else
-      SX_EXIT;
-#endif
+#     ifdef USE_FFTW
+         fftw_free(meshes);
+#     else
+         SX_EXIT;
+#     endif
    }
 
    // 2D back transform
-#ifdef USE_FFTW
-   fftw_execute_dft(plan2B, (fftw_complex*)meshData, (fftw_complex*)meshData);
-#else
-   SX_EXIT;
-#endif
+#  ifdef USE_FFTW
+      fftw_execute_dft(plan2B, (fftw_complex*)meshData,
+                       (fftw_complex*)meshData);
+#  else
+      SX_EXIT;
+#  endif
 }
-
-

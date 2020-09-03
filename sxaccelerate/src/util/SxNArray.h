@@ -441,14 +441,14 @@ class SxArray2 : public SxNArray<T, 2> {
       {
          i1.setLimit (this->dim[0]);
          i2.setLimit (this->dim[1]);
-         return SxArray<T>::operator()(this->getIdx (i1.i, i2.i));
+         return SxArray<T>::operator()((ssize_t)this->getIdx (i1.i, i2.i));
       }
 
       const T& operator() (const SxAutoLoop &i1, const SxAutoLoop &i2) const
       {
          i1.setLimit (this->dim[0]);
          i2.setLimit (this->dim[1]);
-         return SxArray<T>::operator()(this->getIdx (i1.i, i2.i));
+         return SxArray<T>::operator()((ssize_t)this->getIdx (i1.i, i2.i));
       }
 
 };

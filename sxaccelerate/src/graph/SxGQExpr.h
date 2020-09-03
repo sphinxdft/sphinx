@@ -46,24 +46,36 @@ SxGQExpr expr = (N("propName").any());
 
 \endcode
  */
-class SxGQExpr : public SxGQExprBase
+
+class SxGQExpr;
+
+// --- functions to evaluate an SxGQExpr
+namespace SxGQInternal {
+
+   template<class N,class E,template<class,bool> class GS>
+   bool match (const SxPtr<SxGQExpr> &expr,
+               const typename SxGraph<N,E,GS>::ConstIterator &it,
+               const SxGQExprBase::Selection &sel);
+
+   template<class N,class E,template<class,bool> class GS>
+   bool matchAll (const SxPtr<SxGQExpr> &expr,
+                  const typename SxGraph<N,E,GS>::ConstIterator &it,
+                  const SxGQExprBase::SelSet &sels);
+}
+
+class SX_EXPORT_GRAPH SxGQExpr : public SxGQExprBase
 {
    public:
       SxGQExpr ();
       SxGQExpr (const SxString &propName_,
                 const SxVariant &right_,
-                const OpType &type_);
+                const SxGQExprBase::ExprType &type_);
       SxGQExpr (const SxString &propName_,
                 const SxVariant &right_,
                 const SxString &capName_,
-                const OpType &type_, bool isCap_);
+                const SxGQExprBase::ExprType &type_,
+                bool isCap_);
 
-      // eval function finds the match that satisfy the
-      // given expression according to specified operator
-      bool eval (const SxGraph<SxGProps>::ConstIterator &it,
-                 const Selection &sel) const override;
-      bool matchAll (const SxGraph<SxGProps>::ConstIterator &it,
-                     const SelSet &sels) const override;
 
       SxPtr<SxList<SxPtr<SxGQExprBase> > > firsts () const override;
       SxPtr<SxList<SxPtr<SxGQExprBase> > > lasts () const override;
@@ -74,14 +86,23 @@ class SxGQExpr : public SxGQExprBase
       void setLasts (const SxPtr<SxList<SxPtr<SxGQExprBase> > > &lst) override;
 
       bool isOp () const override;
-      OpType getOp () const override;
-      OpType getRightOp () const override;
+      SxGQExprBase::ExprType getRightOp () const override;
 
       bool isCaptured () const;
       size_t getHash () const override;
 
-      void makeGraph (SxGraph<SxGQPattern> *g) const override;
+      void makeGraph (SxGraph<SxGQPattern> *gPtr) const override;
       SxGQPattern getGraphNode () const override;
+
+      template<class N,class E,template<class,bool> class GS>
+      friend bool SxGQInternal::match (const SxPtr<SxGQExpr> &expr,
+                                       const typename SxGraph<N,E,GS>::ConstIterator &it,
+                                       const Selection &sel);
+
+      template<class N,class E,template<class,bool> class GS>
+      friend bool SxGQInternal::matchAll (const SxPtr<SxGQExpr> &expr,
+                                          const typename SxGraph<N,E,GS>::ConstIterator &it,
+                                          const SelSet &sels);
 
    protected:
 
@@ -92,7 +113,6 @@ class SxGQExpr : public SxGQExprBase
       bool captured;
       SxVariant right;
       ssize_t id;
-      OpType opType;
 
 };
 

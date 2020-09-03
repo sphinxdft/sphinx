@@ -74,6 +74,14 @@
 #         include <clapack.h>
        }
 #  endif /* USE_ACCELERATE_FRAMEWORK */
+#elif defined (USE_NETLIB)
+// define lapacke_ types
+#  define lapack_complex_float  SxComplex8
+#  define lapack_complex_double SxComplex16
+   extern "C"  {
+#         include <cblas.h>
+#         include <lapacke.h>
+   }
 #else
 #   error "No numeric library specified"
 // make sure that we do not drown in error messages
@@ -1065,14 +1073,16 @@ void cholesky (float *resMat, enum UPLO uplo, float * /*inMat*/, int n)
 #  elif defined (USE_ACML)
       int err = 0;      
       spotrf (uploChar, n, resMat, n, &err);
+#  elif defined (USE_NETLIB)
+      int err = LAPACKE_spotrf (LAPACK_COL_MAJOR, uploChar, n, resMat, n);
 #  else 
       integer rank  = (integer)n, err = 0;
       spotrf_ (&uploChar, &rank, (real *)resMat, &rank, &err);
-      if ( err )  { // TODO: throw exception
-         std::cout << "cholesky err=" << err << std::endl;
-         SX_EXIT;
-      }
 #   endif      
+   if ( err )  { // TODO: throw exception
+      std::cout << "cholesky err=" << err << std::endl;
+      SX_EXIT;
+   }
 }
 
 
@@ -1091,14 +1101,16 @@ void cholesky (double *resMat, enum UPLO uplo, double * /*inMat*/, int n)
 #  elif defined (USE_ACML)
       int err = 0;      
       dpotrf (uploChar, n, resMat, n, &err);
+#  elif defined (USE_NETLIB)
+      int err = LAPACKE_dpotrf (LAPACK_COL_MAJOR, uploChar, n, resMat, n);
 #  else 
       integer rank  = (integer)n, err = 0;
       dpotrf_ (&uploChar, &rank, (doublereal *)resMat, &rank, &err);
+#  endif      
       if ( err )  { // TODO: throw exception
          std::cout << "cholesky err=" << err << std::endl;
          SX_EXIT;
       }
-#  endif      
 }
 
 
@@ -1118,14 +1130,16 @@ void cholesky (SxComplex8 *resMat, enum UPLO uplo,
 #  elif defined (USE_ACML)
       int err = 0;      
       cpotrf (uploChar, n, (complex *)resMat, n, &err);
+#  elif defined (USE_NETLIB)
+      int err = LAPACKE_cpotrf (LAPACK_COL_MAJOR, uploChar, n, resMat, n);
 #  else 
       integer rank  = (integer)n, err = 0;
       cpotrf_ (&uploChar, &rank, (complex *)resMat, &rank, &err);
-      if ( err )  { // TODO: throw exception
-         std::cout << "cholesky err=" << err << std::endl;
-         SX_EXIT;
-      }
 #  endif      
+   if ( err )  { // TODO: throw exception
+      std::cout << "cholesky err=" << err << std::endl;
+      SX_EXIT;
+   }
 }
 
 
@@ -1145,21 +1159,24 @@ void cholesky (SxComplex16 *resMat, enum UPLO uplo,
 #  elif defined (USE_ACML)
       int err = 0;      
       zpotrf(uploChar, n, (doublecomplex *)resMat, n, &err);
+#  elif defined (USE_NETLIB)
+      int err = LAPACKE_zpotrf (LAPACK_COL_MAJOR, uploChar, n, resMat, n);
 #  else 
       integer rank  = (integer)n, err = 0;
       zpotrf_ (&uploChar, &rank, (doublecomplex *)resMat, &rank, &err);
-      if ( err )  { // TODO: throw exception
-         std::cout << "cholesky err=" << err << std::endl;
-         SX_EXIT;
-      }
 #  endif   
+   if ( err )  { // TODO: throw exception
+      std::cout << "cholesky err=" << err << std::endl;
+      SX_EXIT;
+   }
 }
 
+// --- The next 208 lines were generated from math/snippets/SxBlasLib.cpp snippet SVDREAL
 void singularValueDecomp (float *mat, int nRows, int nCols,
-                                 float *vals,
-                                 float *left,
-                                 float *right, // V^H
-                                 bool zeroSpace)
+                          float *vals,
+                          float *left,
+                          float *right, // V^H
+                          bool zeroSpace)
 {
    char jobz = zeroSpace ? 'A'  // U= M x M, V=N x N
                          : 'S'; // U=M x s, V= s x N
@@ -1191,7 +1208,7 @@ void singularValueDecomp (float *mat, int nRows, int nCols,
       std::cout << "svd err = " << err << std::endl;
       SX_EXIT;
    }
-   lwork = (int)optwork;
+   lwork = int(lround(optwork));
    float* work = new float[lwork];
    // --- actual compute
    sgesdd(&jobz, &nRows, &nCols, mat, &nRows,
@@ -1204,6 +1221,32 @@ void singularValueDecomp (float *mat, int nRows, int nCols,
    }
 #  elif defined (USE_ACML)
    SX_EXIT;
+#  elif defined (USE_NETLIB)
+   // workspace query:
+   int *iwork = new int[8 * minMN];
+   int err = 0;
+   int lwork = -1;
+   float optwork;
+   err = LAPACKE_sgesdd_work(LAPACK_COL_MAJOR,
+          jobz, nRows, nCols, mat, nRows,
+          vals, left, nRows, right, ldvt,
+          &optwork, lwork, iwork);
+   if (err)  {
+      std::cout << "svd err = " << err << std::endl;
+      SX_EXIT;
+   }
+   lwork = (int)optwork;
+   float* work = new float[lwork];
+   // --- actual compute
+   err = LAPACKE_sgesdd_work(LAPACK_COL_MAJOR,
+          jobz, nRows, nCols, mat, nRows,
+          vals, left, nRows, right, ldvt,
+          work, lwork, iwork);
+   delete[] work;
+   if (err)  {
+      std::cout << "svd err = " << err << std::endl;
+      SX_EXIT;
+   }
 #  else
    integer *iwork = new integer[8 * minMN];
    integer lwork = -1;
@@ -1234,10 +1277,10 @@ void singularValueDecomp (float *mat, int nRows, int nCols,
 }
 
 void singularValueDecomp (double *mat, int nRows, int nCols,
-                                 double *vals,
-                                 double *left,
-                                 double *right, // V^H
-                                 bool zeroSpace)
+                          double *vals,
+                          double *left,
+                          double *right, // V^H
+                          bool zeroSpace)
 {
    char jobz = zeroSpace ? 'A'  // U= M x M, V=N x N
                          : 'S'; // U=M x s, V= s x N
@@ -1258,8 +1301,8 @@ void singularValueDecomp (double *mat, int nRows, int nCols,
    SX_EXIT; // not yet implemented
 #  elif defined (USE_INTEL_MKL)
    // workspace query:
-   int err = 0;
    int *iwork = new int[8 * minMN];
+   int err = 0;
    int lwork = -1;
    double optwork;
    dgesdd(&jobz, &nRows, &nCols, mat, &nRows,
@@ -1282,10 +1325,36 @@ void singularValueDecomp (double *mat, int nRows, int nCols,
    }
 #  elif defined (USE_ACML)
    SX_EXIT;
+#  elif defined (USE_NETLIB)
+   // workspace query:
+   int *iwork = new int[8 * minMN];
+   int err = 0;
+   int lwork = -1;
+   double optwork;
+   err = LAPACKE_dgesdd_work(LAPACK_COL_MAJOR,
+          jobz, nRows, nCols, mat, nRows,
+          vals, left, nRows, right, ldvt,
+          &optwork, lwork, iwork);
+   if (err)  {
+      std::cout << "svd err = " << err << std::endl;
+      SX_EXIT;
+   }
+   lwork = (int)optwork;
+   double* work = new double[lwork];
+   // --- actual compute
+   err = LAPACKE_dgesdd_work(LAPACK_COL_MAJOR,
+          jobz, nRows, nCols, mat, nRows,
+          vals, left, nRows, right, ldvt,
+          work, lwork, iwork);
+   delete[] work;
+   if (err)  {
+      std::cout << "svd err = " << err << std::endl;
+      SX_EXIT;
+   }
 #  else
-   integer err = 0;
-   integer lwork = -1;
    integer *iwork = new integer[8 * minMN];
+   integer lwork = -1;
+   integer err = 0;
    // workspace query:
    double optwork;
    integer nr = nRows, nc = nCols, ldvt_ = ldvt;
@@ -1310,13 +1379,14 @@ void singularValueDecomp (double *mat, int nRows, int nCols,
 #  endif   
    delete[] iwork;
 }
+// --- SVDREAL
 
-
+// --- The next 248 lines were generated from math/snippets/SxBlasLib.cpp snippet SVDCOMPLEX
 void singularValueDecomp (SxComplex8 *mat, int nRows, int nCols,
-                                 float *vals,
-                                 SxComplex8 *left,
-                                 SxComplex8 *right, // V^H
-                                 bool zeroSpace)
+                          float *vals,
+                          SxComplex8 *left,
+                          SxComplex8 *right, // V^H
+                          bool zeroSpace)
 {
    char jobz = zeroSpace ? 'A'  // U= M x M, V=N x N
                          : 'S'; // U=M x s, V= s x N
@@ -1365,6 +1435,37 @@ void singularValueDecomp (SxComplex8 *mat, int nRows, int nCols,
    }
 #  elif defined (USE_ACML)
    SX_EXIT;
+#  elif defined (USE_NETLIB)
+   int ldvt = zeroSpace ? nCols : minMN;
+   int lrwork = (jobz == 'N') ? (7 * minMN) : ( (5 * minMN + 7) * minMN);
+   int err = 0;
+   int lwork = -1;
+   float *rwork = new float[lrwork];
+   int *iwork = new int[8 * minMN];
+   // workspace query:
+   SxComplex8 optwork;
+   err = LAPACKE_cgesdd_work(LAPACK_COL_MAJOR,
+          jobz, nRows, nCols, mat, nRows,
+          vals, left, nRows, right, ldvt,
+          &optwork, lwork, rwork, iwork);
+   if (err)  {
+      std::cout << "svd err = " << err << std::endl;
+      SX_EXIT;
+   }
+   lwork = int(lround(optwork.re));
+   SxComplex8 *work = new SxComplex8[lwork];
+   // --- actual compute
+   err = LAPACKE_cgesdd_work(LAPACK_COL_MAJOR,
+          jobz, nRows, nCols, mat, nRows,
+          vals, left, nRows, right, ldvt,
+          work, lwork, rwork, iwork);
+   delete[] work;
+   delete[] iwork;
+   delete[] rwork;
+   if (err)  {
+      std::cout << "svd err = " << err << std::endl;
+      SX_EXIT;
+   }
 #  else
    integer ldvt = zeroSpace ? nCols : minMN;
    integer lrwork = (jobz == 'N') ? (7 * minMN) : ( (5 * minMN + 7) * minMN);
@@ -1377,7 +1478,7 @@ void singularValueDecomp (SxComplex8 *mat, int nRows, int nCols,
    complex optwork;
    SX_EXIT;
    /* missing prototype
-   cgesdd_(&jobz, &nr, &nc, (complex *)mat, &nr,
+   cgesdd_(&jobz, &nr, &nc, (complex*)mat, &nr,
           vals, (complex*)left, &nr, (complex*)right, &ldvt,
           &optwork, &lwork, rwork, iwork, &err );
           */
@@ -1390,7 +1491,7 @@ void singularValueDecomp (SxComplex8 *mat, int nRows, int nCols,
    // --- actual compute
    SX_EXIT;
    /* missing prototype
-   cgesdd_(&jobz, &nr, &nc, (complex *)mat, &nr,
+   cgesdd_(&jobz, &nr, &nc, (complex*)mat, &nr,
           vals, (complex*)left, &nr, (complex*)right, &ldvt,
           work, &lwork, rwork, iwork, &err );
           */
@@ -1406,10 +1507,10 @@ void singularValueDecomp (SxComplex8 *mat, int nRows, int nCols,
 }
 
 void singularValueDecomp (SxComplex16 *mat, int nRows, int nCols,
-                                 double *vals,
-                                 SxComplex16 *left,
-                                 SxComplex16 *right, // V^H
-                                 bool zeroSpace)
+                          double *vals,
+                          SxComplex16 *left,
+                          SxComplex16 *right, // V^H
+                          bool zeroSpace)
 {
    char jobz = zeroSpace ? 'A'  // U= M x M, V=N x N
                          : 'S'; // U=M x s, V= s x N
@@ -1458,6 +1559,37 @@ void singularValueDecomp (SxComplex16 *mat, int nRows, int nCols,
    }
 #  elif defined (USE_ACML)
    SX_EXIT;
+#  elif defined (USE_NETLIB)
+   int ldvt = zeroSpace ? nCols : minMN;
+   int lrwork = (jobz == 'N') ? (7 * minMN) : ( (5 * minMN + 7) * minMN);
+   int err = 0;
+   int lwork = -1;
+   double *rwork = new double[lrwork];
+   int *iwork = new int[8 * minMN];
+   // workspace query:
+   SxComplex16 optwork;
+   err = LAPACKE_zgesdd_work(LAPACK_COL_MAJOR,
+          jobz, nRows, nCols, mat, nRows,
+          vals, left, nRows, right, ldvt,
+          &optwork, lwork, rwork, iwork);
+   if (err)  {
+      std::cout << "svd err = " << err << std::endl;
+      SX_EXIT;
+   }
+   lwork = int(lround(optwork.re));
+   SxComplex16 *work = new SxComplex16[lwork];
+   // --- actual compute
+   err = LAPACKE_zgesdd_work(LAPACK_COL_MAJOR,
+          jobz, nRows, nCols, mat, nRows,
+          vals, left, nRows, right, ldvt,
+          work, lwork, rwork, iwork);
+   delete[] work;
+   delete[] iwork;
+   delete[] rwork;
+   if (err)  {
+      std::cout << "svd err = " << err << std::endl;
+      SX_EXIT;
+   }
 #  else
    integer ldvt = zeroSpace ? nCols : minMN;
    integer lrwork = (jobz == 'N') ? (7 * minMN) : ( (5 * minMN + 7) * minMN);
@@ -1466,11 +1598,11 @@ void singularValueDecomp (SxComplex16 *mat, int nRows, int nCols,
    double *rwork = new double[lrwork];
    integer *iwork = new integer[8 * minMN];
    // workspace query:
-   doublecomplex optwork;
    integer nr = nRows, nc = nCols;
+   doublecomplex optwork;
    SX_EXIT;
-   /* missing prototype:
-   zgesdd_(&jobz, &nr, &nc, (doublecomplex *)mat, &nr,
+   /* missing prototype
+   zgesdd_(&jobz, &nr, &nc, (doublecomplex*)mat, &nr,
           vals, (doublecomplex*)left, &nr, (doublecomplex*)right, &ldvt,
           &optwork, &lwork, rwork, iwork, &err );
           */
@@ -1481,8 +1613,9 @@ void singularValueDecomp (SxComplex16 *mat, int nRows, int nCols,
    lwork = (integer)optwork.r;
    doublecomplex* work = new doublecomplex[lwork];
    // --- actual compute
-   /* missing prototype:
-   zgesdd_(&jobz, &nr, &nc, (doublecomplex *)mat, &nr,
+   SX_EXIT;
+   /* missing prototype
+   zgesdd_(&jobz, &nr, &nc, (doublecomplex*)mat, &nr,
           vals, (doublecomplex*)left, &nr, (doublecomplex*)right, &ldvt,
           work, &lwork, rwork, iwork, &err );
           */
@@ -1496,13 +1629,16 @@ void singularValueDecomp (SxComplex16 *mat, int nRows, int nCols,
 #  endif   
 
 }
-
+// --- SVDCOMPLEX
 
 //------------------------------------------------------------------------------
 // Matrix inversion
 //------------------------------------------------------------------------------
+
+// --- The next 140 lines were generated from math/snippets/SxBlasLib.cpp snippet INVREAL
 void matInverse (float *mat, int nRows, int nCols)
 {
+   // --- (1) factorization
 #  if   defined (USE_VECLIB)
       int r = nRows, c = nCols, err = 0;
       int *pivots = new int [r < c ? r : c];
@@ -1519,18 +1655,22 @@ void matInverse (float *mat, int nRows, int nCols)
       int r = nRows, c = nCols, err = 0;
       int *pivots = new int [r < c ? r : c];
       sgetrf (nRows, nCols, mat, r, pivots, &err);
-#  else 
+#  elif defined (USE_NETLIB)
+      int r = nRows, c = nCols, err = 0;
+      int *pivots = new int [r < c ? r : c];
+      err = LAPACKE_sgetrf (LAPACK_COL_MAJOR, nRows, nCols, mat, r, pivots);
+#  else
       integer r = (integer)nRows, c = (integer)nCols, err = 0;
       integer *pivots = new integer[r < c ? r : c];
       sgetrf_ (&r, &c, (real *)mat, &r, pivots, &err);
-#  endif      
+#  endif
    if (err)  {   // TODO: throw execption
-      std::cout << "SxMatrix<T>::inverse: Error in SGETRF: " << err <<std::endl;
+      std::cout << "SxMatrix<T>::inverse: Error in sgetrf: " << err <<std::endl;
       delete [] pivots;
       SX_EXIT;
    }
 
-// --- (2) diagonalization
+   // --- (2) construct inverse
 #  if   defined (USE_VECLIB)
       int lWork = r;   // for opt. performance = r * OPT_BLOCKSIZE (from ILAENV)
       float *work = new float [lWork];
@@ -1546,14 +1686,19 @@ void matInverse (float *mat, int nRows, int nCols)
 #  elif defined (USE_ACML)
       float *work = NULL; // ACML doesn't use work
       sgetri (r, mat, r, pivots, &err);
+#  elif defined (USE_NETLIB)
+      int lWork = r;   // for opt. performance = r * OPT_BLOCKSIZE (from ILAENV)
+      float *work = new float [lWork];
+      err = LAPACKE_sgetri_work (LAPACK_COL_MAJOR, r, mat, r, pivots,
+                                 work, lWork);
 #  else
       integer lWork = r;   // for opt. performance = r * OPT_BLOCKSIZE (from ILAENV)
       real *work = new real [lWork];
-      sgetri_ (&r, (real *)mat, &r, pivots, work, &lWork, &err);      
-#  endif      
+      sgetri_ (&r, (real *)mat, &r, pivots, work, &lWork, &err);
+#  endif
 
    if ( err )  {  // TODO: throw execption
-      std::cout << "SxMatrix<T>::inverse: Error in SGETRI: " << err <<std::endl;
+      std::cout << "SxMatrix<T>::inverse: Error in sgetri: " << err <<std::endl;
       delete [] work; delete [] pivots;
       SX_EXIT;
    }
@@ -1561,9 +1706,9 @@ void matInverse (float *mat, int nRows, int nCols)
    delete [] work; delete [] pivots;
 }
 
-
 void matInverse (double *mat, int nRows, int nCols)
 {
+   // --- (1) factorization
 #  if   defined (USE_VECLIB)
       int r = nRows, c = nCols, err = 0;
       int *pivots = new int [r < c ? r : c];
@@ -1580,52 +1725,62 @@ void matInverse (double *mat, int nRows, int nCols)
       int r = nRows, c = nCols, err = 0;
       int *pivots = new int [r < c ? r : c];
       dgetrf (nRows, nCols, mat, r, pivots, &err);
-#  else 
+#  elif defined (USE_NETLIB)
+      int r = nRows, c = nCols, err = 0;
+      int *pivots = new int [r < c ? r : c];
+      err = LAPACKE_dgetrf (LAPACK_COL_MAJOR, nRows, nCols, mat, r, pivots);
+#  else
       integer r = (integer)nRows, c = (integer)nCols, err = 0;
       integer *pivots = new integer[r < c ? r : c];
       dgetrf_ (&r, &c, (doublereal *)mat, &r, pivots, &err);
-#  endif      
-
+#  endif
    if (err)  {   // TODO: throw execption
-      std::cout << "SxMatrix<T>::inverse: Error in DGETRF: " << err <<std::endl;
+      std::cout << "SxMatrix<T>::inverse: Error in dgetrf: " << err <<std::endl;
       delete [] pivots;
       SX_EXIT;
    }
 
-   // --- (2) diagonalization
+   // --- (2) construct inverse
 #  if   defined (USE_VECLIB)
       int lWork = r;   // for opt. performance = r * OPT_BLOCKSIZE (from ILAENV)
       double *work = new double [lWork];
-      dgetri (&nRows, (double *)mat, &nRows, pivots, work, &lWork, &err);
+      dgetri (&r, (double *)mat, &r, pivots, work, &lWork, &err);
 #  elif defined (USE_ESSL)
       int lWork = r;   // for opt. performance = r * OPT_BLOCKSIZE (from ILAENV)
       double *work = new double [lWork];
-      dgetri (nRows, mat, nRows, pivots, work, lWork, err);
+      dgetri (r, mat, r, pivots, work, lWork, err);
 #  elif defined (USE_INTEL_MKL)
       int lWork = r;   // for opt. performance = r * OPT_BLOCKSIZE (from ILAENV)
       double *work = new double [lWork];
-      dgetri (&nRows, mat, &nRows, pivots, work, &lWork, &err);
+      dgetri (&r, mat, &r, pivots, work, &lWork, &err);
 #  elif defined (USE_ACML)
-      double *work = NULL;  // ACML doesn't use work
-      dgetri (nRows, mat, nRows, pivots, &err);
-#  else 
+      double *work = NULL; // ACML doesn't use work
+      dgetri (r, mat, r, pivots, &err);
+#  elif defined (USE_NETLIB)
+      int lWork = r;   // for opt. performance = r * OPT_BLOCKSIZE (from ILAENV)
+      double *work = new double [lWork];
+      err = LAPACKE_dgetri_work (LAPACK_COL_MAJOR, r, mat, r, pivots,
+                                 work, lWork);
+#  else
       integer lWork = r;   // for opt. performance = r * OPT_BLOCKSIZE (from ILAENV)
       doublereal *work = new doublereal [lWork];
       dgetri_ (&r, (doublereal *)mat, &r, pivots, work, &lWork, &err);
-#  endif      
+#  endif
 
    if ( err )  {  // TODO: throw execption
-      std::cout << "SxMatrix<T>::inverse: Error in DGETRI: " << err <<std::endl;
+      std::cout << "SxMatrix<T>::inverse: Error in dgetri: " << err <<std::endl;
       delete [] work; delete [] pivots;
       SX_EXIT;
    }
 
    delete [] work; delete [] pivots;
 }
+// --- INVREAL
 
-
+// --- The next 226 lines were generated from math/snippets/SxBlasLib.cpp snippet INVCOMPLEX
 void matInverse (SxComplex8 *mat, int nRows, int nCols)
 {
+   // --- (1) factorization
 #  if   defined (USE_VECLIB)
       int r = nRows, c = nCols, err = 0;
       int *pivots = new int [r < c ? r : c];
@@ -1646,7 +1801,7 @@ void matInverse (SxComplex8 *mat, int nRows, int nCols)
       float *re2Ptr  = &realMat[2*nRows*nCols + nCols];
 
       for (r=0; r<nRows; r++, re1Ptr+=nCols, re2Ptr+=nCols,
-                              im1Ptr+=nCols, im2Ptr+=nCols)  
+                              im1Ptr+=nCols, im2Ptr+=nCols)
       {
          for (c=0; c<nCols; c++, matPtr++)  {
             *re1Ptr++ = *re2Ptr++ = matPtr->re;
@@ -1681,21 +1836,26 @@ void matInverse (SxComplex8 *mat, int nRows, int nCols)
       int r = nRows, c = nCols, err = 0;
       int *pivots = new int [r < c ? r : c];
       cgetrf (r, c, (complex *)mat, r, pivots, &err);
-#  else  
+#  elif defined (USE_NETLIB)
+      int r = nRows, c = nCols, err = 0;
+      int *pivots = new int [r < c ? r : c];
+      err = LAPACKE_cgetrf (LAPACK_COL_MAJOR,
+               nRows, nCols, mat, r, pivots);
+#  else
       integer r = (integer)nRows, c = (integer)nCols, err = 0;
       integer *pivots = new integer[r < c ? r : c];
       cgetrf_ (&r, &c, (complex *)mat, &r, pivots, &err);
 #  endif
 
-#  ifndef USE_ESSL      
+#  ifndef USE_ESSL
       if (err)  {   // TODO: throw execption
-         std::cout << "SxMatrix<T>::inverse: Error in CGETRF: "<<err<<std::endl;
+         std::cout << "SxMatrix<T>::inverse: Error in cgetrf: "<<err<<std::endl;
          delete [] pivots;
          SX_EXIT;
       }
-#  endif 
+#  endif
 
-   // --- (2) diagonalization
+   // --- (2) construct inverse
 #  if   defined (USE_VECLIB)
       int lWork = r;   // for opt. performance = r * OPT_BLOCKSIZE (from ILAENV)
       complex8_t *work = new complex8_t [lWork];
@@ -1709,15 +1869,20 @@ void matInverse (SxComplex8 *mat, int nRows, int nCols)
 #  elif defined (USE_ACML)
       complex *work = NULL;  // ACML doesn't use work
       cgetri (r, (complex *)mat, r, pivots, &err);
-#  else  
+#  elif defined (USE_NETLIB)
+      int lWork = r;   // for opt. performance = r * OPT_BLOCKSIZE (from ILAENV)
+      SxComplex8 *work = new SxComplex8 [lWork];
+      err = LAPACKE_cgetri_work (LAPACK_COL_MAJOR, r, mat, r, pivots,
+                                 work, lWork);
+#  else
       integer lWork = r;   // for opt. performance = r * OPT_BLOCKSIZE (from ILAENV)
       complex *work = new complex [lWork];
       cgetri_ (&r, (complex *)mat, &r, pivots, work, &lWork, &err);
-#  endif      
+#  endif
 
 #  ifndef USE_ESSL
       if ( err )  {  // TODO: throw execption
-         std::cout << "SxMatrix<T>::inverse: Error in CGETRI: "<<err<<std::endl;
+         std::cout << "SxMatrix<T>::inverse: Error in cgetri: "<<err<<std::endl;
          delete [] work; delete [] pivots;
          SX_EXIT;
       }
@@ -1726,9 +1891,9 @@ void matInverse (SxComplex8 *mat, int nRows, int nCols)
 #  endif
 }
 
-
 void matInverse (SxComplex16 *mat, int nRows, int nCols)
 {
+   // --- (1) factorization
 #  if   defined (USE_VECLIB)
       int r = nRows, c = nCols, err = 0;
       int *pivots = new int [r < c ? r : c];
@@ -1749,7 +1914,7 @@ void matInverse (SxComplex16 *mat, int nRows, int nCols)
       double *re2Ptr  = &realMat[2*nRows*nCols + nCols];
 
       for (r=0; r<nRows; r++, re1Ptr+=nCols, re2Ptr+=nCols,
-                              im1Ptr+=nCols, im2Ptr+=nCols)  
+                              im1Ptr+=nCols, im2Ptr+=nCols)
       {
          for (c=0; c<nCols; c++, matPtr++)  {
             *re1Ptr++ = *re2Ptr++ = matPtr->re;
@@ -1784,21 +1949,26 @@ void matInverse (SxComplex16 *mat, int nRows, int nCols)
       int r = nRows, c = nCols, err = 0;
       int *pivots = new int [r < c ? r : c];
       zgetrf (r, c, (doublecomplex *)mat, r, pivots, &err);
-#  else 
+#  elif defined (USE_NETLIB)
+      int r = nRows, c = nCols, err = 0;
+      int *pivots = new int [r < c ? r : c];
+      err = LAPACKE_zgetrf (LAPACK_COL_MAJOR,
+               nRows, nCols, mat, r, pivots);
+#  else
       integer r = (integer)nRows, c = (integer)nCols, err = 0;
       integer *pivots = new integer[r < c ? r : c];
       zgetrf_ (&r, &c, (doublecomplex *)mat, &r, pivots, &err);
-#  endif   
+#  endif
 
-#  ifndef USE_ESSL      
+#  ifndef USE_ESSL
       if (err)  {   // TODO: throw execption
-         std::cout << "SxMatrix<T>::inverse: Error in ZGETRF: "<<err<<std::endl;
+         std::cout << "SxMatrix<T>::inverse: Error in zgetrf: "<<err<<std::endl;
          delete [] pivots;
          SX_EXIT;
       }
 #  endif
 
-   // --- (2) diagonalization
+   // --- (2) construct inverse
 #  if   defined (USE_VECLIB)
       int lWork = r;   // for opt. performance = r * OPT_BLOCKSIZE (from ILAENV)
       complex16_t *work = new complex16_t [lWork];
@@ -1810,17 +1980,22 @@ void matInverse (SxComplex16 *mat, int nRows, int nCols)
       MKL_Complex16 *work = new MKL_Complex16 [lWork];
       zgetri (&r, (MKL_Complex16 *)mat, &r, pivots, work, &lWork, &err);
 #  elif defined (USE_ACML)
-      doublecomplex *work = NULL; // ACML doesn't use work
+      doublecomplex *work = NULL;  // ACML doesn't use work
       zgetri (r, (doublecomplex *)mat, r, pivots, &err);
-#  else 
+#  elif defined (USE_NETLIB)
+      int lWork = r;   // for opt. performance = r * OPT_BLOCKSIZE (from ILAENV)
+      SxComplex16 *work = new SxComplex16 [lWork];
+      err = LAPACKE_zgetri_work (LAPACK_COL_MAJOR, r, mat, r, pivots,
+                                 work, lWork);
+#  else
       integer lWork = r;   // for opt. performance = r * OPT_BLOCKSIZE (from ILAENV)
       doublecomplex *work = new doublecomplex [lWork];
       zgetri_ (&r, (doublecomplex *)mat, &r, pivots, work, &lWork, &err);
-#  endif   
+#  endif
 
-#  ifndef USE_ESSL      
+#  ifndef USE_ESSL
       if ( err )  {  // TODO: throw execption
-         std::cout << "SxMatrix<T>::inverse: Error in ZGETRI: "<<err<<std::endl;
+         std::cout << "SxMatrix<T>::inverse: Error in zgetri: "<<err<<std::endl;
          delete [] work; delete [] pivots;
          SX_EXIT;
       }
@@ -1828,8 +2003,7 @@ void matInverse (SxComplex16 *mat, int nRows, int nCols)
       delete [] work; delete [] pivots;
 #  endif
 }
-
-
+// --- INVCOMPLEX
 
 void matInverseTri (float * /*mat*/, int /*nRows*/, enum UPLO /*uplo*/)
 {
@@ -1845,9 +2019,6 @@ void matInverseTri (double *mat, int nRows, enum UPLO uplo)
 #  elif defined ( USE_ESSL)
       SX_EXIT; // not yet implemented
 #  elif defined (USE_INTEL_MKL)
-//     int err = 0;
-//     SX_EXIT; // not yet implemented
-      // change by khr
       int r = nRows, err = 0;
       int *pivots = new int[r];
       dsptrf (&uploChar, &r, mat, pivots, &err);
@@ -1855,6 +2026,10 @@ void matInverseTri (double *mat, int nRows, enum UPLO uplo)
       int r = nRows, err = 0;
       int *pivots = new int[r];
       dsptrf (uploChar, r, mat, pivots, &err);
+#  elif defined (USE_NETLIB)
+      int r = nRows, err = 0;
+      int *pivots = new int[r];
+      err = LAPACKE_dsptrf (LAPACK_COL_MAJOR, uploChar, r, mat, pivots);
 #  else
       integer r = (integer)nRows, err = 0;
       integer *pivots = new integer[r];
@@ -1872,14 +2047,14 @@ void matInverseTri (double *mat, int nRows, enum UPLO uplo)
 #  elif defined (USE_ESSL)
        SX_EXIT; // not yet implemented
 #  elif defined (USE_INTEL_MKL)
-//       double *work = NULL, *pivots=NULL;
-//       SX_EXIT; // not yet implemented
-      // change by khr
       double *work = new double [r];
       dsptri (&uploChar, &r, mat, pivots, work, &err);
 #  elif defined (USE_ACML)
       double *work = NULL; // ACML doesn't use work
       dsptri (uploChar, r, mat, pivots, &err);
+#  elif defined (USE_NETLIB)
+      double *work = new double [r];
+      err = LAPACKE_dsptri_work (LAPACK_COL_MAJOR, uploChar, r, mat, pivots, work);
 #  else
       doublereal *work = new doublereal [r];
       dsptri_ (&uploChar, &r, (doublereal *)mat, pivots, work, &err);
@@ -1910,6 +2085,7 @@ void matInverseTri (SxComplex16 * /*mat*/, int /*nRows*/, enum UPLO /*uplo*/)
 //------------------------------------------------------------------------------
 // Linear equation solver (least square based)
 //------------------------------------------------------------------------------
+// --- The next 318 lines were generated from math/snippets/SxBlasLib.cpp snippet SOLVELIN
 void solveLinEq (float *mat, int nRows, int nCols, float *b, int bCols)
 {
 #  if   defined (USE_VECLIB)
@@ -1942,22 +2118,22 @@ void solveLinEq (float *mat, int nRows, int nCols, float *b, int bCols)
       SX_EXIT;
 #  elif defined (USE_INTEL_MKL)
       // for ilaenv
-      MKL_INT iSpec      = 9;
-      char *name   = const_cast<char*>("SGELSD");
-      char *opts   = const_cast<char*>(" ");
-      MKL_INT n1         = 0;
-      MKL_INT n2         = 0;
-      MKL_INT n3         = 0;
-      MKL_INT n4         = 0;
-      // for dgelsd
+      MKL_INT iSpec = 9;
+      char *name    = const_cast<char*>("SGELSD");
+      char *opts    = const_cast<char*>(" ");
+      MKL_INT n1    = 0;
+      MKL_INT n2    = 0;
+      MKL_INT n3    = 0;
+      MKL_INT n4    = 0;
+      // for sgelsd
       MKL_INT m          = nRows;
       MKL_INT n          = nCols;
       MKL_INT minmn      = n < m ? n : m;
       MKL_INT nrhs       = bCols;
       MKL_INT lda        = m;
       MKL_INT ldb        = m;
-      float *s           = new float [minmn];
-      float rcond        = -1.;
+      float *s          = new float [minmn];
+      float rcond       = -1.;
       MKL_INT rank;
       MKL_INT SMLSIZ     = ilaenv(&iSpec,name,opts,&n1,&n2,&n3,&n4);
       MKL_INT logVal     = MKL_INT(log( 1.0*n/(SMLSIZ+1))/log(2.0)) + 1;
@@ -1968,16 +2144,13 @@ void solveLinEq (float *mat, int nRows, int nCols, float *b, int bCols)
       MKL_INT *iwork     = new MKL_INT [liwork];
       MKL_INT info;
       // determine optimal lwork
-//      dgelsd (&m,&n,&nrhs,mat,&lda,b,&ldb,s,&rcond,&rank,&autolwork,&lwork,iwork,&info);
       sgelsd (&m,&n,&nrhs,mat,&lda,b,&ldb,s,&rcond,&rank,&autolwork,&lwork,iwork,&info);
       lwork              = MKL_INT(autolwork+0.5);
-      float *work        = new float [lwork];
+      float *work       = new float [lwork];
 
       sgelsd (&m,&n,&nrhs,mat,&lda,b,&ldb,s,&rcond,&rank,work,&lwork,iwork,&info);
 
       delete [] s; delete [] work; delete [] iwork;
-      //TODO TEST
-      SX_EXIT;
 #  elif defined (USE_ACML)
       int m        = nRows;
       int n        = nCols;
@@ -1991,10 +2164,40 @@ void solveLinEq (float *mat, int nRows, int nCols, float *b, int bCols)
       int info;
       sgelsd (m,n,nrhs,mat,lda,b,ldb,s,rcond,&rank,&info);
 
-      delete [] s; 
+      delete [] s;
       //TODO TEST
       SX_EXIT;
-#  else 
+#   elif defined(USE_NETLIB)
+      // for sgelsd
+      int m          = nRows;
+      int n          = nCols;
+      int minmn      = n < m ? n : m;
+      int nrhs       = bCols;
+      int lda        = m;
+      int ldb        = m;
+      float *s    = new float [minmn];
+      float rcond = -1.;
+      int rank;
+      int lwork = -1;
+      float autolwork;
+      int liwork = -1;
+      int info;
+      // determine optimal lwork
+      info = LAPACKE_sgelsd_work (LAPACK_COL_MAJOR,
+               m,n,nrhs,mat,lda,b,ldb,s,rcond,&rank,&autolwork,lwork,&liwork);
+      int *iwork = new int [liwork];
+      lwork = int(autolwork+0.5);
+      float *work = new float [lwork];
+
+      info = LAPACKE_sgelsd_work (LAPACK_COL_MAJOR,
+            m,n,nrhs,mat,lda,b,ldb,s,rcond,&rank,work,lwork,iwork);
+
+      delete [] s; delete [] work; delete [] iwork;
+      if (info)  {
+         std::cout << "solveLinEq: Error in sgelsd: " << info << std::endl;
+         SX_EXIT;
+      }
+#  else
       // for ilaenv
       integer iSpec = 9;
       char *name    = const_cast<char*>("SGELSD");
@@ -2039,7 +2242,7 @@ void solveLinEq (float *mat, int nRows, int nCols, float *b, int bCols)
       sgelsd_ (&m,&n,&nrhs,mat,&lda,b,&ldb,s,&rcond,&rank,work,&lwork,iwork,&info);
 
       delete [] s; delete [] work; delete [] iwork;
-#  endif      
+#  endif
 }
 
 void solveLinEq (double *mat, int nRows, int nCols, double *b, int bCols)
@@ -2095,7 +2298,7 @@ void solveLinEq (double *mat, int nRows, int nCols, double *b, int bCols)
       MKL_INT logVal     = MKL_INT(log( 1.0*n/(SMLSIZ+1))/log(2.0)) + 1;
       MKL_INT NLVL       = 0 < logVal ? logVal : 0;
       MKL_INT lwork      = -1;
-      double  autolwork;
+      double autolwork;
       MKL_INT liwork     = 3 * minmn * NLVL + 11 * minmn;
       MKL_INT *iwork     = new MKL_INT [liwork];
       MKL_INT info;
@@ -2120,10 +2323,40 @@ void solveLinEq (double *mat, int nRows, int nCols, double *b, int bCols)
       int info;
       dgelsd (m,n,nrhs,mat,lda,b,ldb,s,rcond,&rank,&info);
 
-      delete [] s; 
+      delete [] s;
       //TODO TEST
       SX_EXIT;
-#  else 
+#   elif defined(USE_NETLIB)
+      // for dgelsd
+      int m          = nRows;
+      int n          = nCols;
+      int minmn      = n < m ? n : m;
+      int nrhs       = bCols;
+      int lda        = m;
+      int ldb        = m;
+      double *s    = new double [minmn];
+      double rcond = -1.;
+      int rank;
+      int lwork = -1;
+      double autolwork;
+      int liwork = -1;
+      int info;
+      // determine optimal lwork
+      info = LAPACKE_dgelsd_work (LAPACK_COL_MAJOR,
+               m,n,nrhs,mat,lda,b,ldb,s,rcond,&rank,&autolwork,lwork,&liwork);
+      int *iwork = new int [liwork];
+      lwork = int(autolwork+0.5);
+      double *work = new double [lwork];
+
+      info = LAPACKE_dgelsd_work (LAPACK_COL_MAJOR,
+            m,n,nrhs,mat,lda,b,ldb,s,rcond,&rank,work,lwork,iwork);
+
+      delete [] s; delete [] work; delete [] iwork;
+      if (info)  {
+         std::cout << "solveLinEq: Error in dgelsd: " << info << std::endl;
+         SX_EXIT;
+      }
+#  else
       // for ilaenv
       integer iSpec = 9;
       char *name    = const_cast<char*>("DGELSD");
@@ -2144,7 +2377,7 @@ void solveLinEq (double *mat, int nRows, int nCols, double *b, int bCols)
       double *s          = new double [minmn];
       double rcond       = -1.;
       integer rank;
-#ifdef MACOSX      
+#ifdef MACOSX
 #  if ( DIST_VERSION_L >= 1070L )
       integer SMLSIZ     = ilaenv_(&iSpec,name,opts,&n1,&n2,&n3,&n4);
 #  else
@@ -2156,7 +2389,7 @@ void solveLinEq (double *mat, int nRows, int nCols, double *b, int bCols)
       integer logVal     = integer(log( double(n)/double(SMLSIZ+1))/log(2.0)) + 1;
       integer NLVL       = 0 < logVal ? logVal : 0;
       integer lwork      = -1;
-      double  autolwork;
+      double autolwork;
       integer liwork     = 3 * minmn * NLVL + 11 * minmn;
       integer *iwork     = new integer [liwork];
       integer info;
@@ -2168,8 +2401,9 @@ void solveLinEq (double *mat, int nRows, int nCols, double *b, int bCols)
       dgelsd_ (&m,&n,&nrhs,mat,&lda,b,&ldb,s,&rcond,&rank,work,&lwork,iwork,&info);
 
       delete [] s; delete [] work; delete [] iwork;
-#  endif      
+#  endif
 }
+// --- SOLVELIN
 
 void solveLinEq (SxComplex8 * /*mat*/, int /*nRows*/, int /*nCols*/,
                  SxComplex8 * /*b*/, int /*bCols*/)
@@ -2213,45 +2447,38 @@ void solveLinEq (SxComplex16 * /*mat*/, int /*nRows*/, int /*nCols*/,
 //------------------------------------------------------------------------------
 // Eigensolver
 //------------------------------------------------------------------------------
-int matEigensolver (SxComplex8 *eigVals, float *eigVecs,
+// --- The next 192 lines were generated from math/snippets/SxBlasLib.cpp snippet EIGENREAL
+int matEigensolver (SxComplex<float> *eigVals, float *eigVecs,
                     float *inMat, int n, EIGCMD cmd, int size)
 {
-#  if   defined (USE_VECLIB)
-      int rank  = n, info = 0, ldVecLeft = 1;
-      int lWork = !size ? 4*n : size;
-      int workDim = lWork;
-#  elif defined (USE_ESSL)
-      int rank  = n, info = 0, ldVecLeft = 1;
-      int lWork = !size ? 4*n : size;
-      int workDim = lWork;
-#  elif defined (USE_INTEL_MKL)
+#  if defined (USE_VECLIB) || defined (USE_INTEL_MKL) || defined (USE_NETLIB)
       int rank  = n, info = 0, ldVecLeft = 1;
       int lWork = !size ? 4*n : size;
       int workDim = lWork;
 #  elif defined (USE_ACML)
       int rank  = n, info = 0, ldVecLeft = 1, lWork=size;
-#  else 
+#  else
       integer rank  = (integer)n, info = 0, ldVecLeft = 1;
       integer lWork = !size ? 4*n : size;
       integer workDim = lWork;
-#  endif   
+#  endif
    if ( cmd == OptSize )  lWork = -1;
    char jobvl = 'N', jobvr = 'V';
 
 #  if   defined (USE_VECLIB)
-      float *work = new float [workDim];
-      float *epsRe = new float [n], *epsIm = new float [n];
-      float *eigVecLeft = new float [ldVecLeft];
+      float *work = new float[workDim];
+      float *epsRe = new float[n], *epsIm = new float[n];
+      float *eigVecLeft = new float[ldVecLeft];
       sgeev (&jobvl, &jobvr,
-             &rank, (float *)inMat, &rank, epsRe, epsIm, eigVecLeft, 
+             &rank, (float *)inMat, &rank, epsRe, epsIm, eigVecLeft,
              &ldVecLeft, (float *)eigVecs, &rank, work, &lWork, &info, 0, 0);
 #  elif defined (USE_ESSL)
-      complex<float> *vecs = new complex<float> [rank*rank];
+      complex<float> *vecs = new complex<float>[rank*rank];
       int iOpt = 1;   // compute both vecs and vals
       if (cmd != OptSize)  {  // not supported by ESSL
          if (cmd == ValuesOnly)  iOpt = 0;
-         sgeev (iOpt, inMat, rank, 
-                (complex<float> *)eigVals, vecs, rank, 
+         sgeev (iOpt, inMat, rank,
+                (complex<float> *)eigVals, vecs, rank,
                 NULL, rank, NULL, 0);
          complex<float> *srcPtr = vecs;
          float *dstPtr = eigVecs;
@@ -2269,29 +2496,37 @@ int matEigensolver (SxComplex8 *eigVals, float *eigVecs,
       delete [] vecs;
       return 0;
 #  elif defined (USE_INTEL_MKL)
-      float *work = new float [workDim];
-      float *epsRe = new float [n], *epsIm = new float [n];
-      float *eigVecLeft = new float [ldVecLeft];
-      sgeev (&jobvl, &jobvr, 
-             &rank, inMat, &rank, epsRe, epsIm, eigVecLeft, 
+      float *work = new float[workDim];
+      float *epsRe = new float[n], *epsIm = new float[n];
+      float *eigVecLeft = new float[ldVecLeft];
+      sgeev (&jobvl, &jobvr,
+             &rank, inMat, &rank, epsRe, epsIm, eigVecLeft,
              &ldVecLeft, eigVecs, &rank, work, &lWork, &info);
 #  elif defined (USE_ACML)
-      float *work = NULL;  // ACML doesn't use work
+      float *work = NULL; // ACML doesn't use work
       float *epsRe = new float [n], *epsIm = new float [n];
       float *eigVecLeft = new float [ldVecLeft];
-      sgeev (jobvl, jobvr, 
-             rank, inMat, rank, epsRe, epsIm, eigVecLeft, 
+      sgeev (jobvl, jobvr,
+             rank, inMat, rank, epsRe, epsIm, eigVecLeft,
              ldVecLeft, eigVecs, rank, &info);
+#  elif defined (USE_NETLIB)
+      float *work = new float[workDim];
+      float *epsRe = new float[n], *epsIm = new float[n];
+      float *eigVecLeft = new float[ldVecLeft];
+      info = LAPACKE_sgeev_work (LAPACK_COL_MAJOR,
+             jobvl, jobvr,
+             rank, inMat, rank, epsRe, epsIm, eigVecLeft,
+             ldVecLeft, eigVecs, rank, work, lWork);
 #  else
       real *work = new real [workDim];
-      real *epsRe = new real[n], *epsIm = new real[n];
+      real *epsRe = new real [n], *epsIm = new real [n];
       real *eigVecLeft = new real [ldVecLeft];
       sgeev_ (&jobvl, &jobvr,
-              &rank, (real *)inMat, &rank, epsRe, epsIm, eigVecLeft, 
+              &rank, (real *)inMat, &rank, epsRe, epsIm, eigVecLeft,
               &ldVecLeft, (real *)eigVecs, &rank, work, &lWork, &info);
-#  endif      
+#  endif
 
-#  ifndef USE_ESSL      
+#  ifndef USE_ESSL
       float *ptr=(float *)eigVals;
       float *rePtr=(float *)epsRe, *imPtr=(float *)epsIm;
       for (int i=0; i < n; i++)  {
@@ -2301,54 +2536,45 @@ int matEigensolver (SxComplex8 *eigVals, float *eigVecs,
       delete [] eigVecLeft; delete [] epsIm; delete [] epsRe; delete [] work;
 
       if ( info )  {  // TODO: throw exception
-         std::cout << "matEigensolver: Error in SGEEV: " << info << std::endl;
+         std::cout << "matEigensolver: Error in sgeev: " << info << std::endl;
          SX_EXIT;
       }
       return (cmd == OptSize)  ?  (int)work[0] : 0;
-#  endif  
+#  endif
 
 }
 
-
-int matEigensolver (SxComplex16 *eigVals, double *eigVecs,
+int matEigensolver (SxComplex<double> *eigVals, double *eigVecs,
                     double *inMat, int n, EIGCMD cmd, int size)
 {
-#  if   defined (USE_VECLIB)
-      int rank  = n, info = 0, ldVecLeft = 1;
-      int lWork = !size ? 4*n : size;
-      int workDim = lWork;
-#  elif defined (USE_ESSL)
-      int rank  = n, info = 0, ldVecLeft = 1;
-      int lWork = !size ? 4*n : size;
-      int workDim = lWork;
-#  elif defined (USE_INTEL_MKL)
+#  if defined (USE_VECLIB) || defined (USE_INTEL_MKL) || defined (USE_NETLIB)
       int rank  = n, info = 0, ldVecLeft = 1;
       int lWork = !size ? 4*n : size;
       int workDim = lWork;
 #  elif defined (USE_ACML)
       int rank  = n, info = 0, ldVecLeft = 1, lWork=size;
-#  else 
+#  else
       integer rank  = (integer)n, info = 0, ldVecLeft = 1;
       integer lWork = !size ? 4*n : size;
       integer workDim = lWork;
-#  endif      
+#  endif
    if ( cmd == OptSize )  lWork = -1;
    char jobvl = 'N', jobvr = 'V';
 
 #  if   defined (USE_VECLIB)
-      double *work = new double [workDim];
+      double *work = new double[workDim];
       double *epsRe = new double[n], *epsIm = new double[n];
-      double *eigVecLeft = new double [ldVecLeft];
+      double *eigVecLeft = new double[ldVecLeft];
       dgeev (&jobvl, &jobvr,
-              &rank, (double *)inMat, &rank, epsRe, epsIm, eigVecLeft, 
-              &ldVecLeft, (double *)eigVecs, &rank, work, &lWork, &info, 0, 0);
+             &rank, (double *)inMat, &rank, epsRe, epsIm, eigVecLeft,
+             &ldVecLeft, (double *)eigVecs, &rank, work, &lWork, &info, 0, 0);
 #  elif defined (USE_ESSL)
-      complex<double> *vecs = new complex<double> [rank*rank];
+      complex<double> *vecs = new complex<double>[rank*rank];
       int iOpt = 1;   // compute both vecs and vals
       if (cmd != OptSize)  {  // not supported by ESSL
          if (cmd == ValuesOnly)  iOpt = 0;
-         dgeev (iOpt, inMat, rank, 
-                (complex<double> *)eigVals, vecs, rank, 
+         dgeev (iOpt, inMat, rank,
+                (complex<double> *)eigVals, vecs, rank,
                 NULL, rank, NULL, 0);
          complex<double> *srcPtr = vecs;
          double *dstPtr = eigVecs;
@@ -2366,29 +2592,37 @@ int matEigensolver (SxComplex16 *eigVals, double *eigVecs,
       delete [] vecs;
       return 0;
 #  elif defined (USE_INTEL_MKL)
-      double *work       = new double [workDim];
-      double *epsRe      = new double [n], *epsIm = new double [n];
-      double *eigVecLeft = new double [ldVecLeft];
-      dgeev (&jobvl, &jobvr, 
-             &rank, inMat, &rank, epsRe, epsIm, eigVecLeft, 
-             &ldVecLeft, eigVecs, &rank, work, &lWork, &info);      
+      double *work = new double[workDim];
+      double *epsRe = new double[n], *epsIm = new double[n];
+      double *eigVecLeft = new double[ldVecLeft];
+      dgeev (&jobvl, &jobvr,
+             &rank, inMat, &rank, epsRe, epsIm, eigVecLeft,
+             &ldVecLeft, eigVecs, &rank, work, &lWork, &info);
 #  elif defined (USE_ACML)
-      double *work       = NULL; // ACML doesn't use work
-      double *epsRe      = new double [n], *epsIm = new double [n];
+      double *work = NULL; // ACML doesn't use work
+      double *epsRe = new double [n], *epsIm = new double [n];
       double *eigVecLeft = new double [ldVecLeft];
-      dgeev (jobvl, jobvr, 
-             rank, inMat, rank, epsRe, epsIm, eigVecLeft, 
-             ldVecLeft, eigVecs, rank, &info);      
-#  else  
+      dgeev (jobvl, jobvr,
+             rank, inMat, rank, epsRe, epsIm, eigVecLeft,
+             ldVecLeft, eigVecs, rank, &info);
+#  elif defined (USE_NETLIB)
+      double *work = new double[workDim];
+      double *epsRe = new double[n], *epsIm = new double[n];
+      double *eigVecLeft = new double[ldVecLeft];
+      info = LAPACKE_dgeev_work (LAPACK_COL_MAJOR,
+             jobvl, jobvr,
+             rank, inMat, rank, epsRe, epsIm, eigVecLeft,
+             ldVecLeft, eigVecs, rank, work, lWork);
+#  else
       doublereal *work = new doublereal [workDim];
-      doublereal *epsRe = new doublereal[n], *epsIm = new doublereal[n];
+      doublereal *epsRe = new doublereal [n], *epsIm = new doublereal [n];
       doublereal *eigVecLeft = new doublereal [ldVecLeft];
       dgeev_ (&jobvl, &jobvr,
-              &rank, (doublereal *)inMat, &rank, epsRe, epsIm, eigVecLeft, 
+              &rank, (doublereal *)inMat, &rank, epsRe, epsIm, eigVecLeft,
               &ldVecLeft, (doublereal *)eigVecs, &rank, work, &lWork, &info);
-#  endif      
+#  endif
 
-#  ifndef USE_ESSL      
+#  ifndef USE_ESSL
       double *ptr=(double *)eigVals;
       double *rePtr=(double *)epsRe, *imPtr=(double *)epsIm;
       for (int i=0; i < n; i++)  {
@@ -2398,37 +2632,34 @@ int matEigensolver (SxComplex16 *eigVals, double *eigVecs,
       delete [] eigVecLeft; delete [] epsIm; delete [] epsRe; delete [] work;
 
       if ( info )  {  // TODO: throw exception
-         std::cout << "matEigensolver: Error in DGEEV: " << info << std::endl;
+         std::cout << "matEigensolver: Error in dgeev: " << info << std::endl;
          SX_EXIT;
       }
       return (cmd == OptSize)  ?  (int)work[0] : 0;
 #  endif
 
 }
+// --- EIGENREAL
 
-
-int matEigensolver (SxComplex8 *eigVals, SxComplex8 *eigVecs, 
+// --- The next 222 lines were generated from math/snippets/SxBlasLib.cpp snippet EIGENCOMPLEX
+int matEigensolver (SxComplex8 *eigVals, SxComplex8 *eigVecs,
                     SxComplex8 *inMat, int n, EIGCMD cmd, int size)
 {
-#  if   defined (USE_VECLIB)
+#  if defined (USE_VECLIB) || defined (USE_INTEL_MKL) || defined (USE_NETLIB)
       int rank  = n, info = 0, ldVecLeft = 1;
       int lWork = !size ? 2*n : size;
       int workDim = lWork;
 #  elif defined (USE_ESSL)
-      int rank  = n, info = 0, ldVecLeft = 1;
-      int lWork = !size ? 2*n : size;
-      int workDim = lWork;
-#  elif defined (USE_INTEL_MKL)
-      int rank  = n, info = 0, ldVecLeft = 1;
+      int rank  = n, ldVecLeft = 1;
       int lWork = !size ? 2*n : size;
       int workDim = lWork;
 #  elif defined (USE_ACML)
       int rank  = n, info = 0, ldVecLeft = 1, lWork=size;
-#  else  
+#  else
       integer rank  = (integer)n, info = 0, ldVecLeft = 1;
       integer lWork = !size ? 2*n : size;
       integer workDim = lWork;
-#  endif   
+#  endif
    if ( cmd == OptSize )  lWork = -1;
    char jobvl = 'N', jobvr = 'V';
 
@@ -2437,18 +2668,18 @@ int matEigensolver (SxComplex8 *eigVals, SxComplex8 *eigVecs,
       complex8_t *work       = new complex8_t [workDim];
       float      *rWork      = new float      [workDim];
       cgeev (&jobvl, &jobvr,
-             &rank, (complex8_t *)inMat, &rank, 
-             (complex8_t *)eigVals, eigVecLeft, 
-             &ldVecLeft, (complex8_t *)eigVecs, &rank, work, &lWork, 
+             &rank, (complex8_t *)inMat, &rank,
+             (complex8_t *)eigVals, eigVecLeft,
+             &ldVecLeft, (complex8_t *)eigVecs, &rank, work, &lWork,
              rWork, &info, 0, 0);
       if (cmd == OptSize) lWork = (int)work[0].re;
-      delete [] rWork;  delete [] work; delete [] eigVecLeft; 
+      delete [] rWork;  delete [] work; delete [] eigVecLeft;
 #  elif defined (USE_ESSL)
       int iOpt = 1;  // compute both vecs and vals
       if (cmd != OptSize)  {  // not supported by ESSL
          if (cmd == ValuesOnly)  iOpt = 0;
-         cgeev (iOpt, (complex<float> *)inMat, rank, 
-                (complex<float> *)eigVals, (complex<float> *)eigVecs, rank, 
+         cgeev (iOpt, (complex<float> *)inMat, rank,
+                (complex<float> *)eigVals, (complex<float> *)eigVecs, rank,
                 NULL, rank, NULL, 0);
          // --- normalize eigenvectors
          double c;
@@ -2461,36 +2692,50 @@ int matEigensolver (SxComplex8 *eigVals, SxComplex8 *eigVecs,
       MKL_Complex8 *eigVecLeft = new MKL_Complex8 [ldVecLeft];
       MKL_Complex8 *work       = new MKL_Complex8 [workDim];
       float        *rWork      = new float        [workDim];
-      cgeev (&jobvl, &jobvr, 
-             &rank, (MKL_Complex8 *)inMat, &rank, 
-             (MKL_Complex8 *)eigVals, eigVecLeft, 
-             &ldVecLeft, (MKL_Complex8 *)eigVecs, &rank, work, &lWork, 
-             rWork, &info);      
-      if (cmd == OptSize) lWork = (int)work[0].real;
-      delete [] rWork;  delete [] work; delete [] eigVecLeft; 
+      cgeev (&jobvl, &jobvr,
+             &rank, (MKL_Complex8 *)inMat, &rank,
+             (MKL_Complex8 *)eigVals, eigVecLeft,
+             &ldVecLeft, (MKL_Complex8 *)eigVecs, &rank, work, &lWork,
+             rWork, &info);
+      if (cmd == OptSize) lWork = (int)lround(work[0].real);
+      delete [] rWork;
+      delete [] work;
+      delete [] eigVecLeft;
 #  elif defined (USE_ACML)
       complex *eigVecLeft = new complex [ldVecLeft];
-      cgeev (jobvl, jobvr, 
-             rank, (complex *)inMat, rank, 
-             (complex *)eigVals, eigVecLeft, 
-             ldVecLeft, (complex *)eigVecs, rank, &info);      
-      delete eigVecLeft;
-#  else  
-      complex *eigVecLeft = new complex [ldVecLeft];
-      complex *work       = new complex [workDim];
-      real    *rWork      = new real    [workDim];
+      cgeev (jobvl, jobvr,
+             rank, (complex *)inMat, rank,
+             (complex *)eigVals, eigVecLeft,
+             ldVecLeft, (complex *)eigVecs, rank, &info);
+      delete [] eigVecLeft;
+#  elif defined (USE_NETLIB)
+      SxComplex8 *eigVecLeft = new SxComplex8[ldVecLeft];
+      SxComplex8 *work       = new SxComplex8[workDim];
+      float *rWork = new float[workDim];
+      info = LAPACKE_cgeev_work (LAPACK_COL_MAJOR,
+             jobvl, jobvr,
+             rank, inMat, rank, eigVals, eigVecLeft,
+             ldVecLeft, eigVecs, rank, work, lWork, rWork);
+      if (cmd == OptSize) lWork = (int)lround(work[0].re);
+      delete [] rWork;
+      delete [] work;
+      delete [] eigVecLeft;
+#  else
+      complex *eigVecLeft = new complex[ldVecLeft];
+      complex *work       = new complex[workDim];
+      float *rWork = new float[workDim];
       cgeev_ (&jobvl, &jobvr,
-              &rank, (complex *)inMat, &rank, 
-              (complex *)eigVals, eigVecLeft, 
-              &ldVecLeft, (complex *)eigVecs, &rank, work, &lWork, 
+              &rank, (complex *)inMat, &rank,
+              (complex *)eigVals, eigVecLeft,
+              &ldVecLeft, (complex *)eigVecs, &rank, work, &lWork,
               rWork, &info);
       if (cmd == OptSize) lWork = (int)work[0].r;
-      delete [] rWork;  delete [] work; delete [] eigVecLeft; 
-#  endif      
+      delete [] rWork;  delete [] work; delete [] eigVecLeft;
+#  endif
 
 #  ifndef USE_ESSL
       if ( info )  {  // TODO: throw exception
-         std::cout << "matEigensolver: Error in CGEEV: " << info << std::endl;
+         std::cout << "matEigensolver: Error in cgeev: " << info << std::endl;
          SX_EXIT;
       }
 #  endif
@@ -2503,16 +2748,15 @@ int matEigensolver (SxComplex8 *eigVals, SxComplex8 *eigVecs,
       return (cmd == OptSize)  ?  lWork : 0;
 #  elif defined (USE_ACML)
       return 0;
-#  else  
+#  else
       return (cmd == OptSize)  ?  (int)lWork : 0;
-#  endif      
+#  endif
 }
 
-
-int matEigensolver (SxComplex16 *eigVals, SxComplex16 *eigVecs, 
+int matEigensolver (SxComplex16 *eigVals, SxComplex16 *eigVecs,
                     SxComplex16 *inMat, int n, EIGCMD cmd, int size)
 {
-#  if   defined (USE_VECLIB)
+#  if defined (USE_VECLIB) || defined (USE_INTEL_MKL) || defined (USE_NETLIB)
       int rank  = n, info = 0, ldVecLeft = 1;
       int lWork = !size ? 2*n : size;
       int workDim = lWork;
@@ -2520,16 +2764,12 @@ int matEigensolver (SxComplex16 *eigVals, SxComplex16 *eigVecs,
       int rank  = n, ldVecLeft = 1;
       int lWork = !size ? 2*n : size;
       int workDim = lWork;
-#  elif defined (USE_INTEL_MKL)
-      int rank  = n, info = 0, ldVecLeft = 1;
-      int lWork = !size ? 2*n : size;
-      int workDim = lWork;
 #  elif defined (USE_ACML)
       int rank  = n, info = 0, ldVecLeft = 1, lWork=size;
-#  else 
+#  else
       integer rank  = (integer)n, info = 0, ldVecLeft = 1;
       integer lWork = !size ? 2*n : size;
-      integer workDim = !size ? 2*n : size;
+      integer workDim = lWork;
 #  endif
    if ( cmd == OptSize )  lWork = -1;
    char jobvl = 'N', jobvr = 'V';
@@ -2539,18 +2779,18 @@ int matEigensolver (SxComplex16 *eigVals, SxComplex16 *eigVecs,
       complex16_t *work       = new complex16_t [workDim];
       double      *rWork      = new double      [workDim];
       zgeev (&jobvl, &jobvr,
-             &rank, (complex16_t *)inMat, &rank, 
-             (complex16_t *)eigVals, eigVecLeft, 
-             &ldVecLeft, (complex16_t *)eigVecs, &rank, work, &lWork, 
+             &rank, (complex16_t *)inMat, &rank,
+             (complex16_t *)eigVals, eigVecLeft,
+             &ldVecLeft, (complex16_t *)eigVecs, &rank, work, &lWork,
              rWork, &info, 0, 0);
       if (cmd == OptSize) lWork = (int)work[0].re;
-      delete [] rWork;  delete [] work; delete [] eigVecLeft; 
+      delete [] rWork;  delete [] work; delete [] eigVecLeft;
 #  elif defined (USE_ESSL)
-      int iOpt = 1;   // compute both vecs and vals
+      int iOpt = 1;  // compute both vecs and vals
       if (cmd != OptSize)  {  // not supported by ESSL
          if (cmd == ValuesOnly)  iOpt = 0;
-         zgeev (iOpt, (complex<double> *)inMat, rank, 
-                (complex<double> *)eigVals, (complex<double> *)eigVecs, rank, 
+         zgeev (iOpt, (complex<double> *)inMat, rank,
+                (complex<double> *)eigVals, (complex<double> *)eigVecs, rank,
                 NULL, rank, NULL, 0);
          // --- normalize eigenvectors
          double c;
@@ -2563,40 +2803,52 @@ int matEigensolver (SxComplex16 *eigVals, SxComplex16 *eigVecs,
       MKL_Complex16 *eigVecLeft = new MKL_Complex16 [ldVecLeft];
       MKL_Complex16 *work       = new MKL_Complex16 [workDim];
       double        *rWork      = new double        [workDim];
-      zgeev (&jobvl, &jobvr, 
-             &rank, (MKL_Complex16 *)inMat, &rank, 
-             (MKL_Complex16 *)eigVals, eigVecLeft, 
-             &ldVecLeft, (MKL_Complex16 *)eigVecs, &rank, work, &lWork, 
+      zgeev (&jobvl, &jobvr,
+             &rank, (MKL_Complex16 *)inMat, &rank,
+             (MKL_Complex16 *)eigVals, eigVecLeft,
+             &ldVecLeft, (MKL_Complex16 *)eigVecs, &rank, work, &lWork,
              rWork, &info);
-      if (cmd == OptSize) lWork = (int)work[0].real;
+      if (cmd == OptSize) lWork = (int)lround(work[0].real);
       delete [] rWork;
       delete [] work;
       delete [] eigVecLeft;
 #  elif defined (USE_ACML)
       doublecomplex *eigVecLeft = new doublecomplex [ldVecLeft];
-      zgeev (jobvl, jobvr, 
-             rank, (doublecomplex *)inMat, rank, 
-             (doublecomplex *)eigVals, eigVecLeft, 
-             ldVecLeft, (doublecomplex *)eigVecs, rank, &info);           
+      zgeev (jobvl, jobvr,
+             rank, (doublecomplex *)inMat, rank,
+             (doublecomplex *)eigVals, eigVecLeft,
+             ldVecLeft, (doublecomplex *)eigVecs, rank, &info);
+      delete [] eigVecLeft;
+#  elif defined (USE_NETLIB)
+      SxComplex16 *eigVecLeft = new SxComplex16[ldVecLeft];
+      SxComplex16 *work       = new SxComplex16[workDim];
+      double *rWork = new double[workDim];
+      info = LAPACKE_zgeev_work (LAPACK_COL_MAJOR,
+             jobvl, jobvr,
+             rank, inMat, rank, eigVals, eigVecLeft,
+             ldVecLeft, eigVecs, rank, work, lWork, rWork);
+      if (cmd == OptSize) lWork = (int)lround(work[0].re);
+      delete [] rWork;
+      delete [] work;
       delete [] eigVecLeft;
 #  else
-      doublecomplex *eigVecLeft = new doublecomplex [ldVecLeft];
-      doublecomplex *work       = new doublecomplex [workDim];
-      doublereal    *rWork      = new doublereal    [workDim];
+      doublecomplex *eigVecLeft = new doublecomplex[ldVecLeft];
+      doublecomplex *work       = new doublecomplex[workDim];
+      double *rWork = new double[workDim];
       zgeev_ (&jobvl, &jobvr,
-              &rank, (doublecomplex *)inMat, &rank, 
-              (doublecomplex *)eigVals, eigVecLeft, 
-              &ldVecLeft, (doublecomplex *)eigVecs, &rank, work, &lWork, 
+              &rank, (doublecomplex *)inMat, &rank,
+              (doublecomplex *)eigVals, eigVecLeft,
+              &ldVecLeft, (doublecomplex *)eigVecs, &rank, work, &lWork,
               rWork, &info);
       if (cmd == OptSize) lWork = (int)work[0].r;
-      delete [] rWork;  delete [] work; delete [] eigVecLeft; 
-#  endif      
+      delete [] rWork;  delete [] work; delete [] eigVecLeft;
+#  endif
 
 #  ifndef USE_ESSL
-     if ( info )  {  // TODO: throw exception
-        std::cout << "matEigensolver: Error in DGEEV: " << info << std::endl;
-        SX_EXIT;
-     }
+      if ( info )  {  // TODO: throw exception
+         std::cout << "matEigensolver: Error in zgeev: " << info << std::endl;
+         SX_EXIT;
+      }
 #  endif
 
 #  if   defined (USE_VECLIB)
@@ -2607,17 +2859,18 @@ int matEigensolver (SxComplex16 *eigVals, SxComplex16 *eigVecs,
       return (cmd == OptSize)  ?  lWork : 0;
 #  elif defined (USE_ACML)
       return 0;
-#  else  
+#  else
       return (cmd == OptSize)  ?  (int)lWork : 0;
-#  endif      
+#  endif
 }
-
+// --- EIGENCOMPLEX
 
 //------------------------------------------------------------------------------
-// Eigensolver - tridiagonal matrices
+// Eigensolver - trigonal matrices
 //------------------------------------------------------------------------------
+// --- The next 150 lines were generated from math/snippets/SxBlasLib.cpp snippet EIGEN3_REAL
 void matEigensolverTri (float *eigVals, float *eigVecs,
-                        float *inMat, int n, enum UPLO uplo, 
+                        float *inMat, int n, enum UPLO uplo,
                         EIGCMD
 #                       ifdef USE_ESSL
                            cmd
@@ -2628,59 +2881,68 @@ void matEigensolverTri (float *eigVals, float *eigVecs,
    char uploChar = (uplo == UpperRight ? 'U' : 'L');
 #  if   defined (USE_VECLIB)
       int rank = n;
-      int ldEigVecs = rank; 
+      int ldEigVecs = rank;
       int info = 0;
       int workDim  = 3*n;
       float *work  = new float [workDim];
-      sspev (&jobz, &uploChar, 
-             &rank, (float *)inMat, (float *)eigVals, 
+      sspev (&jobz, &uploChar,
+             &rank, (float *)inMat, (float *)eigVals,
              (float *)eigVecs, &ldEigVecs,
               work, &info, 0, 0);
-      delete [] work;  
+      delete [] work;
 #  elif defined (USE_ESSL)
       int info = 0, iOpt = 1;
       if (cmd  == VectorsOnly)  iOpt = 0;
       if (uplo == UpperRight)   iOpt += 20;
       int rank = n;
-      sspev (iOpt, inMat, eigVals, 
+      sspev (iOpt, inMat, eigVals,
              eigVecs, rank, n, NULL, 0);
 #  elif defined (USE_INTEL_MKL)
       int rank = n;
-      int ldEigVecs = rank; 
+      int ldEigVecs = rank;
       int info = 0;
       int workDim  = 3*n;
       float *work  = new float [workDim];
-      sspev (&jobz, &uploChar, 
-             &rank, (float *)inMat, (float *)eigVals, 
+      sspev (&jobz, &uploChar,
+             &rank, (float *)inMat, (float *)eigVals,
              (float *)eigVecs, &ldEigVecs,
               work, &info);
-      delete [] work;  
+      delete [] work;
 #  elif defined (USE_ACML)
       int rank = n;
-      int ldEigVecs = rank; 
+      int ldEigVecs = rank;
       int info = 0;
-      sspev (jobz, uploChar, 
-             rank, inMat, eigVals, 
+      sspev (jobz, uploChar,
+             rank, inMat, eigVals,
              eigVecs, ldEigVecs, &info);
-#  else  
+#  elif defined (USE_NETLIB)
+      int rank = n;
+      int ldEigVecs = rank;
+      int info = 0;
+      int workDim  = 3*n;
+      float *work  = new float [workDim];
+      info = LAPACKE_sspev_work (LAPACK_COL_MAJOR,
+               jobz, uploChar, rank, inMat,
+               eigVals, eigVecs, ldEigVecs, work);
+      delete [] work;
+#  else
       integer rank = (integer)n;
-      integer ldEigVecs = rank; 
+      integer ldEigVecs = rank;
       integer info = 0;
       integer workDim  = 3*n;
       real *work  = new real [workDim];
-      sspev_ (&jobz, &uploChar, 
-              &rank, (real *)inMat, (real *)eigVals, 
+      sspev_ (&jobz, &uploChar,
+              &rank, (real *)inMat, (real *)eigVals,
               (real *)eigVecs, &ldEigVecs,
                work, &info);
-      delete [] work;  
-#  endif      
-   
+      delete [] work;
+#  endif
+
    if ( info )  {  // TODO: throw exception
-      std::cout << "matEigensolverHerm: Error in SSPEV: " << info << std::endl;
+      std::cout << "matEigensolverHerm: Error in sspev: " << info << std::endl;
       SX_EXIT;
    }
 }
-
 
 void matEigensolverTri (double *eigVals, double *eigVecs,
                         double *inMat, int n, enum UPLO uplo,
@@ -2694,60 +2956,71 @@ void matEigensolverTri (double *eigVals, double *eigVecs,
    char uploChar = (uplo == UpperRight ? 'U' : 'L');
 #  if   defined (USE_VECLIB)
       int rank = n;
-      int ldEigVecs = rank; 
+      int ldEigVecs = rank;
       int info = 0;
       int workDim  = 3*n;
       double *work  = new double [workDim];
-      dspev (&jobz, &uploChar, 
-             &rank, (double *)inMat, (double *)eigVals, 
+      dspev (&jobz, &uploChar,
+             &rank, (double *)inMat, (double *)eigVals,
              (double *)eigVecs, &ldEigVecs,
               work, &info, 0, 0);
-      delete [] work;  
+      delete [] work;
 #  elif defined (USE_ESSL)
       int info = 0, iOpt = 1;
       if (cmd  == VectorsOnly)  iOpt = 0;
       if (uplo == UpperRight)   iOpt += 20;
       int rank = n;
-      dspev (iOpt, inMat, eigVals, 
+      dspev (iOpt, inMat, eigVals,
              eigVecs, rank, n, NULL, 0);
 #  elif defined (USE_INTEL_MKL)
       int rank = n;
-      int ldEigVecs = rank; 
+      int ldEigVecs = rank;
       int info = 0;
       int workDim  = 3*n;
       double *work  = new double [workDim];
-      dspev (&jobz, &uploChar, 
-             &rank, (double *)inMat, (double *)eigVals, 
+      dspev (&jobz, &uploChar,
+             &rank, (double *)inMat, (double *)eigVals,
              (double *)eigVecs, &ldEigVecs,
               work, &info);
-      delete [] work;  
+      delete [] work;
 #  elif defined (USE_ACML)
       int rank = n;
-      int ldEigVecs = rank; 
+      int ldEigVecs = rank;
       int info = 0;
-      dspev (jobz, uploChar, 
-             rank, inMat, eigVals, 
+      dspev (jobz, uploChar,
+             rank, inMat, eigVals,
              eigVecs, ldEigVecs, &info);
+#  elif defined (USE_NETLIB)
+      int rank = n;
+      int ldEigVecs = rank;
+      int info = 0;
+      int workDim  = 3*n;
+      double *work  = new double [workDim];
+      info = LAPACKE_dspev_work (LAPACK_COL_MAJOR,
+               jobz, uploChar, rank, inMat,
+               eigVals, eigVecs, ldEigVecs, work);
+      delete [] work;
 #  else
       integer rank = (integer)n;
-      integer ldEigVecs = rank; 
+      integer ldEigVecs = rank;
       integer info = 0;
       integer workDim  = 3*n;
       doublereal *work  = new doublereal [workDim];
-      dspev_ (&jobz, &uploChar, 
-              &rank, (doublereal *)inMat, (doublereal *)eigVals, 
+      dspev_ (&jobz, &uploChar,
+              &rank, (doublereal *)inMat, (doublereal *)eigVals,
               (doublereal *)eigVecs, &ldEigVecs,
                work, &info);
-      delete [] work;  
-#  endif      
-   
+      delete [] work;
+#  endif
+
    if ( info )  {  // TODO: throw exception
-      std::cout << "matEigensolverHerm: Error in DSPEV: " << info << std::endl;
+      std::cout << "matEigensolverHerm: Error in dspev: " << info << std::endl;
       SX_EXIT;
    }
 }
+// --- EIGEN3_REAL
 
-
+// --- The next 166 lines were generated from snippets/SxBlasLib.cpp snippet EIGEN3_COMPLEX
 void matEigensolverTri (float *eigVals, SxComplex8 *eigVecs,
                         SxComplex8 *inMat, int n, enum UPLO uplo,
                         EIGCMD
@@ -2760,68 +3033,79 @@ void matEigensolverTri (float *eigVals, SxComplex8 *eigVecs,
    char uploChar = (uplo == UpperRight ? 'U' : 'L');
 #  if   defined (USE_VECLIB)
       int rank = n;
-      int ldEigVecs = rank; 
+      int ldEigVecs = rank;
       int info = 0;
       int workDim  = 2*n-1;
       int rWorkDim = 3*n-2;
       complex8_t *work = new complex8_t [workDim];
-      float    *rWork  = new float    [rWorkDim];
-      chpev (&jobz, &uploChar, 
-             &rank, (complex8_t *)inMat, (float *)eigVals, 
+      float    *rWork  = new float[rWorkDim];
+      chpev (&jobz, &uploChar,
+             &rank, (complex8_t *)inMat, (float *)eigVals,
              (complex8_t *)eigVecs, &ldEigVecs,
               work, rWork, &info, 0, 0);
-      delete [] rWork; delete [] work;  
+      delete [] rWork; delete [] work;
 #  elif defined (USE_ESSL)
       int info = 0, iOpt = 1;
       if (cmd  == VectorsOnly)  iOpt = 0;
       if (uplo == UpperRight)   iOpt += 20;
       int rank = n;
-      chpev (iOpt, (complex<float> *)inMat, eigVals, 
+      chpev (iOpt, (complex<float> *)inMat, eigVals,
              (complex<float> *)eigVecs, rank, n, NULL, 0);
 #  elif defined (USE_INTEL_MKL)
       int rank = n;
-      int ldEigVecs = rank; 
+      int ldEigVecs = rank;
       int info = 0;
       int workDim  = 2*n-1;
       int rWorkDim = 3*n-2;
       MKL_Complex8 *work = new MKL_Complex8 [workDim];
-      float       *rWork = new float       [rWorkDim];
-      chpev (&jobz, &uploChar, 
-             &rank, (MKL_Complex8 *)inMat, (float *)eigVals, 
+      float       *rWork = new float[rWorkDim];
+      chpev (&jobz, &uploChar,
+             &rank, (MKL_Complex8 *)inMat, (float *)eigVals,
              (MKL_Complex8 *)eigVecs, &ldEigVecs,
               work, rWork, &info);
-      delete [] rWork; delete [] work;  
+      delete [] rWork; delete [] work;
 #  elif defined (USE_ACML)
       int rank = n;
-      int ldEigVecs = rank; 
+      int ldEigVecs = rank;
       int info = 0;
-      chpev (jobz, uploChar, 
-             rank, (complex *)inMat, (float *)eigVals, 
+      chpev (jobz, uploChar,
+             rank, (complex *)inMat, (float *)eigVals,
              (complex *)eigVecs, ldEigVecs, &info);
-#  else  
+#  elif defined (USE_NETLIB)
+      int rank = n;
+      int ldEigVecs = rank;
+      int info = 0;
+      int workDim  = 2*n-1;
+      int rWorkDim = 3*n-2;
+      SxComplex8 *work = new SxComplex8[workDim];
+      float *rWork = new float[rWorkDim];
+      info = LAPACKE_chpev_work (LAPACK_COL_MAJOR,
+               jobz, uploChar, rank, inMat,
+               eigVals, eigVecs, ldEigVecs, work, rWork);
+      delete [] rWork; delete [] work;
+#  else
       integer rank = (integer)n;
-      integer ldEigVecs = rank; 
+      integer ldEigVecs = rank;
       integer info = 0;
       integer workDim  = 2*n-1;
       integer rWorkDim = 3*n-2;
       complex *work       = new complex [workDim];
-      real    *rWork      = new real    [rWorkDim];
-      chpev_ (&jobz, &uploChar, 
-              &rank, (complex *)inMat, (real *)eigVals, 
+      real *rWork      = new real [rWorkDim];
+      chpev_ (&jobz, &uploChar,
+              &rank, (complex *)inMat, (real *)eigVals,
               (complex *)eigVecs, &ldEigVecs,
                work, rWork, &info);
-      delete [] rWork; delete [] work;  
-#  endif      
-   
+      delete [] rWork; delete [] work;
+#  endif
+
    if ( info )  {  // TODO: throw exception
-      std::cout << "matEigensolverHerm: Error in CHPEV: " << info << std::endl;
+      std::cout << "matEigensolverHerm: Error in chpev: " << info << std::endl;
       SX_EXIT;
    }
 }
 
-
 void matEigensolverTri (double *eigVals, SxComplex16 *eigVecs,
-                        SxComplex16 *inMat, int n, enum UPLO uplo, 
+                        SxComplex16 *inMat, int n, enum UPLO uplo,
                         EIGCMD
 #                       ifdef USE_ESSL
                            cmd
@@ -2832,65 +3116,77 @@ void matEigensolverTri (double *eigVals, SxComplex16 *eigVecs,
    char uploChar = (uplo == UpperRight ? 'U' : 'L');
 #  if   defined (USE_VECLIB)
       int rank = n;
-      int ldEigVecs = rank; 
+      int ldEigVecs = rank;
       int info = 0;
       int workDim  = 2*n-1;
       int rWorkDim = 3*n-2;
       complex16_t *work = new complex16_t [workDim];
       double    *rWork  = new double[rWorkDim];
-      zhpev (&jobz, &uploChar, 
-             &rank, (complex16_t *)inMat, (double *)eigVals, 
+      zhpev (&jobz, &uploChar,
+             &rank, (complex16_t *)inMat, (double *)eigVals,
              (complex16_t *)eigVecs, &ldEigVecs,
               work, rWork, &info, 0, 0);
-      delete [] rWork; delete [] work;  
+      delete [] rWork; delete [] work;
 #  elif defined (USE_ESSL)
       int info = 0, iOpt = 1;
       if (cmd  == VectorsOnly)  iOpt = 0;
       if (uplo == UpperRight)   iOpt += 20;
       int rank = n;
-      zhpev (iOpt, (complex<double> *)inMat, eigVals, 
+      zhpev (iOpt, (complex<double> *)inMat, eigVals,
              (complex<double> *)eigVecs, rank, n, NULL, 0);
 #  elif defined (USE_INTEL_MKL)
       int rank = n;
-      int ldEigVecs = rank; 
+      int ldEigVecs = rank;
       int info = 0;
       int workDim  = 2*n-1;
       int rWorkDim = 3*n-2;
       MKL_Complex16 *work = new MKL_Complex16 [workDim];
       double       *rWork = new double[rWorkDim];
-      zhpev (&jobz, &uploChar, 
-             &rank, (MKL_Complex16 *)inMat, (double *)eigVals, 
+      zhpev (&jobz, &uploChar,
+             &rank, (MKL_Complex16 *)inMat, (double *)eigVals,
              (MKL_Complex16 *)eigVecs, &ldEigVecs,
               work, rWork, &info);
-      delete [] rWork; delete [] work;  
+      delete [] rWork; delete [] work;
 #  elif defined (USE_ACML)
       int rank = n;
-      int ldEigVecs = rank; 
+      int ldEigVecs = rank;
       int info = 0;
-      zhpev (jobz, uploChar, 
-             rank, (doublecomplex *)inMat, (double *)eigVals, 
+      zhpev (jobz, uploChar,
+             rank, (doublecomplex *)inMat, (double *)eigVals,
              (doublecomplex *)eigVecs, ldEigVecs, &info);
-#  else  
+#  elif defined (USE_NETLIB)
+      int rank = n;
+      int ldEigVecs = rank;
+      int info = 0;
+      int workDim  = 2*n-1;
+      int rWorkDim = 3*n-2;
+      SxComplex16 *work = new SxComplex16[workDim];
+      double *rWork = new double[rWorkDim];
+      info = LAPACKE_zhpev_work (LAPACK_COL_MAJOR,
+               jobz, uploChar, rank, inMat,
+               eigVals, eigVecs, ldEigVecs, work, rWork);
+      delete [] rWork; delete [] work;
+#  else
       integer rank = (integer)n;
-      integer ldEigVecs = rank; 
+      integer ldEigVecs = rank;
       integer info = 0;
       integer workDim  = 2*n-1;
       integer rWorkDim = 3*n-2;
       doublecomplex *work       = new doublecomplex [workDim];
-      doublereal    *rWork      = new doublereal    [rWorkDim];
-      zhpev_ (&jobz, &uploChar, 
-              &rank, (doublecomplex *)inMat, (doublereal *)eigVals, 
+      doublereal *rWork      = new doublereal [rWorkDim];
+      zhpev_ (&jobz, &uploChar,
+              &rank, (doublecomplex *)inMat, (doublereal *)eigVals,
               (doublecomplex *)eigVecs, &ldEigVecs,
                work, rWork, &info);
-      delete [] rWork; delete [] work;  
-#  endif   
-   
+      delete [] rWork; delete [] work;
+#  endif
+
    if ( info )  {  // TODO: throw exception
-      std::cout << "matEigensolverHerm: Error in ZHPEV: " << info << std::endl;
+      std::cout << "matEigensolverHerm: Error in zhpev: " << info << std::endl;
       SX_EXIT;
    }
 }
-
+// --- EIGEN3_COMPLEX
 // -------------------------- SX_IGNORE_THE_REST_OF_THE_FILE 
 # endif
 // -------------------------- 

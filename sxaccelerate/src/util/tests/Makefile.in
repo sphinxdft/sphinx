@@ -154,8 +154,9 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 @COND_BUILD_WIN32_TRUE@am__append_1 = -D_EXPORT_$(NAME)
-bin_PROGRAMS = test-sxmap$(EXEEXT) test-sxstring$(EXEEXT) \
-	test-sxtypedefs$(EXEEXT) test-sxuniquelist$(EXEEXT)
+bin_PROGRAMS = test-exceptiontag$(EXEEXT) test-sxmap$(EXEEXT) \
+	test-sxstring$(EXEEXT) test-sxtypedefs$(EXEEXT) \
+	test-sxuniquelist$(EXEEXT)
 @COND_BUILD_SXMATH_TRUE@am__append_2 = $(top_builddir)/math/libsxmath.la
 @COND_BUILD_WIN32_TRUE@am__append_3 = @WIN32FLAGS@
 subdir = util/tests
@@ -182,14 +183,18 @@ CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(scriptsdir)" \
 	"$(DESTDIR)$(includedir)"
 PROGRAMS = $(bin_PROGRAMS)
-am_test_sxmap_OBJECTS = test_sxmap-test-sxmap.$(OBJEXT)
-test_sxmap_OBJECTS = $(am_test_sxmap_OBJECTS)
+am_test_exceptiontag_OBJECTS =  \
+	test_exceptiontag-test-exceptiontag.$(OBJEXT)
+test_exceptiontag_OBJECTS = $(am_test_exceptiontag_OBJECTS)
 am__DEPENDENCIES_1 = $(SX_DEPLIBS)
-test_sxmap_DEPENDENCIES = $(am__DEPENDENCIES_1)
+test_exceptiontag_DEPENDENCIES = $(am__DEPENDENCIES_1)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
+am_test_sxmap_OBJECTS = test_sxmap-test-sxmap.$(OBJEXT)
+test_sxmap_OBJECTS = $(am_test_sxmap_OBJECTS)
+test_sxmap_DEPENDENCIES = $(am__DEPENDENCIES_1)
 am_test_sxstring_OBJECTS = test_sxstring-test-sxstring.$(OBJEXT)
 test_sxstring_OBJECTS = $(am_test_sxstring_OBJECTS)
 test_sxstring_DEPENDENCIES = $(am__DEPENDENCIES_1)
@@ -262,10 +267,12 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-SOURCES = $(test_sxmap_SOURCES) $(test_sxstring_SOURCES) \
-	$(test_sxtypedefs_SOURCES) $(test_sxuniquelist_SOURCES)
-DIST_SOURCES = $(test_sxmap_SOURCES) $(test_sxstring_SOURCES) \
-	$(test_sxtypedefs_SOURCES) $(test_sxuniquelist_SOURCES)
+SOURCES = $(test_exceptiontag_SOURCES) $(test_sxmap_SOURCES) \
+	$(test_sxstring_SOURCES) $(test_sxtypedefs_SOURCES) \
+	$(test_sxuniquelist_SOURCES)
+DIST_SOURCES = $(test_exceptiontag_SOURCES) $(test_sxmap_SOURCES) \
+	$(test_sxstring_SOURCES) $(test_sxtypedefs_SOURCES) \
+	$(test_sxuniquelist_SOURCES)
 RECURSIVE_TARGETS = all-recursive check-recursive cscopelist-recursive \
 	ctags-recursive dvi-recursive html-recursive info-recursive \
 	install-data-recursive install-dvi-recursive \
@@ -463,6 +470,7 @@ SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHARED_VERSION_INFO = @SHARED_VERSION_INFO@
 SHELL = @SHELL@
+STATIC_LIBC = @STATIC_LIBC@
 STRIP = @STRIP@
 SUBDIRS = @SUBDIRS@
 SXACCELERATE = @SXACCELERATE@
@@ -486,10 +494,12 @@ SX_PARAM_ATLAS = @SX_PARAM_ATLAS@
 SX_PARAM_FFTW = @SX_PARAM_FFTW@
 SX_PARAM_MKL = @SX_PARAM_MKL@
 SX_PARAM_MKLFFT = @SX_PARAM_MKLFFT@
+SX_PARAM_NETLIB = @SX_PARAM_NETLIB@
 SX_PARAM_NUMLIBS = @SX_PARAM_NUMLIBS@
 SX_PARAM_SXMATH = @SX_PARAM_SXMATH@
 SX_SHORTCUT_LIBS = @SX_SHORTCUT_LIBS@
 TAIL = @TAIL@
+THREADTRACER = @THREADTRACER@
 TODAY = @TODAY@
 UNAME = @UNAME@
 USE_ACML = @USE_ACML@
@@ -503,6 +513,7 @@ USE_INTEL_MKL = @USE_INTEL_MKL@
 USE_MKL_FFT = @USE_MKL_FFT@
 USE_MPI = @USE_MPI@
 USE_NETCDF4 = @USE_NETCDF4@
+USE_NETLIB = @USE_NETLIB@
 USE_OPENMP = @USE_OPENMP@
 USE_PARALLEL_NETCDF4 = @USE_PARALLEL_NETCDF4@
 USE_PCRE2 = @USE_PCRE2@
@@ -619,6 +630,9 @@ CLEANFILES = $(tmp_filelists) $(abs_builddir)/*.tab.cpp \
 # --- print dependencies (used to generate MSVC solution files)
 getguid = $(top_srcdir)/system/sxmkguid.sh $(subdir) $(abs_srcdir)
 include_HEADERS = 
+test_exceptiontag_SOURCES = $(AUX_SRC) test-exceptiontag.cpp
+test_exceptiontag_CPPFLAGS = $(AM_CPPFLAGS) -DSXLIBTOOL="\"@SXLIBTOOL@\""
+test_exceptiontag_LDADD = $(SXIMPORTLIBS) $(SXIMPORTOBJS)
 test_sxmap_SOURCES = $(AUX_SRC) test-sxmap.cpp
 test_sxmap_CPPFLAGS = $(AM_CPPFLAGS) -DSXLIBTOOL="\"@SXLIBTOOL@\""
 test_sxmap_LDADD = $(SXIMPORTLIBS) $(SXIMPORTOBJS)
@@ -755,6 +769,10 @@ clean-binPROGRAMS:
 	echo " rm -f" $$list; \
 	rm -f $$list
 
+test-exceptiontag$(EXEEXT): $(test_exceptiontag_OBJECTS) $(test_exceptiontag_DEPENDENCIES) $(EXTRA_test_exceptiontag_DEPENDENCIES) 
+	@rm -f test-exceptiontag$(EXEEXT)
+	$(AM_V_CXXLD)$(CXXLINK) $(test_exceptiontag_OBJECTS) $(test_exceptiontag_LDADD) $(LIBS)
+
 test-sxmap$(EXEEXT): $(test_sxmap_OBJECTS) $(test_sxmap_DEPENDENCIES) $(EXTRA_test_sxmap_DEPENDENCIES) 
 	@rm -f test-sxmap$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(test_sxmap_OBJECTS) $(test_sxmap_LDADD) $(LIBS)
@@ -812,6 +830,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_exceptiontag-test-exceptiontag.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_sxmap-test-sxmap.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_sxstring-test-sxstring.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_sxtypedefs-test-sxtypedefs.Po@am__quote@
@@ -837,6 +856,20 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LTCXXCOMPILE) -c -o $@ $<
+
+test_exceptiontag-test-exceptiontag.o: test-exceptiontag.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(test_exceptiontag_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT test_exceptiontag-test-exceptiontag.o -MD -MP -MF $(DEPDIR)/test_exceptiontag-test-exceptiontag.Tpo -c -o test_exceptiontag-test-exceptiontag.o `test -f 'test-exceptiontag.cpp' || echo '$(srcdir)/'`test-exceptiontag.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test_exceptiontag-test-exceptiontag.Tpo $(DEPDIR)/test_exceptiontag-test-exceptiontag.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='test-exceptiontag.cpp' object='test_exceptiontag-test-exceptiontag.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(test_exceptiontag_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o test_exceptiontag-test-exceptiontag.o `test -f 'test-exceptiontag.cpp' || echo '$(srcdir)/'`test-exceptiontag.cpp
+
+test_exceptiontag-test-exceptiontag.obj: test-exceptiontag.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(test_exceptiontag_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT test_exceptiontag-test-exceptiontag.obj -MD -MP -MF $(DEPDIR)/test_exceptiontag-test-exceptiontag.Tpo -c -o test_exceptiontag-test-exceptiontag.obj `if test -f 'test-exceptiontag.cpp'; then $(CYGPATH_W) 'test-exceptiontag.cpp'; else $(CYGPATH_W) '$(srcdir)/test-exceptiontag.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test_exceptiontag-test-exceptiontag.Tpo $(DEPDIR)/test_exceptiontag-test-exceptiontag.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='test-exceptiontag.cpp' object='test_exceptiontag-test-exceptiontag.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(test_exceptiontag_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o test_exceptiontag-test-exceptiontag.obj `if test -f 'test-exceptiontag.cpp'; then $(CYGPATH_W) 'test-exceptiontag.cpp'; else $(CYGPATH_W) '$(srcdir)/test-exceptiontag.cpp'; fi`
 
 test_sxmap-test-sxmap.o: test-sxmap.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(test_sxmap_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT test_sxmap-test-sxmap.o -MD -MP -MF $(DEPDIR)/test_sxmap-test-sxmap.Tpo -c -o test_sxmap-test-sxmap.o `test -f 'test-sxmap.cpp' || echo '$(srcdir)/'`test-sxmap.cpp

@@ -16,6 +16,8 @@
 #include <SxUtil.h>
 #include <SxMacroLib.h>
 #include <SxString.h>
+#include <SxVariant.h>
+#include <SxMap.h>
 #include <atomic>
 
 extern atomic<bool> dumpCoreFile;
@@ -26,10 +28,10 @@ extern atomic<bool> dumpCoreFile;
 
     This is a standard exception class for all SxAccelerate exceptions.
     Exception handling in C++ can cause spurious bus errors when they are
-    not caught properly in a try-catch block. If SFHIngX aborts with a bus
+    not caught properly in a try-catch block. If SxAccelerate aborts with a bus
     error which could be related to such a missing try-catch block this class
-    allows to handle the exception with an SFHIngX SX_EXIT statement instead.
-    In the DEBUG mode the resulting core file can be analyzed
+    allows to handle the exception with an SxAccelerate SX_EXIT statement
+    instead. In the DEBUG mode the resulting core file can be analyzed
     (\ref dbg_analysis).
 
     \author Sixten Boeck
@@ -62,6 +64,16 @@ class SX_EXPORT_UTIL SxException
                    const SxString &tag, const SxString &message,
                    const SxString &senderFile="unknown", int senderLine=0);
 
+      // constructors for throwing with specific 'type'
+      SxException (const SxString &tag,    uint32_t tagHash,
+                   const SxString &subTag, uint32_t subtagHash,
+                   const SxList<SxVariant> &args,
+                   const SxString &senderFile="unknown", int senderLine=0);
+      SxException (const SxException &chain,
+                   const SxString &tag,    uint32_t tagHash,
+                   const SxString &subTag, uint32_t subtagHash,
+                   const SxList<SxVariant> &args,
+                   const SxString &senderFile="unknown", int senderLine=0);
       /// \brief Destructor
       ~SxException ();
 
@@ -90,6 +102,16 @@ class SX_EXPORT_UTIL SxException
       const SxString &getFileName () const  { return senderFile; }
 
       const SxString &getTag () const { return tag; }
+      const SxString &getSubTag () const { return subTag; }
+
+      template<uint32_t tagHash, uint32_t subtagHash>
+      bool is () const;
+      template<uint32_t tagHash, uint32_t subtagHash>
+      bool has () const;
+      template<uint32_t tagHash> bool isCategory () const;
+      template<uint32_t tagHash> bool hasCategory () const;
+      template<uint32_t subtagHash> bool isTag () const;
+      template<uint32_t subtagHash> bool hasTag () const;
 
       /// \brief returns the sender line.
       int getLineNumber () const { return senderLine; }
@@ -133,6 +155,8 @@ class SX_EXPORT_UTIL SxException
           \sa \ref page_debug  */
       static atomic<bool> dumpCoreFile;
 
+      inline const SxVariant& getArg (ssize_t i) const { return arguments(i); }
+
    protected:
 
       /// \brief The exception message body
@@ -140,6 +164,13 @@ class SX_EXPORT_UTIL SxException
 
       /// \brief Optional, exception key, such as Permission, BrokenPipe
       SxString tag;
+      SxString subTag;
+
+      /// \brief Hash of the tag. Hashed with SxHashFunction::jenkins
+      uint32_t tagHash;
+      uint32_t subtagHash;
+
+      SxList<SxVariant> arguments;
 
       /// \brief Contains the file name from where the exception was trown.
       SxString senderFile;
@@ -159,21 +190,242 @@ class SX_EXPORT_UTIL SxException
       void init (const SxException &);
       void init (const SxString &message,
                  const SxString &tag,
-                 const SxString &senderFile,
-                 int            senderLine);
+                 const SxString &senderFile);
+
+      // init with 'type'
+      void init (const SxString &tag,
+                 const SxString &subtag,
+                 const SxList<SxVariant> &args,
+                 const SxString &senderFile);
+
       void destroy ();
       void copy (const SxException &);
+      bool foundTagHash (uint32_t hashTag) const;
+      bool foundSubtagHash (uint32_t subtagHash) const;
 };
 
-#define _SxThrow1(msg)                                                  \
+struct SX_EXPORT_UTIL SxExceptionEntry {
+   explicit SxExceptionEntry (const char *,
+                              const char *,
+                              const SxList<SxString>&);
+};
+
+struct SxTrueType  { static constexpr bool value = true;  };
+struct SxFalseType { static constexpr bool value = false; };
+
+template<uint32_t tagHash>
+struct SX_EXPORT_UTIL SxExceptionTag : SxFalseType { };
+
+
+template<uint32_t tagHash, uint32_t subtagHash>
+struct SX_EXPORT_UTIL SxExceptionType : SxFalseType { };
+
+template<uint32_t tagHash_, uint32_t subtagHash_>
+bool SxException::is () const
+{
+   static_assert (SxExceptionType<tagHash_,subtagHash_>::value,
+                 "Undefined exception type");
+   return (tagHash_ == tagHash && subtagHash_ == subtagHash);
+}
+
+template<uint32_t tagHash_, uint32_t subtagHash_>
+bool SxException::has () const
+{
+   static_assert (SxExceptionType<tagHash_,subtagHash_>::value,
+                 "Undefined exception type");
+   return (foundTagHash(tagHash_) && foundSubtagHash(subtagHash_));
+}
+
+template<uint32_t tagHash_>
+bool SxException::isCategory () const
+{
+   static_assert (SxExceptionTag<tagHash_>::value,
+                  "Undefined Exception Catergory");
+   return (tagHash_ == tagHash);
+}
+
+template<uint32_t tagHash_>
+bool SxException::hasCategory () const
+{
+   static_assert (SxExceptionTag<tagHash_>::value,
+                  "Undefined Exception Catergory");
+   return foundTagHash (tagHash_);
+}
+
+template<uint32_t subtagHash_>
+bool SxException::isTag () const
+{
+   static_assert (SxExceptionTag<subtagHash_>::value, "Undefined Exception Tag");
+   return (subtagHash_ == subtagHash);
+}
+
+template<uint32_t subtagHash_>
+bool SxException::hasTag () const
+{
+   static_assert (SxExceptionTag<subtagHash_>::value, "Undefined Exception Tag");
+   return foundSubtagHash (subtagHash_);
+}
+
+// SX_THROW
+
+#define _SxThrow1(msg)                                                         \
    throw SxException(msg, __FILE__, __LINE__)
-#define _SxThrow2(var,msg)                                              \
+
+#define _SxThrow2(var,msg)                                                     \
    throw SxException(var, msg, __FILE__, __LINE__)
 
-#define _SxThrow3(e,tag,msg)                                            \
-   throw SxException(e, tag, msg, __FILE__, __LINE__)
+#define _SxThrow3(tag,subtag,arg0)                                             \
+   static_assert (SxExceptionTag<tag ""_SX>::value, "Unknown Tag: " tag);      \
+   static_assert (SxExceptionType<tag ""_SX, subtag ""_SX>::value,             \
+                  "Unknown tag and subtag combination: [" tag "," subtag "]"); \
+   throw SxException(tag, tag ""_SX, subtag, subtag ""_SX,                     \
+                     SxExceptionType<tag ""_SX, subtag ""_SX>()(arg0),         \
+                     __FILE__, __LINE__)
 
-#define SX_THROW(...) SX_VMACRO(_SxThrow, __VA_ARGS__)
+#define _SxThrow4(tag,subtag,arg0,arg1)                                        \
+   static_assert (SxExceptionTag<tag ""_SX>::value, "Unknown Tag: " tag);      \
+   static_assert (SxExceptionType<tag ""_SX, subtag ""_SX>::value,             \
+                  "Unknown tag and subtag combination: [" tag "," subtag "]"); \
+   throw SxException(tag, tag ""_SX, subtag, subtag ""_SX,                     \
+                     SxExceptionType<tag ""_SX, subtag ""_SX>()(arg0,arg1),    \
+                     __FILE__, __LINE__)
 
+#define _SxThrow5(tag,subtag,arg0,arg1,arg2)                                   \
+   static_assert (SxExceptionTag<tag ""_SX>::value, "Unknown Tag: " tag);      \
+   static_assert (SxExceptionType<tag ""_SX, subtag ""_SX>::value,             \
+                  "Unknown tag and subtag combination: [" tag "," subtag "]"); \
+   throw SxException(tag, tag ""_SX, subtag, subtag ""_SX,                     \
+                     SxExceptionType<tag ""_SX, subtag ""_SX>()(arg0,arg1,arg2)\
+                     ,__FILE__, __LINE__)
+
+#ifdef MSVC
+// disable integral constant overflow warning
+#  define SX_THROW(...)                                                       \
+      __pragma(warning (suppress:4307))                                       \
+      SX_VMACRO(_SxThrow,__VA_ARGS__)
+#else
+#  define SX_THROW(...) SX_VMACRO(_SxThrow,__VA_ARGS__)
+#endif
+
+// SX_RETHROW
+
+#define _SxReThrow2(e,msg)                          \
+   throw SxException(e,msg, __FILE__,__LINE__)
+
+#define _SxReThrow3(e,tag,msg)                      \
+   throw SxException(e,tag,msg, __FILE__,__LINE__)
+
+#define _SxReThrow4(e,tag,subtag,arg0)                                         \
+   static_assert (SxExceptionTag<tag ""_SX>::value, "Unknown Tag: " tag);      \
+   static_assert (SxExceptionType<tag ""_SX, subtag ""_SX>::value,             \
+                  "Unknown tag and subtag combination: [" tag "," subtag "]"); \
+   throw SxException(e, tag, tag ""_SX, subtag, subtag ""_SX,                  \
+                     SxExceptionType<tag ""_SX, subtag ""_SX>()(arg0),         \
+                     __FILE__, __LINE__)
+
+#define _SxReThrow5(e,tag,subtag,arg0,arg1)                                    \
+   static_assert (SxExceptionTag<tag ""_SX>::value, "Unknown Tag: " tag);      \
+   static_assert (SxExceptionType<tag ""_SX, subtag ""_SX>::value,             \
+                  "Unknown tag and subtag combination: [" tag "," subtag "]"); \
+   throw SxException(e, tag, tag ""_SX, subtag, subtag ""_SX,                  \
+                     SxExceptionType<tag ""_SX, subtag ""_SX>()(arg0,arg1),    \
+                     __FILE__, __LINE__)
+
+#define _SxReThrow6(e,tag,subtag,arg0,arg1,arg2)                               \
+   static_assert (SxExceptionTag<tag ""_SX>::value, "Unknown Tag: " tag);      \
+   static_assert (SxExceptionType<tag ""_SX, subtag ""_SX>::value,             \
+                  "Unknown tag and subtag combination: [" tag "," subtag "]"); \
+   throw SxException(e, tag, tag ""_SX, subtag, subtag ""_SX,                  \
+                     SxExceptionType<tag ""_SX, subtag ""_SX>()(arg0,arg1,arg2)\
+                     ,__FILE__, __LINE__)
+#ifdef MSVC
+// disable integral constant overflow warning
+#  define SX_RETHROW(...)                                                     \
+      __pragma(warning (suppress:4307))                                       \
+      SX_VMACRO(_SxReThrow,__VA_ARGS__)
+#else
+#  define SX_RETHROW(...) SX_VMACRO(_SxReThrow,__VA_ARGS__)
+#endif
+
+#ifdef MSVC
+// disable integral constant overflow warning
+#  define SX_EXCEPTION_TAG(tag)                                               \
+      static_assert (sizeof (tag) != 0, "Incorrect Tag, size == 0");          \
+      __pragma(warning (suppress:4307))                                       \
+      template<> struct SxExceptionTag<tag ""_SX> : SxTrueType {}
+#else
+#  define SX_EXCEPTION_TAG(tag)                                               \
+      static_assert (sizeof (tag) != 0, "Incorrect Tag, size == 0");          \
+      template<> struct SxExceptionTag<tag ""_SX> : SxTrueType {}
+#endif
+
+#ifdef MSVC
+// disable integral constant overflow warning
+#  define SX_EXCEPTION_CAT(tag)                                               \
+      static_assert (sizeof (tag) != 0, "Incorrect Category, size == 0");     \
+      __pragma(warning (suppress:4307))                                       \
+      template<> struct SxExceptionTag<tag ""_SX> : SxTrueType {}
+#else
+#  define SX_EXCEPTION_CAT(tag)                                                \
+      static_assert (sizeof (tag) != 0, "Incorrect Category, size == 0");      \
+      template<> struct SxExceptionTag<tag ""_SX> : SxTrueType {}
+#endif
+
+#define _SxThrowType4(tag,subtag,argName0,ArgType0)                            \
+   static_assert (SxExceptionTag<tag ""_SX>::value, "Unknown Category: " tag); \
+   static_assert (SxExceptionTag<subtag ""_SX>::value, "Unknown Tag: " tag);   \
+   static SxExceptionEntry SX_UNIQUE_ID(entry) (                               \
+      tag,subtag,{SxString(argName0) + " : " #ArgType0});                      \
+   template<> struct SxExceptionType<tag ""_SX, subtag ""_SX> : SxTrueType     \
+   {                                                                           \
+      SxList<SxVariant> operator() (const ArgType0 &t0) {                      \
+         return SxList<SxVariant>{ t0 };                                       \
+      }                                                                        \
+   }
+
+#define _SxThrowType6(tag,subtag,argName0,ArgType0,argName1,ArgType1)          \
+   static_assert (SxExceptionTag<tag ""_SX>::value, "Unknown Category: " tag); \
+   static_assert (SxExceptionTag<subtag ""_SX>::value, "Unknown Tag: " tag);   \
+   static SxExceptionEntry SX_UNIQUE_ID(entry) (                               \
+      tag,subtag,{SxString(argName0) + " : " #ArgType0,                        \
+                  SxString(argName1) + " : " #ArgType1});                      \
+   template<> struct SxExceptionType<tag ""_SX, subtag ""_SX> : SxTrueType     \
+   {                                                                           \
+      SxList<SxVariant> operator() (const ArgType0 &t0,                        \
+                                    const ArgType1 &t1)                        \
+      {                                                                        \
+         return SxList<SxVariant>{ t0, t1 };                                   \
+      }                                                                        \
+   }
+
+#define _SxThrowType8(tag,subtag,                                              \
+                      argName0,ArgType0,                                       \
+                      argName1,ArgType1,                                       \
+                      argName2,ArgType2)                                       \
+                                                                               \
+   static_assert (SxExceptionTag<tag ""_SX>::value, "Unknown Category: " tag); \
+   static_assert (SxExceptionTag<subtag ""_SX>::value, "Unknown Tag: " tag);   \
+   static SxExceptionEntry SX_UNIQUE_ID(entry) (                               \
+      tag,subtag,{SxString(argName0) + " : " #ArgType0,                        \
+                  SxString(argName1) + " : " #ArgType1,                        \
+                  SxString(argName2) + " : " #ArgType2});                      \
+   template<> struct SxExceptionType<tag ""_SX, subtag ""_SX> : SxTrueType     \
+   {                                                                           \
+      SxList<SxVariant> operator() (const ArgType0 &t0,                        \
+                                    const ArgType1 &t1,                        \
+                                    const ArgType2 &t2)                        \
+      {                                                                        \
+         return SxList<SxVariant>{ t0, t1, t2 };                               \
+      }                                                                        \
+   }
+
+#ifdef MSVC
+// disable integral constant overflow warning
+#  define SX_EXCEPTION_TYPE(...)                                              \
+      __pragma(warning (suppress:4307))                                       \
+      SX_VMACRO_DECL(_SxThrowType,__VA_ARGS__)
+#else
+#  define SX_EXCEPTION_TYPE(...) SX_VMACRO_DECL(_SxThrowType,__VA_ARGS__)
+#endif
 
 #endif /* _SX_EXCEPTION_BASE_H_ */

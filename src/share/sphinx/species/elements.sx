@@ -21,6 +21,11 @@ chemElements {
           covalentRadius = 1.0;
           atomicRadius   = 3.0;
           CPKcolor       = [255,20,147];
+          polarizability = 0;  // Bohr^3
+          C6D2          = 0;  // Hartree * Bohr^6
+          C6TS          = 0;  // Hartree * Bohr^6
+          vdwRadiusD2   = covalentRadius;
+          vdwRadiusTS   = covalentRadius;
    }
    elem { symbol         = "H";
           name           = "Hydrogen";
@@ -30,6 +35,11 @@ chemElements {
           atomicRadius   = covalentRadius;  // not defined
           gyromagneticRatio = 42.5775; // 1^H
           CPKcolor       = [255,255,255];
+          polarizability = 4.5;  // Bohr^3
+          C6D2          = 2.4283354648825215;  // Hartree * Bohr^6
+          C6TS          = 6.5;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.001 * ANGSTROEM;
+          vdwRadiusTS   = 1.64 * ANGSTROEM;
    }
    elem { symbol         = "He";
           name           = "Helium";
@@ -39,6 +49,11 @@ chemElements {
           atomicRadius   = covalentRadius;  // not defined
           gyromagneticRatio = -32.4360; // 3^He
           CPKcolor       = [255,192,203];
+          polarizability = 1.38;  // Bohr^3
+          C6D2          = 1.3876202656471552;  // Hartree * Bohr^6
+          C6TS          = 1.46;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.012 * ANGSTROEM;
+          vdwRadiusTS   = 1.4 * ANGSTROEM;
    }
    elem { symbol         = "Li";
           name           = "Lithium";
@@ -48,6 +63,11 @@ chemElements {
           atomicRadius   = 1.55 * ANGSTROEM;
           gyromagneticRatio = 16.5483; // 7^Li
           CPKcolor       = [178,34,34];
+          polarizability = 164.2;  // Bohr^3
+          C6D2          = 27.925857846148997;  // Hartree * Bohr^6
+          C6TS          = 1387.0;  // Hartree * Bohr^6
+          vdwRadiusD2   = 0.825 * ANGSTROEM;
+          vdwRadiusTS   = 2.2 * ANGSTROEM;
    }
    elem { symbol         = "Be";
           name           = "Beryllium";
@@ -57,6 +77,11 @@ chemElements {
           atomicRadius   = 1.12 * ANGSTROEM;
           gyromagneticRatio = -5.9842; // 9^Be
           CPKcolor       = [0,255,255];
+          polarizability = 38.0;  // Bohr^3
+          C6D2          = 27.925857846148997;  // Hartree * Bohr^6
+          C6TS          = 214.0;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.408 * ANGSTROEM;
+          vdwRadiusTS   = 2.21 * ANGSTROEM;
    }
    elem { symbol         = "B";
           name           = "Boron";
@@ -66,6 +91,11 @@ chemElements {
           atomicRadius   = 0.98 * ANGSTROEM;
           gyromagneticRatio = 13.6630; // 11^B
           CPKcolor       = [0,255,0];
+          polarizability = 21.0;  // Bohr^3
+          C6D2          = 54.29064289344494;  // Hartree * Bohr^6
+          C6TS          = 99.5;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.485 * ANGSTROEM;
+          vdwRadiusTS   = 2.06 * ANGSTROEM;
    }
    elem { symbol         = "C";
           name           = "Carbon";
@@ -75,6 +105,11 @@ chemElements {
           atomicRadius   = 0.914 * ANGSTROEM;
           gyromagneticRatio = 10.7084; // 13^C
           CPKcolor       = [200,200,200];
+          polarizability = 12.0;  // Bohr^3
+          C6D2          = 30.35419331103152;  // Hartree * Bohr^6
+          C6TS          = 46.6;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.452 * ANGSTROEM;
+          vdwRadiusTS   = 1.9 * ANGSTROEM;
    }
    elem { symbol         = "N";
           name           = "Nitrogen";
@@ -84,6 +119,11 @@ chemElements {
           atomicRadius   = 0.92 * ANGSTROEM;
           gyromagneticRatio = 3.0777; // 14^N
           CPKcolor       = [143,143,255];
+          polarizability = 7.4;  // Bohr^3
+          C6D2          = 21.33466158432501;  // Hartree * Bohr^6
+          C6TS          = 24.2;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.397 * ANGSTROEM;
+          vdwRadiusTS   = 1.77 * ANGSTROEM;
    }
    elem { symbol         = "O";
           name           = "Oxygen";
@@ -93,6 +133,11 @@ chemElements {
           atomicRadius   = covalentRadius;  // not defined
           gyromagneticRatio = -5.7742; // 17^O
           CPKcolor       = [240,0,0];
+          polarizability = 5.4;  // Bohr^3
+          C6D2          = 12.141677324412607;  // Hartree * Bohr^6
+          C6TS          = 15.6;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.342 * ANGSTROEM;
+          vdwRadiusTS   = 1.69 * ANGSTROEM;
    }
    elem { symbol         = "F";
           name           = "Fluorine";
@@ -102,6 +147,11 @@ chemElements {
           atomicRadius   = covalentRadius;  // not defined
           gyromagneticRatio = 40.0776; // 19^F
           CPKcolor       = [218,165,32];
+          polarizability = 3.8;  // Bohr^3
+          C6D2          = 13.008939990442078;  // Hartree * Bohr^6
+          C6TS          = 9.52;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.287 * ANGSTROEM;
+          vdwRadiusTS   = 1.61 * ANGSTROEM;
    }
    elem { symbol         = "Ne";
           name           = "Neon";
@@ -111,6 +161,11 @@ chemElements {
           atomicRadius   = covalentRadius;  // not defined
           gyromagneticRatio = -3.3631; // 21^Ne
           CPKcolor       = [255,20,147];
+          polarizability = 2.67;  // Bohr^3
+          C6D2          = 10.927509591971347;  // Hartree * Bohr^6
+          C6TS          = 6.38;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.243 * ANGSTROEM;
+          vdwRadiusTS   = 1.54 * ANGSTROEM;
    }
    elem { symbol         = "Na";
           name           = "Sodium";
@@ -120,6 +175,11 @@ chemElements {
           atomicRadius   = 1.90 * ANGSTROEM;
           gyromagneticRatio = 11.2688; // 23^Na
           CPKcolor       = [0,0,255];
+          polarizability = 162.7;  // Bohr^3
+          C6D2          = 99.0413964605657;  // Hartree * Bohr^6
+          C6TS          = 1556.0;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.144 * ANGSTROEM;
+          vdwRadiusTS   = 1.97 * ANGSTROEM;
    }
    elem { symbol         = "Mg";
           name           = "Magnesium";
@@ -129,6 +189,11 @@ chemElements {
           atomicRadius   = 1.60 * ANGSTROEM;
           gyromagneticRatio = -2.6083; // 25^Mg
           CPKcolor       = [34,139,34];
+          polarizability = 71.0;  // Bohr^3
+          C6D2          = 99.0413964605657;  // Hartree * Bohr^6
+          C6TS          = 627.0;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.364 * ANGSTROEM;
+          vdwRadiusTS   = 2.26 * ANGSTROEM;
    }
    elem { symbol         = "Al";
           name           = "Aluminum";
@@ -138,6 +203,11 @@ chemElements {
           atomicRadius   = 1.44 * ANGSTROEM;
           gyromagneticRatio = 11.1031; // 27^Al
           CPKcolor       = [128,128,144];
+          polarizability = 60.0;  // Bohr^3
+          C6D2          = 187.15528332916003;  // Hartree * Bohr^6
+          C6TS          = 528.0;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.639 * ANGSTROEM;
+          vdwRadiusTS   = 2.29 * ANGSTROEM;
    }
    elem { symbol         = "Si";
           name           = "Silicon";
@@ -147,6 +217,11 @@ chemElements {
           atomicRadius   = 1.32 * ANGSTROEM;
           gyromagneticRatio = -8.4655; // 29^Si
           CPKcolor       = [218,165,32];
+          polarizability = 37.0;  // Bohr^3
+          C6D2          = 160.09668814904052;  // Hartree * Bohr^6
+          C6TS          = 305.0;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.716 * ANGSTROEM;
+          vdwRadiusTS   = 2.22 * ANGSTROEM;
    }
    elem { symbol         = "P";
           name           = "Phosphorus";
@@ -156,6 +231,11 @@ chemElements {
           atomicRadius   = 1.28 * ANGSTROEM;
           gyromagneticRatio = 17.2515; // 31^P
           CPKcolor       = [255,165,0];
+          polarizability = 25.0;  // Bohr^3
+          C6D2          = 135.9867860334212;  // Hartree * Bohr^6
+          C6TS          = 185.0;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.705 * ANGSTROEM;
+          vdwRadiusTS   = 2.12 * ANGSTROEM;
    }
    elem { symbol         = "S";
           name           = "Sulfur";
@@ -165,6 +245,11 @@ chemElements {
           atomicRadius   = 1.27 * ANGSTROEM;
           gyromagneticRatio = 3.2717; // 33^S
           CPKcolor       = [255,200,50];
+          polarizability = 19.6;  // Bohr^3
+          C6D2          = 96.61306099568318;  // Hartree * Bohr^6
+          C6TS          = 134.0;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.683 * ANGSTROEM;
+          vdwRadiusTS   = 2.04 * ANGSTROEM;
    }
    elem { symbol         = "Cl";
           name           = "Chlorine";
@@ -174,6 +259,11 @@ chemElements {
           atomicRadius   = covalentRadius;  // not defined
           gyromagneticRatio = 4.1765; // 35^Cl
           CPKcolor       = [0,255,0];
+          polarizability = 15.0;  // Bohr^3
+          C6D2          = 87.94043433538846;  // Hartree * Bohr^6
+          C6TS          = 94.6;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.639 * ANGSTROEM;
+          vdwRadiusTS   = 1.96 * ANGSTROEM;
    }
    elem { symbol         = "Ar";
           name           = "Argon";
@@ -182,6 +272,11 @@ chemElements {
           covalentRadius = 0.98 * ANGSTROEM;
           atomicRadius   = covalentRadius;  // not defined
           CPKcolor       = [255,20,147];
+          polarizability = 11.1;  // Bohr^3
+          C6D2          = 79.96161780791732;  // Hartree * Bohr^6
+          C6TS          = 64.3;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.595 * ANGSTROEM;
+          vdwRadiusTS   = 1.88 * ANGSTROEM;
    }
    elem { symbol         = "K";
           name           = "Potassium";
@@ -191,6 +286,11 @@ chemElements {
           atomicRadius   = 2.35 * ANGSTROEM;
           gyromagneticRatio = 1.9893; // 39^K
           CPKcolor       = [255,20,147];
+          polarizability = 292.9;  // Bohr^3
+          C6D2          = 187.32873586236596;  // Hartree * Bohr^6
+          C6TS          = 3897.0;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.485 * ANGSTROEM;
+          vdwRadiusTS   = 1.96 * ANGSTROEM;
    }
    elem { symbol         = "Ca";
           name           = "Calcium";
@@ -200,6 +300,11 @@ chemElements {
           atomicRadius   = 1.97 * ANGSTROEM;
           gyromagneticRatio = -2.8688; // 43^Ca
           CPKcolor       = [128,128,144];
+          polarizability = 160.0;  // Bohr^3
+          C6D2          = 187.32873586236596;  // Hartree * Bohr^6
+          C6TS          = 2221.0;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.474 * ANGSTROEM;
+          vdwRadiusTS   = 2.46 * ANGSTROEM;
    }
    elem { symbol         = "Sc";
           name           = "Scandium";
@@ -209,6 +314,11 @@ chemElements {
           atomicRadius   = 1.62 * ANGSTROEM;
           gyromagneticRatio = 10.3591; // 45^Sc
           CPKcolor       = [255,20,147];
+          polarizability = 120.0;  // Bohr^3
+          C6D2          = 187.32873586236596;  // Hartree * Bohr^6
+          C6TS          = 1383.0;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.562 * ANGSTROEM;
+          vdwRadiusTS   = 2.43 * ANGSTROEM;
    }
    elem { symbol         = "Ti";
           name           = "Titanium";
@@ -218,6 +328,11 @@ chemElements {
           atomicRadius   = 1.47 * ANGSTROEM;
           gyromagneticRatio = -2.4041; // 47^Ti
           CPKcolor       = [128,128,144];
+          polarizability = 98.0;  // Bohr^3
+          C6D2          = 187.32873586236596;  // Hartree * Bohr^6
+          C6TS          = 1044.0;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.562 * ANGSTROEM;
+          vdwRadiusTS   = 2.39 * ANGSTROEM;
    }
    elem { symbol         = "V";
           name           = "Vanadium";
@@ -227,6 +342,11 @@ chemElements {
           atomicRadius   = 1.34 * ANGSTROEM;
           gyromagneticRatio = 11.2133; // 51^V
           CPKcolor       = [255,20,147];
+          polarizability = 84.0;  // Bohr^3
+          C6D2          = 187.32873586236596;  // Hartree * Bohr^6
+          C6TS          = 832.0;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.562 * ANGSTROEM;
+          vdwRadiusTS   = 2.35 * ANGSTROEM;
    }
    elem { symbol         = "Cr";
           name           = "Chromium";
@@ -236,6 +356,11 @@ chemElements {
           atomicRadius   = 1.30 * ANGSTROEM;
           gyromagneticRatio = -2.4115; // 53^Cr
           CPKcolor       = [128,128,144];
+          polarizability = 78.0;  // Bohr^3
+          C6D2          = 187.32873586236596;  // Hartree * Bohr^6
+          C6TS          = 602.0;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.562 * ANGSTROEM;
+          vdwRadiusTS   = 2.11 * ANGSTROEM;
    }
    elem { symbol         = "Mn";
           name           = "Manganese";
@@ -245,6 +370,11 @@ chemElements {
           atomicRadius   = 1.35 * ANGSTROEM;
           gyromagneticRatio = 10.5763; // 55^Mn
           CPKcolor       = [128,128,144];
+          polarizability = 63.0;  // Bohr^3
+          C6D2          = 187.32873586236596;  // Hartree * Bohr^6
+          C6TS          = 552.0;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.562 * ANGSTROEM;
+          vdwRadiusTS   = 2.1 * ANGSTROEM;
    }
    elem { symbol         = "Fe";
           name           = "Iron";
@@ -254,6 +384,11 @@ chemElements {
           atomicRadius   = 1.26 * ANGSTROEM;
           gyromagneticRatio = 1.3816; // 57^Fe
           CPKcolor       = [255,165,0];
+          polarizability = 56.0;  // Bohr^3
+          C6D2          = 187.32873586236596;  // Hartree * Bohr^6
+          C6TS          = 482.0;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.562 * ANGSTROEM;
+          vdwRadiusTS   = 2.24 * ANGSTROEM;
    }
    elem { symbol         = "Co";
           name           = "Cobalt";
@@ -263,6 +398,11 @@ chemElements {
           atomicRadius   = 1.25 * ANGSTROEM;
           gyromagneticRatio = 10.077; // 59^Co
           CPKcolor       = [255,20,147];
+          polarizability = 50.0;  // Bohr^3
+          C6D2          = 187.32873586236596;  // Hartree * Bohr^6
+          C6TS          = 408.0;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.562 * ANGSTROEM;
+          vdwRadiusTS   = 2.21 * ANGSTROEM;
    }
    elem { symbol         = "Ni";
           name           = "Nickel";
@@ -272,6 +412,11 @@ chemElements {
           atomicRadius   = 1.24 * ANGSTROEM;
           gyromagneticRatio = -3.8114; // 61^Ni
           CPKcolor       = [165,42,42];
+          polarizability = 48.0;  // Bohr^3
+          C6D2          = 187.32873586236596;  // Hartree * Bohr^6
+          C6TS          = 373.0;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.562 * ANGSTROEM;
+          vdwRadiusTS   = 2.02 * ANGSTROEM;
    }
    elem { symbol         = "Cu";
           name           = "Copper";
@@ -281,6 +426,11 @@ chemElements {
           atomicRadius   = 1.28 * ANGSTROEM;
           gyromagneticRatio = 11.2982; // 63^Cu
           CPKcolor       = [165,42,42];
+          polarizability = 42.0;  // Bohr^3
+          C6D2          = 187.32873586236596;  // Hartree * Bohr^6
+          C6TS          = 253.0;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.562 * ANGSTROEM;
+          vdwRadiusTS   = 1.99 * ANGSTROEM;
    }
    elem { symbol         = "Zn";
           name           = "Zinc";
@@ -290,6 +440,11 @@ chemElements {
           atomicRadius   = 1.38 * ANGSTROEM;
           gyromagneticRatio = 2.6694; // 67^Zn
           CPKcolor       = [165,42,42];
+          polarizability = 40.0;  // Bohr^3
+          C6D2          = 187.32873586236596;  // Hartree * Bohr^6
+          C6TS          = 284.0;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.562 * ANGSTROEM;
+          vdwRadiusTS   = 2.13 * ANGSTROEM;
    }
    elem { symbol         = "Ga";
           name           = "Gallium";
@@ -299,7 +454,17 @@ chemElements {
           atomicRadius   = 1.41 * ANGSTROEM;
           gyromagneticRatio = 10.2478; // 69^Ga
           //CPKcolor       = [255,20,147];
+          polarizability = 60.0;  // Bohr^3
+          C6D2          = 294.69585391681454;  // Hartree * Bohr^6
+          C6TS          = 498.0;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.65 * ANGSTROEM;
+          vdwRadiusTS   = 2.22 * ANGSTROEM;
           CPKcolor       = [20,240,10];
+          polarizability = 60.0;  // Bohr^3
+          C6D2          = 294.69585391681454;  // Hartree * Bohr^6
+          C6TS          = 498.0;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.65 * ANGSTROEM;
+          vdwRadiusTS   = 2.22 * ANGSTROEM;
    }
    elem { symbol         = "Ge";
           name           = "Germanium";
@@ -309,6 +474,11 @@ chemElements {
           atomicRadius   = 1.37 * ANGSTROEM;
           gyromagneticRatio = -1.4897; // 73^Ge
           CPKcolor       = [255,20,147];
+          polarizability = 41.0;  // Bohr^3
+          C6D2          = 296.60383178207945;  // Hartree * Bohr^6
+          C6TS          = 354.0;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.727 * ANGSTROEM;
+          vdwRadiusTS   = 2.22 * ANGSTROEM;
    }
    elem { symbol         = "As";
           name           = "Arsenic";
@@ -318,6 +488,11 @@ chemElements {
           atomicRadius   = 1.39 * ANGSTROEM;
           gyromagneticRatio = 7.3150; // 75^As
           CPKcolor       = [255,20,147];
+          polarizability = 29.0;  // Bohr^3
+          C6D2          = 283.94179685804914;  // Hartree * Bohr^6
+          C6TS          = 246.0;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.76 * ANGSTROEM;
+          vdwRadiusTS   = 2.17 * ANGSTROEM;
    }
    elem { symbol         = "Se";
           name           = "Selenium";
@@ -327,6 +502,11 @@ chemElements {
           atomicRadius   = 1.40 * ANGSTROEM;
           gyromagneticRatio = 8.1571; // 77^Se
           CPKcolor       = [255,20,147];
+          polarizability = 25.0;  // Bohr^3
+          C6D2          = 219.24400197225052;  // Hartree * Bohr^6
+          C6TS          = 210.0;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.771 * ANGSTROEM;
+          vdwRadiusTS   = 2.14 * ANGSTROEM;
    }
    elem { symbol         = "Br";
           name           = "Bromine";
@@ -336,6 +516,11 @@ chemElements {
           atomicRadius   = covalentRadius;  // not defined
           gyromagneticRatio = 10.7042; // 79^Br
           CPKcolor       = [165,42,42];
+          polarizability = 20.0;  // Bohr^3
+          C6D2          = 216.29530890775033;  // Hartree * Bohr^6
+          C6TS          = 162.0;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.749 * ANGSTROEM;
+          vdwRadiusTS   = 2.08 * ANGSTROEM;
    }
    elem { symbol         = "Kr";
           name           = "Krypton";
@@ -345,6 +530,11 @@ chemElements {
           atomicRadius   = covalentRadius;  // not defined
           gyromagneticRatio = -1.6442; // 83^Kr
           CPKcolor       = [255,20,147];
+          polarizability = 16.8;  // Bohr^3
+          C6D2          = 208.31649238027916;  // Hartree * Bohr^6
+          C6TS          = 129.6;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.727 * ANGSTROEM;
+          vdwRadiusTS   = 2.02 * ANGSTROEM;
    }
    elem { symbol         = "Rb";
           name           = "Rubidium";
@@ -354,6 +544,11 @@ chemElements {
           atomicRadius   = 2.48 * ANGSTROEM;
           gyromagneticRatio = 4.1254; // 85^Rb
           CPKcolor       = [255,20,147];
+          polarizability = 319.2;  // Bohr^3
+          C6D2          = 427.9073994189415;  // Hartree * Bohr^6
+          C6TS          = 4691.0;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.628 * ANGSTROEM;
+          vdwRadiusTS   = 1.97 * ANGSTROEM;
    }
    elem { symbol         = "Sr";
           name           = "Strontium";
@@ -363,6 +558,11 @@ chemElements {
           atomicRadius   = 2.15 * ANGSTROEM;
           gyromagneticRatio = -1.8525; // 87^Sr
           CPKcolor       = [255,20,147];
+          polarizability = 199.0;  // Bohr^3
+          C6D2          = 427.9073994189415;  // Hartree * Bohr^6
+          C6TS          = 3170.0;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.606 * ANGSTROEM;
+          vdwRadiusTS   = 2.4 * ANGSTROEM;
    }
    elem { symbol         = "Y";
           name           = "Yttrium";
@@ -372,6 +572,11 @@ chemElements {
           atomicRadius   = 1.78 * ANGSTROEM;
           gyromagneticRatio = -2.0949; // 89^Y
           CPKcolor       = [255,20,147];
+          polarizability = 126.737;  // Bohr^3
+          C6D2          = 427.9073994189415;  // Hartree * Bohr^6
+          C6TS          = 1968.58;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.639 * ANGSTROEM;
+          vdwRadiusTS   = 2.55 * ANGSTROEM;
    }
    elem { symbol         = "Zr";
           name           = "Zirconium";
@@ -381,6 +586,11 @@ chemElements {
           atomicRadius   = 1.60 * ANGSTROEM;
           gyromagneticRatio = -3.9748; // 91^Zr
           CPKcolor       = [255,20,147];
+          polarizability = 119.97;  // Bohr^3
+          C6D2          = 427.9073994189415;  // Hartree * Bohr^6
+          C6TS          = 1677.91;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.639 * ANGSTROEM;
+          vdwRadiusTS   = 2.4 * ANGSTROEM;
    }
    elem { symbol         = "Nb";
           name           = "Niobium";
@@ -390,6 +600,11 @@ chemElements {
           atomicRadius   = 1.46 * ANGSTROEM;
           gyromagneticRatio = 10.4523; // 93^Nb
           CPKcolor       = [255,20,147];
+          polarizability = 101.603;  // Bohr^3
+          C6D2          = 427.9073994189415;  // Hartree * Bohr^6
+          C6TS          = 1263.61;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.639 * ANGSTROEM;
+          vdwRadiusTS   = 2.24 * ANGSTROEM;
    }
    elem { symbol         = "Mo";
           name           = "Molybdenum";
@@ -399,6 +614,11 @@ chemElements {
           atomicRadius   = 1.39 * ANGSTROEM;
           gyromagneticRatio = -2.7874; // 95^Mo
           CPKcolor       = [255,20,147];
+          polarizability = 88.42;  // Bohr^3
+          C6D2          = 427.9073994189415;  // Hartree * Bohr^6
+          C6TS          = 1028.73;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.639 * ANGSTROEM;
+          vdwRadiusTS   = 2.17 * ANGSTROEM;
    }
    elem { symbol         = "Tc";
           name           = "Technetium";
@@ -408,6 +628,11 @@ chemElements {
           atomicRadius   = 1.36 * ANGSTROEM;
           gyromagneticRatio = 9.6294; // 99^Tc
           CPKcolor       = [255,20,147];
+          polarizability = 80.08;  // Bohr^3
+          C6D2          = 427.9073994189415;  // Hartree * Bohr^6
+          C6TS          = 1390.87;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.639 * ANGSTROEM;
+          vdwRadiusTS   = 2.16 * ANGSTROEM;
    }
    elem { symbol         = "Ru";
           name           = "Ruthenium";
@@ -417,6 +642,11 @@ chemElements {
           atomicRadius   = 1.34 * ANGSTROEM;
           gyromagneticRatio = -2.1916; // 101^Ru
           CPKcolor       = [255,20,147];
+          polarizability = 65.9;  // Bohr^3
+          C6D2          = 427.9073994189415;  // Hartree * Bohr^6
+          C6TS          = 609.75;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.639 * ANGSTROEM;
+          vdwRadiusTS   = 2.11 * ANGSTROEM;
    }
    elem { symbol         = "Rh";
           name           = "Rhodium";
@@ -426,6 +656,11 @@ chemElements {
           atomicRadius   = 1.34 * ANGSTROEM;
           gyromagneticRatio = -1.3477; // 103^Rh
           CPKcolor       = [255,20,147];
+          polarizability = 56.1;  // Bohr^3
+          C6D2          = 427.9073994189415;  // Hartree * Bohr^6
+          C6TS          = 469.0;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.639 * ANGSTROEM;
+          vdwRadiusTS   = 2.09 * ANGSTROEM;
    }
    elem { symbol         = "Pd";
           name           = "Palladium";
@@ -435,6 +670,11 @@ chemElements {
           atomicRadius   = 1.37 * ANGSTROEM;
           gyromagneticRatio = -1.957; // 105^Pd
           CPKcolor       = [255,20,147];
+          polarizability = 23.68;  // Bohr^3
+          C6D2          = 427.9073994189415;  // Hartree * Bohr^6
+          C6TS          = 157.5;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.639 * ANGSTROEM;
+          vdwRadiusTS   = 1.94 * ANGSTROEM;
    }
    elem { symbol         = "Ag";
           name           = "Silver";
@@ -444,6 +684,11 @@ chemElements {
           atomicRadius   = 1.44 * ANGSTROEM;
           gyromagneticRatio = -1.7331; // 107^Ag
           CPKcolor       = [128,128,144];
+          polarizability = 50.6;  // Bohr^3
+          C6D2          = 427.9073994189415;  // Hartree * Bohr^6
+          C6TS          = 339.0;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.639 * ANGSTROEM;
+          vdwRadiusTS   = 2.02 * ANGSTROEM;
    }
    elem { symbol         = "Cd";
           name           = "Cadmium";
@@ -453,6 +698,11 @@ chemElements {
           atomicRadius   = 1.54 * ANGSTROEM;
           gyromagneticRatio = -9.0692; // 111^Cd
           CPKcolor       = [255,20,147];
+          polarizability = 39.7;  // Bohr^3
+          C6D2          = 427.9073994189415;  // Hartree * Bohr^6
+          C6TS          = 452.0;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.639 * ANGSTROEM;
+          vdwRadiusTS   = 2.11 * ANGSTROEM;
    }
    elem { symbol         = "In";
           name           = "Indium";
@@ -462,6 +712,11 @@ chemElements {
           atomicRadius   = 1.66 * ANGSTROEM;
           gyromagneticRatio = 9.3856; // 115^In
           CPKcolor       = [255,20,147];
+          polarizability = 70.22;  // Bohr^3
+          C6D2          = 647.3248539243979;  // Hartree * Bohr^6
+          C6TS          = 707.05;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.672 * ANGSTROEM;
+          vdwRadiusTS   = 2.24 * ANGSTROEM;
    }
    elem { symbol         = "Sn";
           name           = "Tin";
@@ -471,6 +726,11 @@ chemElements {
           atomicRadius   = 1.62 * ANGSTROEM;
           gyromagneticRatio = -15.9660; // 119^Sn
           CPKcolor       = [255,20,147];
+          polarizability = 55.95;  // Bohr^3
+          C6D2          = 671.4347560400172;  // Hartree * Bohr^6
+          C6TS          = 587.42;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.804 * ANGSTROEM;
+          vdwRadiusTS   = 2.28 * ANGSTROEM;
    }
    elem { symbol         = "Sb";
           name           = "Antimony";
@@ -480,6 +740,11 @@ chemElements {
           atomicRadius   = 1.59 * ANGSTROEM;
           gyromagneticRatio = 10.2551; // 121^Sb
           CPKcolor       = [255,20,147];
+          polarizability = 43.67;  // Bohr^3
+          C6D2          = 666.7515376434579;  // Hartree * Bohr^6
+          C6TS          = 459.322;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.881 * ANGSTROEM;
+          vdwRadiusTS   = 2.26 * ANGSTROEM;
    }
    elem { symbol         = "Te";
           name           = "Tellurium";
@@ -489,6 +754,11 @@ chemElements {
           atomicRadius   = 1.60 * ANGSTROEM;
           gyromagneticRatio = -13.5454; // 125^Te
           CPKcolor       = [255,20,147];
+          polarizability = 37.65;  // Bohr^3
+          C6D2          = 550.5383403955087;  // Hartree * Bohr^6
+          C6TS          = 396.0;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.892 * ANGSTROEM;
+          vdwRadiusTS   = 2.23 * ANGSTROEM;
    }
    elem { symbol         = "I";
           name           = "Iodine";
@@ -498,6 +768,11 @@ chemElements {
           atomicRadius   = covalentRadius;  // not defined
           gyromagneticRatio = 8.5778; // 127^I
           CPKcolor       = [160,32,240];
+          polarizability = 35.0;  // Bohr^3
+          C6D2          = 546.3754795985673;  // Hartree * Bohr^6
+          C6TS          = 385.0;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.892 * ANGSTROEM;
+          vdwRadiusTS   = 2.21 * ANGSTROEM;
    }
    elem { symbol         = "Xe";
           name           = "Xenon";
@@ -507,6 +782,11 @@ chemElements {
           atomicRadius   = covalentRadius;  // not defined
           gyromagneticRatio = -11.8604; // 129^Xe
           CPKcolor       = [255,20,147];
+          polarizability = 27.3;  // Bohr^3
+          C6D2          = 520.1841470844772;  // Hartree * Bohr^6
+          C6TS          = 285.9;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.881 * ANGSTROEM;
+          vdwRadiusTS   = 2.16 * ANGSTROEM;
    }
    elem { symbol         = "Cs";
           name           = "Cesium";
@@ -515,6 +795,11 @@ chemElements {
           covalentRadius = 2.35 * ANGSTROEM;
           atomicRadius   = 2.67 * ANGSTROEM;
           CPKcolor       = [255,20,147];
+          polarizability = 427.12;  // Bohr^3
+          C6D2          = 5468.524740648835;  // Hartree * Bohr^6
+          C6TS          = 6582.08;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.802 * ANGSTROEM;
+          vdwRadiusTS   = 2.0 * ANGSTROEM;
    }
    elem { symbol         = "Ba";
           name           = "Barium";
@@ -523,6 +808,11 @@ chemElements {
           covalentRadius = 1.98 * ANGSTROEM;
           atomicRadius   = 2.22 * ANGSTROEM;
           CPKcolor       = [255,165,0];
+          polarizability = 275.0;  // Bohr^3
+          C6D2          = 3937.268432253879;  // Hartree * Bohr^6
+          C6TS          = 5727.0;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.762 * ANGSTROEM;
+          vdwRadiusTS   = 2.52 * ANGSTROEM;
    }
    elem { symbol         = "La";
           name           = "Lanthanium";
@@ -531,6 +821,11 @@ chemElements {
           covalentRadius = 1.69 * ANGSTROEM;
           atomicRadius   = 1.87 * ANGSTROEM;
           CPKcolor       = [255,20,147];
+          polarizability = 275.0;  // Bohr^3
+          C6D2          = 3057.13558826053;  // Hartree * Bohr^6
+          C6TS          = 5727.0;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.72 * ANGSTROEM;
+          vdwRadiusTS   = 2.52 * ANGSTROEM;
    }
 
    // ---Lanthanides
@@ -541,6 +836,11 @@ chemElements {
           covalentRadius = 1.65 * ANGSTROEM;
           atomicRadius   = 1.81 * ANGSTROEM;
           CPKcolor       = [255,20,147];
+          polarizability = 275.0;  // Bohr^3
+          C6D2          = 2440.1302371405222;  // Hartree * Bohr^6
+          C6TS          = 5727.0;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.753 * ANGSTROEM;
+          vdwRadiusTS   = 2.52 * ANGSTROEM;
    }
    elem { symbol         = "Pr";
           name           = "Praseodynium";
@@ -549,6 +849,11 @@ chemElements {
           covalentRadius = 1.65 * ANGSTROEM;
           atomicRadius   = 1.82 * ANGSTROEM;
           CPKcolor       = [255,20,147];
+          polarizability = 275.0;  // Bohr^3
+          C6D2          = 2440.1302371405222;  // Hartree * Bohr^6
+          C6TS          = 5727.0;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.753 * ANGSTROEM;
+          vdwRadiusTS   = 2.52 * ANGSTROEM;
    }
    elem { symbol         = "Nd";
           name           = "Neodynium";
@@ -557,6 +862,11 @@ chemElements {
           covalentRadius = 1.64 * ANGSTROEM;
           atomicRadius   = 1.82 * ANGSTROEM;
           CPKcolor       = [255,20,147];
+          polarizability = 275.0;  // Bohr^3
+          C6D2          = 2440.1302371405222;  // Hartree * Bohr^6
+          C6TS          = 5727.0;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.753 * ANGSTROEM;
+          vdwRadiusTS   = 2.52 * ANGSTROEM;
    }
    elem { symbol         = "Pm";
           name           = "Promethium";
@@ -565,6 +875,11 @@ chemElements {
           covalentRadius = 1.63 * ANGSTROEM;
           atomicRadius   = covalentRadius;  // not defined
           CPKcolor       = [255,20,147];
+          polarizability = 275.0;  // Bohr^3
+          C6D2          = 2440.1302371405222;  // Hartree * Bohr^6
+          C6TS          = 5727.0;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.753 * ANGSTROEM;
+          vdwRadiusTS   = 2.52 * ANGSTROEM;
    }
    elem { symbol         = "Sm";
           name           = "Samarium";
@@ -573,6 +888,11 @@ chemElements {
           covalentRadius = 1.62 * ANGSTROEM;
           atomicRadius   = 1.81 * ANGSTROEM;
           CPKcolor       = [255,20,147];
+          polarizability = 275.0;  // Bohr^3
+          C6D2          = 2440.1302371405222;  // Hartree * Bohr^6
+          C6TS          = 5727.0;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.753 * ANGSTROEM;
+          vdwRadiusTS   = 2.52 * ANGSTROEM;
    }
    elem { symbol         = "Eu";
           name           = "Europium";
@@ -581,6 +901,11 @@ chemElements {
           covalentRadius = 1.85 * ANGSTROEM;
           atomicRadius   = 1.99 * ANGSTROEM;
           CPKcolor       = [255,20,147];
+          polarizability = 275.0;  // Bohr^3
+          C6D2          = 2440.1302371405222;  // Hartree * Bohr^6
+          C6TS          = 5727.0;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.753 * ANGSTROEM;
+          vdwRadiusTS   = 2.52 * ANGSTROEM;
    }
    elem { symbol         = "Gd";
           name           = "Gadolinium";
@@ -589,6 +914,11 @@ chemElements {
           covalentRadius = 1.61 * ANGSTROEM;
           atomicRadius   = 1.79 * ANGSTROEM;
           CPKcolor       = [255,20,147];
+          polarizability = 275.0;  // Bohr^3
+          C6D2          = 2440.1302371405222;  // Hartree * Bohr^6
+          C6TS          = 5727.0;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.753 * ANGSTROEM;
+          vdwRadiusTS   = 2.52 * ANGSTROEM;
    }
    elem { symbol         = "Tb";
           name           = "Terbium";
@@ -597,6 +927,11 @@ chemElements {
           covalentRadius = 1.59 * ANGSTROEM;
           atomicRadius   = 1.80 * ANGSTROEM;
           CPKcolor       = [255,20,147];
+          polarizability = 275.0;  // Bohr^3
+          C6D2          = 2440.1302371405222;  // Hartree * Bohr^6
+          C6TS          = 5727.0;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.753 * ANGSTROEM;
+          vdwRadiusTS   = 2.52 * ANGSTROEM;
    }
    elem { symbol         = "Dy";
           name           = "Dysprosium";
@@ -605,6 +940,11 @@ chemElements {
           covalentRadius = 1.59 * ANGSTROEM;
           atomicRadius   = 1.80 * ANGSTROEM;
           CPKcolor       = [255,20,147];
+          polarizability = 275.0;  // Bohr^3
+          C6D2          = 2440.1302371405222;  // Hartree * Bohr^6
+          C6TS          = 5727.0;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.753 * ANGSTROEM;
+          vdwRadiusTS   = 2.52 * ANGSTROEM;
    }
    elem { symbol         = "Ho";
           name           = "Holmium";
@@ -613,6 +953,11 @@ chemElements {
           covalentRadius = 1.58 * ANGSTROEM;
           atomicRadius   = 1.79 * ANGSTROEM;
           CPKcolor       = [255,20,147];
+          polarizability = 275.0;  // Bohr^3
+          C6D2          = 2440.1302371405222;  // Hartree * Bohr^6
+          C6TS          = 5727.0;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.753 * ANGSTROEM;
+          vdwRadiusTS   = 2.52 * ANGSTROEM;
    }
    elem { symbol         = "Er";
           name           = "Erbium";
@@ -621,6 +966,11 @@ chemElements {
           covalentRadius = 1.57 * ANGSTROEM;
           atomicRadius   = 1.78 * ANGSTROEM;
           CPKcolor       = [255,20,147];
+          polarizability = 275.0;  // Bohr^3
+          C6D2          = 2440.1302371405222;  // Hartree * Bohr^6
+          C6TS          = 5727.0;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.753 * ANGSTROEM;
+          vdwRadiusTS   = 2.52 * ANGSTROEM;
    }
    elem { symbol         = "Tm";
           name           = "Thullium";
@@ -629,6 +979,11 @@ chemElements {
           covalentRadius = 1.56 * ANGSTROEM;
           atomicRadius   = 1.77 * ANGSTROEM;
           CPKcolor       = [255,20,147];
+          polarizability = 275.0;  // Bohr^3
+          C6D2          = 2440.1302371405222;  // Hartree * Bohr^6
+          C6TS          = 5727.0;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.753 * ANGSTROEM;
+          vdwRadiusTS   = 2.52 * ANGSTROEM;
    }
    elem { symbol         = "Yb";
           name           = "Ytterbium";
@@ -637,6 +992,11 @@ chemElements {
           covalentRadius = 1.94 * ANGSTROEM;  // atomic radius
           atomicRadius   = 1.94 * ANGSTROEM;
           CPKcolor       = [255,20,147];
+          polarizability = 275.0;  // Bohr^3
+          C6D2          = 2440.1302371405222;  // Hartree * Bohr^6
+          C6TS          = 5727.0;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.753 * ANGSTROEM;
+          vdwRadiusTS   = 2.52 * ANGSTROEM;
    }
    elem { symbol         = "Lu";
           name           = "Lutetium";
@@ -645,6 +1005,11 @@ chemElements {
           covalentRadius = 1.56 * ANGSTROEM;
           atomicRadius   = 1.75 * ANGSTROEM;
           CPKcolor       = [255,20,147];
+          polarizability = 275.0;  // Bohr^3
+          C6D2          = 2440.1302371405222;  // Hartree * Bohr^6
+          C6TS          = 5727.0;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.753 * ANGSTROEM;
+          vdwRadiusTS   = 2.52 * ANGSTROEM;
    }
 
 
@@ -655,6 +1020,11 @@ chemElements {
           covalentRadius = 1.44 * ANGSTROEM;
           atomicRadius   = 1.67 * ANGSTROEM;
           CPKcolor       = [255,20,147];
+          polarizability = 99.52;  // Bohr^3
+          C6D2          = 1823.194267033797;  // Hartree * Bohr^6
+          C6TS          = 1274.8;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.788 * ANGSTROEM;
+          vdwRadiusTS   = 2.23 * ANGSTROEM;
    }
    elem { symbol         = "Ta";
           name           = "Tantalum";
@@ -663,6 +1033,11 @@ chemElements {
           covalentRadius = 1.3 * ANGSTROEM;
           atomicRadius   = 1.49 * ANGSTROEM;
           CPKcolor       = [255,20,147];
+          polarizability = 82.53;  // Bohr^3
+          C6D2          = 1409.1283797646859;  // Hartree * Bohr^6
+          C6TS          = 1019.92;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.772 * ANGSTROEM;
+          vdwRadiusTS   = 2.2 * ANGSTROEM;
    }
    elem { symbol         = "W";
           name           = "Tungsten";
@@ -671,6 +1046,11 @@ chemElements {
           covalentRadius = 1.30 * ANGSTROEM;
           atomicRadius   = 1.41 * ANGSTROEM;
           CPKcolor       = [255,20,147];
+          polarizability = 71.041;  // Bohr^3
+          C6D2          = 1409.1283797646859;  // Hartree * Bohr^6
+          C6TS          = 847.93;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.772 * ANGSTROEM;
+          vdwRadiusTS   = 2.16 * ANGSTROEM;
    }
    elem { symbol         = "Re";
           name           = "Rhenium";
@@ -679,6 +1059,11 @@ chemElements {
           covalentRadius = 1.28 * ANGSTROEM;
           atomicRadius   = 1.37 * ANGSTROEM;
           CPKcolor       = [255,20,147];
+          polarizability = 63.04;  // Bohr^3
+          C6D2          = 1409.1283797646859;  // Hartree * Bohr^6
+          C6TS          = 710.2;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.772 * ANGSTROEM;
+          vdwRadiusTS   = 2.13 * ANGSTROEM;
    }
    elem { symbol         = "Os";
           name           = "Osmium";
@@ -687,6 +1072,11 @@ chemElements {
           covalentRadius = 1.26 * ANGSTROEM;
           atomicRadius   = 1.35 * ANGSTROEM;
           CPKcolor       = [255,20,147];
+          polarizability = 55.055;  // Bohr^3
+          C6D2          = 1409.1283797646859;  // Hartree * Bohr^6
+          C6TS          = 596.67;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.772 * ANGSTROEM;
+          vdwRadiusTS   = 2.03 * ANGSTROEM;
    }
    elem { symbol         = "Ir";
           name           = "Iridium";
@@ -695,6 +1085,11 @@ chemElements {
           covalentRadius = 1.27 * ANGSTROEM;
           atomicRadius   = 1.36 * ANGSTROEM;
           CPKcolor       = [255,20,147];
+          polarizability = 42.51;  // Bohr^3
+          C6D2          = 1409.1283797646859;  // Hartree * Bohr^6
+          C6TS          = 359.1;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.772 * ANGSTROEM;
+          vdwRadiusTS   = 2.12 * ANGSTROEM;
    }
    elem { symbol         = "Pt";
           name           = "Platinum";
@@ -703,6 +1098,11 @@ chemElements {
           covalentRadius = 1.30 * ANGSTROEM;
           atomicRadius   = 1.39 * ANGSTROEM;
           CPKcolor       = [255,20,147];
+          polarizability = 39.68;  // Bohr^3
+          C6D2          = 1409.1283797646859;  // Hartree * Bohr^6
+          C6TS          = 347.1;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.772 * ANGSTROEM;
+          vdwRadiusTS   = 2.07 * ANGSTROEM;
    }
    elem { symbol         = "Au";
           name           = "Gold";
@@ -711,6 +1111,11 @@ chemElements {
           covalentRadius = 1.34 * ANGSTROEM;
           atomicRadius   = 1.46 * ANGSTROEM;
           CPKcolor       = [218,165,32];
+          polarizability = 36.5;  // Bohr^3
+          C6D2          = 1409.1283797646859;  // Hartree * Bohr^6
+          C6TS          = 298.0;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.772 * ANGSTROEM;
+          vdwRadiusTS   = 2.04 * ANGSTROEM;
    }
    elem { symbol         = "Hg";
           name           = "Mercury";
@@ -719,6 +1124,11 @@ chemElements {
           covalentRadius = 1.49 * ANGSTROEM;
           atomicRadius   = 1.57 * ANGSTROEM;
           CPKcolor       = [255,20,147];
+          polarizability = 33.9;  // Bohr^3
+          C6D2          = 994.9931114822925;  // Hartree * Bohr^6
+          C6TS          = 392.0;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.758 * ANGSTROEM;
+          vdwRadiusTS   = 2.11 * ANGSTROEM;
    }
    elem { symbol         = "Tl";
           name           = "Thallium";
@@ -727,6 +1137,11 @@ chemElements {
           covalentRadius = 1.48 * ANGSTROEM;
           atomicRadius   = 1.71 * ANGSTROEM;
           CPKcolor       = [255,20,147];
+          polarizability = 69.92;  // Bohr^3
+          C6D2          = 993.0851336170277;  // Hartree * Bohr^6
+          C6TS          = 717.44;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.989 * ANGSTROEM;
+          vdwRadiusTS   = 2.07 * ANGSTROEM;
    }
    elem { symbol         = "Pb";
           name           = "Lead";
@@ -735,6 +1150,11 @@ chemElements {
           covalentRadius = 1.47 * ANGSTROEM;
           atomicRadius   = 1.75 * ANGSTROEM;
           CPKcolor       = [255,20,147];
+          polarizability = 61.8;  // Bohr^3
+          C6D2          = 1095.56089023507;  // Hartree * Bohr^6
+          C6TS          = 697.0;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.944 * ANGSTROEM;
+          vdwRadiusTS   = 2.28 * ANGSTROEM;
    }
    elem { symbol         = "Bi";
           name           = "Bismuth";
@@ -743,6 +1163,11 @@ chemElements {
           covalentRadius = 1.46 * ANGSTROEM;
           atomicRadius   = 1.70 * ANGSTROEM;
           CPKcolor       = [255,20,147];
+          polarizability = 49.02;  // Bohr^3
+          C6D2          = 1102.1173959902528;  // Hartree * Bohr^6
+          C6TS          = 571.0;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.898 * ANGSTROEM;
+          vdwRadiusTS   = 2.29 * ANGSTROEM;
    }
    elem { symbol         = "Po";
           name           = "Polonium";
@@ -751,6 +1176,11 @@ chemElements {
           covalentRadius = 1.46 * ANGSTROEM;
           atomicRadius   = 1.76 * ANGSTROEM;
           CPKcolor       = [255,20,147];
+          polarizability = 45.013;  // Bohr^3
+          C6D2          = 958.897639322146;  // Hartree * Bohr^6
+          C6TS          = 530.92;  // Hartree * Bohr^6
+          vdwRadiusD2   = 2.005 * ANGSTROEM;
+          vdwRadiusTS   = 2.17 * ANGSTROEM;
    }
    elem { symbol         = "At";
           name           = "Astatine";
@@ -759,6 +1189,11 @@ chemElements {
           covalentRadius = 1.45 * ANGSTROEM;
           atomicRadius   = covalentRadius;  // not defined
           CPKcolor       = [255,20,147];
+          polarizability = 38.93;  // Bohr^3
+          C6D2          = 991.6454775914187;  // Hartree * Bohr^6
+          C6TS          = 457.53;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.991 * ANGSTROEM;
+          vdwRadiusTS   = 2.15 * ANGSTROEM;
    }
    elem { symbol         = "Rn";
           name           = "Radon";
@@ -767,6 +1202,11 @@ chemElements {
           covalentRadius = 100 * ANGSTROEM;   // n.a.
           atomicRadius   = covalentRadius;  // not defined
           CPKcolor       = [255,20,147];
+          polarizability = 33.54;  // Bohr^3
+          C6D2          = 982.4351480781859;  // Hartree * Bohr^6
+          C6TS          = 390.63;  // Hartree * Bohr^6
+          vdwRadiusD2   = 1.924 * ANGSTROEM;
+          vdwRadiusTS   = 2.24 * ANGSTROEM;
    }
 
 
@@ -777,6 +1217,11 @@ chemElements {
           covalentRadius = 1.76 * ANGSTROEM;   // ionic radius
           atomicRadius   = covalentRadius;  // not defined
           CPKcolor       = [255,20,147];
+          polarizability = 0;  // Bohr^3
+          C6D2          = 0;  // Hartree * Bohr^6
+          C6TS          = 0;  // Hartree * Bohr^6
+          vdwRadiusD2   = covalentRadius;
+          vdwRadiusTS   = covalentRadius;
    }
    elem { symbol         = "Ra";
           name           = "Radium";
@@ -785,6 +1230,11 @@ chemElements {
           covalentRadius = 1.40 * ANGSTROEM;   // ionic radius
           atomicRadius   = covalentRadius;  // not defined
           CPKcolor       = [255,20,147];
+          polarizability = 0;  // Bohr^3
+          C6D2          = 0;  // Hartree * Bohr^6
+          C6TS          = 0;  // Hartree * Bohr^6
+          vdwRadiusD2   = covalentRadius;
+          vdwRadiusTS   = covalentRadius;
    }
    elem { symbol         = "Ac";
           name           = "Actinium";
@@ -793,6 +1243,11 @@ chemElements {
           covalentRadius = 1.88 * ANGSTROEM;   // atomic radius
           atomicRadius   = 1.88 * ANGSTROEM;
           CPKcolor       = [255,20,147];
+          polarizability = 0;  // Bohr^3
+          C6D2          = 0;  // Hartree * Bohr^6
+          C6TS          = 0;  // Hartree * Bohr^6
+          vdwRadiusD2   = covalentRadius;
+          vdwRadiusTS   = covalentRadius;
    }
 
    elem { symbol         = "Th";
@@ -802,6 +1257,11 @@ chemElements {
           covalentRadius = 1.65 * ANGSTROEM;
           atomicRadius   = 1.80 * ANGSTROEM;
           CPKcolor       = [255,20,147];
+          polarizability = 0;  // Bohr^3
+          C6D2          = 0;  // Hartree * Bohr^6
+          C6TS          = 0;  // Hartree * Bohr^6
+          vdwRadiusD2   = covalentRadius;
+          vdwRadiusTS   = covalentRadius;
    }
    elem { symbol         = "Pa";
           name           = "Protactinium";
@@ -810,6 +1270,11 @@ chemElements {
           covalentRadius = 1.61 * ANGSTROEM;   // atomic radius
           atomicRadius   = 1.61 * ANGSTROEM;
           CPKcolor       = [255,20,147];
+          polarizability = 0;  // Bohr^3
+          C6D2          = 0;  // Hartree * Bohr^6
+          C6TS          = 0;  // Hartree * Bohr^6
+          vdwRadiusD2   = covalentRadius;
+          vdwRadiusTS   = covalentRadius;
    }
    elem { symbol         = "U";
           name           = "Uranium";
@@ -818,6 +1283,11 @@ chemElements {
           covalentRadius = 1.42 * ANGSTROEM;
           atomicRadius   = 1.38 * ANGSTROEM;
           CPKcolor       = [255,20,147];
+          polarizability = 0;  // Bohr^3
+          C6D2          = 0;  // Hartree * Bohr^6
+          C6TS          = 0;  // Hartree * Bohr^6
+          vdwRadiusD2   = covalentRadius;
+          vdwRadiusTS   = covalentRadius;
    }
    elem { symbol         = "Np";
           name           = "Neptunium";
@@ -826,6 +1296,11 @@ chemElements {
           covalentRadius = 1.3 * ANGSTROEM;    // atomic radius
           atomicRadius   = 1.3 * ANGSTROEM;
           CPKcolor       = [255,20,147];
+          polarizability = 0;  // Bohr^3
+          C6D2          = 0;  // Hartree * Bohr^6
+          C6TS          = 0;  // Hartree * Bohr^6
+          vdwRadiusD2   = covalentRadius;
+          vdwRadiusTS   = covalentRadius;
    }
    elem { symbol         = "Pu";
           name           = "Plutonium";
@@ -834,6 +1309,11 @@ chemElements {
           covalentRadius = 1.51 * ANGSTROEM;   // atomic radius
           atomicRadius   = 1.51 * ANGSTROEM;
           CPKcolor       = [255,20,147];
+          polarizability = 0;  // Bohr^3
+          C6D2          = 0;  // Hartree * Bohr^6
+          C6TS          = 0;  // Hartree * Bohr^6
+          vdwRadiusD2   = covalentRadius;
+          vdwRadiusTS   = covalentRadius;
    }
    elem { symbol         = "Am";
           name           = "Americium";
@@ -842,6 +1322,11 @@ chemElements {
           covalentRadius = 1.73 * ANGSTROEM;   // atomic radius
           atomicRadius   = 1.73 * ANGSTROEM;
           CPKcolor       = [255,20,147];
+          polarizability = 0;  // Bohr^3
+          C6D2          = 0;  // Hartree * Bohr^6
+          C6TS          = 0;  // Hartree * Bohr^6
+          vdwRadiusD2   = covalentRadius;
+          vdwRadiusTS   = covalentRadius;
    }
    elem { symbol         = "Cm";
           name           = "Curium";
@@ -850,6 +1335,11 @@ chemElements {
           covalentRadius = 100 * ANGSTROEM;   // n.a.
           atomicRadius   = 100 * ANGSTROEM;
           CPKcolor       = [255,20,147];
+          polarizability = 0;  // Bohr^3
+          C6D2          = 0;  // Hartree * Bohr^6
+          C6TS          = 0;  // Hartree * Bohr^6
+          vdwRadiusD2   = covalentRadius;
+          vdwRadiusTS   = covalentRadius;
    }
    elem { symbol         = "Bk";
           name           = "Berkelium";
@@ -858,6 +1348,11 @@ chemElements {
           covalentRadius = 100 * ANGSTROEM;   // n.a.
           atomicRadius   = 100 * ANGSTROEM;
           CPKcolor       = [255,20,147];
+          polarizability = 0;  // Bohr^3
+          C6D2          = 0;  // Hartree * Bohr^6
+          C6TS          = 0;  // Hartree * Bohr^6
+          vdwRadiusD2   = covalentRadius;
+          vdwRadiusTS   = covalentRadius;
    }
    elem { symbol         = "Cf";
           name           = "Californium";
@@ -866,6 +1361,11 @@ chemElements {
           covalentRadius = 100 * ANGSTROEM;   // n.a.
           atomicRadius   = 100 * ANGSTROEM;
           CPKcolor       = [255,20,147];
+          polarizability = 0;  // Bohr^3
+          C6D2          = 0;  // Hartree * Bohr^6
+          C6TS          = 0;  // Hartree * Bohr^6
+          vdwRadiusD2   = covalentRadius;
+          vdwRadiusTS   = covalentRadius;
    }
    elem { symbol         = "Es";
           name           = "Einsteinium";
@@ -874,6 +1374,11 @@ chemElements {
           covalentRadius = 100 * ANGSTROEM;   // n.a.
           atomicRadius   = 100 * ANGSTROEM;
           CPKcolor       = [255,20,147];
+          polarizability = 0;  // Bohr^3
+          C6D2          = 0;  // Hartree * Bohr^6
+          C6TS          = 0;  // Hartree * Bohr^6
+          vdwRadiusD2   = covalentRadius;
+          vdwRadiusTS   = covalentRadius;
    }
    elem { symbol         = "Fm";
           name           = "Fermium";
@@ -882,6 +1387,11 @@ chemElements {
           covalentRadius = 100 * ANGSTROEM;   // n.a.
           atomicRadius   = 100 * ANGSTROEM;
           CPKcolor       = [255,20,147];
+          polarizability = 0;  // Bohr^3
+          C6D2          = 0;  // Hartree * Bohr^6
+          C6TS          = 0;  // Hartree * Bohr^6
+          vdwRadiusD2   = covalentRadius;
+          vdwRadiusTS   = covalentRadius;
    }
    elem { symbol         = "Md";
           name           = "Mendelevium";
@@ -890,6 +1400,11 @@ chemElements {
           covalentRadius = 100 * ANGSTROEM;   // n.a.
           atomicRadius   = 100 * ANGSTROEM;
           CPKcolor       = [255,20,147];
+          polarizability = 0;  // Bohr^3
+          C6D2          = 0;  // Hartree * Bohr^6
+          C6TS          = 0;  // Hartree * Bohr^6
+          vdwRadiusD2   = covalentRadius;
+          vdwRadiusTS   = covalentRadius;
    }
    elem { symbol         = "No";
           name           = "Nobelium";
@@ -898,6 +1413,11 @@ chemElements {
           covalentRadius = 100 * ANGSTROEM;   // n.a.
           atomicRadius   = 100 * ANGSTROEM;
           CPKcolor       = [255,20,147];
+          polarizability = 0;  // Bohr^3
+          C6D2          = 0;  // Hartree * Bohr^6
+          C6TS          = 0;  // Hartree * Bohr^6
+          vdwRadiusD2   = covalentRadius;
+          vdwRadiusTS   = covalentRadius;
    }
    elem { symbol         = "Lw";
           name           = "Lawrencium";
@@ -906,6 +1426,11 @@ chemElements {
           covalentRadius = 100 * ANGSTROEM;   // n.a.
           atomicRadius   = 100 * ANGSTROEM;
           CPKcolor       = [255,20,147];
+          polarizability = 0;  // Bohr^3
+          C6D2          = 0;  // Hartree * Bohr^6
+          C6TS          = 0;  // Hartree * Bohr^6
+          vdwRadiusD2   = covalentRadius;
+          vdwRadiusTS   = covalentRadius;
    }
 
 }

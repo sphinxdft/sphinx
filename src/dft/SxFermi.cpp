@@ -23,7 +23,8 @@ SxFermi::SxFermi ()
    : nElectrons(-1),
      nSpin(-1),
      fFull(0.),
-     orderMethfesselPaxton(-1),
+     smearType(FermiDirac),
+     smearingOrder(0),
      kpPtr (NULL)
 {
    init ();
@@ -31,7 +32,7 @@ SxFermi::SxFermi ()
 
 
 SxFermi::SxFermi (int nStates, int nSpin_, int nk)
-   : orderMethfesselPaxton(-1)
+   : smearType(FermiDirac), smearingOrder(0)
 {
    SX_CHECK (nStates > 0);
    SX_CHECK (nSpin_ > 0);
@@ -65,7 +66,7 @@ SxFermi::SxFermi (int nStates, int nSpin_, int nk)
 
 SxFermi::SxFermi (Real8 nElectrons_, int nStates, int nSpin_,
                   const SxKPoints &gk)
-   : orderMethfesselPaxton(-1)
+   : smearType(FermiDirac), smearingOrder(0)
 {
    SX_CHECK (nStates > 0);
    SX_CHECK (nSpin_ > 0);
@@ -413,40 +414,57 @@ Real8 SxFermi::getSpinMoment ()
    return (2.*sum - nElectrons);
 }
 
+double SxFermi::getLimitX () const
+{
+   if (smearType == FermiDirac) return -log(1e-16);
+   // --- Methfessel-Paxton
+   return 6.5 + 0.5 * smearingOrder;
+}
+
 Real8 SxFermi::getEntropy ()
 {
    SX_CHECK (kpPtr);
-   int i, ik, nStates, iSpin;
-   Real8 sum = 0., iksum;
+   Real8 sum = 0.;
    Real8 s = fFull;
 
-   for (ik=0; ik < kpPtr->nk; ik++)  {
-      nStates = focc.getNStates (ik);
-      iksum = 0.;
-      for (iSpin=0; iSpin < nSpin; iSpin++) {
-         if (orderMethfesselPaxton < 0)  {
+   double xLim = getLimitX ();
+   for (int ik=0; ik < kpPtr->nk; ik++)  {
+      int nStates = focc.getNStates (ik);
+      double kSum = 0.;
+      for (int iSpin=0; iSpin < nSpin; iSpin++) {
+         double eF = keepSpinMoment ? eSpinFermi[iSpin] : eFermi;
+         if (smearType == FermiDirac)  {
             // --- Fermi-Dirac
-            for (i=0; i < nStates; i++)  {
-               double f = focc(i,iSpin,ik);
-               if ( f > 0. && f < s && fabs(s-f) > 1e-15 )
-                  iksum -= (s-f)*log(1.-f/s) + f*log(f/s);
+            if (smearingOrder == 0)  {
+               for (int i=0; i < nStates; i++)  {
+                  double f = focc(i,iSpin,ik);
+                  if ( f > 0. && f < s && fabs(s-f) > 1e-15 )
+                     kSum -= (s-f)*log(1.-f/s) + f*log(f/s);
+               }
+            } else {
+               SX_CHECK(smearingOrder == 1, smearingOrder);
+               for (int i=0; i < nStates; i++)  {
+                  double x = (eps(i,iSpin,ik) - eF)*beta;
+                  if (fabs(x) > xLim-0.5) continue;
+                  double f0 = 1. / (1. + exp(x));
+                  double f0c = 1. - f0; // complement to one = f0(-x)
+                  double s0 = -(f0 * log(f0) + f0c * log(f0c));
+                  kSum += 0.5 * (s0 - x*x*f0*f0c) * fFull;
+               }
             }
          } else {
             /// --- Methfessel-Paxton
-            double eF = keepSpinMoment ? eSpinFermi[iSpin] : eFermi;
-            // empirical relation: for this, entropy becomes < 1e-16
-            double xLim = 6.5 + 0.5 * orderMethfesselPaxton;
-            for (i=0; i < nStates; i++)  {
+            for (int i=0; i < nStates; i++)  {
                double entropy = 0.;
                double x = (eps(i,iSpin,ik) - eF)*beta;
                if ( fabs(x) < xLim )  {
-                  dfoccMethfesselPaxton (x, orderMethfesselPaxton, &entropy);
-                  iksum += 0.5 * fFull * entropy;
+                  dfoccMethfesselPaxton (x, smearingOrder, &entropy);
+                  kSum += 0.5 * fFull * entropy;
                }
             }
          }
       }
-      sum += iksum * kpPtr->weights(ik);
+      sum += kSum * kpPtr->weights(ik);
    }
 
    return sum;
@@ -505,7 +523,6 @@ Real8 SxFermi::fermiFunction (Real8 energy, Real8 nEl, int spin)
    int nk = getNk ();
    Real8 xArg;
    Real8 f;
-   Real8 s = fFull;
 
 
    if (   nSpin == 1 || !keepSpinMoment )   {
@@ -514,24 +531,25 @@ Real8 SxFermi::fermiFunction (Real8 energy, Real8 nEl, int spin)
       iSpin0 = spin; iSpin1 = spin+1; // i.e. no loop over iSpin
    }
 
-   double maxArg = (orderMethfesselPaxton < 0)
-                 ? log(1e-16) // Fermi-Dirac
-                 : -(sqrt(-log(1e-16))+sqrt(fabs(orderMethfesselPaxton)));
+   double xLim = getLimitX ();
    for (ik=0; ik < nk; ik++)  {
       nStates = focc.getNStates (ik);
       double kSum = 0.;
       for (iSpin=iSpin0; iSpin < iSpin1; iSpin++) {
          for (i=0; i < nStates; i++)  {
             xArg  = (eps(i,iSpin,ik) - energy) * beta;
-            if (xArg < maxArg)
-               f = s;
-            else if (xArg > -maxArg)
+            if (xArg < -xLim)
+               f = fFull;
+            else if (xArg > xLim)
                f = 0.;
             else {
-               if (orderMethfesselPaxton < 0)  {
-                  f = s / (exp(xArg)+1.);
+               if (smearType == FermiDirac)  {
+                  f = 1. / (exp(xArg)+1.);
+                  if (smearingOrder == 1)
+                     f -= 0.5 * xArg * f * (1. - f);
+                  f *= fFull;
                } else {
-                  f = fFull * foccMethfesselPaxton(xArg, orderMethfesselPaxton);
+                  f = fFull * foccMethfesselPaxton(xArg, smearingOrder);
                }
             }
             kSum += f;
@@ -543,15 +561,25 @@ Real8 SxFermi::fermiFunction (Real8 energy, Real8 nEl, int spin)
    return -nEl;
 }
 
-Real8 SxFermi::dFoccFermi(int i, int iSpin, int ik) const
+Real8 SxFermi::dFoccFermi(ssize_t i, ssize_t iSpin, ssize_t ik) const
 {
-   if (orderMethfesselPaxton < 0)  {
-      double f = focc(i, iSpin, ik);
-      return f * (1. - f / fFull) * beta;
+   if (smearType == FermiDirac)  {
+      if (smearingOrder == 0)  {
+         double f = focc(i, iSpin, ik);
+         return f * (1. - f / fFull) * beta;
+      }
+      SX_CHECK (smearingOrder == 1, smearingOrder);
+      double eF = keepSpinMoment ? eSpinFermi[iSpin] : eFermi;
+      double x = (eps(i, iSpin, ik) - eF) * beta;
+      if (fabs(x) > getLimitX ()) return 0.;
+      double f0 = 1. / (1. + exp(x));
+      return f0 * (1. - f0) * (1.5 + x * (f0 - 0.5)) * fFull * beta;
+
    } else {
       double eF = keepSpinMoment ? eSpinFermi[iSpin] : eFermi;
       double x = (eps(i, iSpin, ik) - eF) * beta;
-      return fFull * dfoccMethfesselPaxton (x, orderMethfesselPaxton) * beta;
+      if (fabs(x) > getLimitX ()) return 0.;
+      return fFull * dfoccMethfesselPaxton (x, smearingOrder) * beta;
    }
 }
 
@@ -896,12 +924,15 @@ void SxFermi::printOccupation (bool final) const
 
 void SxFermi::printSmearing () const
 {
-   if (orderMethfesselPaxton < 0)
+   SX_CHECK (smearType == FermiDirac || smearType == MethfesselPaxton);
+   if (smearType == FermiDirac)  {
       cout << "Fermi-Dirac";
-   else if (orderMethfesselPaxton == 0)
+      if (smearingOrder > 0) cout << " order " << smearingOrder;
+   } else if (smearingOrder == 0)  {
       cout << "Gaussian";
-   else
-      cout << "Methfessel-Paxton order " << orderMethfesselPaxton;
+   } else {
+      cout << "Methfessel-Paxton order " << smearingOrder;
+   }
    cout << endl;
 }
 
@@ -1317,11 +1348,7 @@ void SxFermi::read (const SxBinIO &io, bool keepNStates)
 
    if (fabs(fMax - 1.) < 1e-6) fFull = 1.;
    else if (fabs(fMax - 2.) < 1e-6) fFull = 2.;
-   else if (fMax > 1. && fMax < 2.) {
-      fFull = 2.;
-      cout << "Warning: setting fFull = 2. from max. observed f=" << fMax
-           << endl;
-   } else {
+   else {
       fFull = (nSpin == 1) ? 2. : 1.;
       cout << "Warning: setting fFull=" << fFull << " from nSpin=" << nSpin
            << endl;

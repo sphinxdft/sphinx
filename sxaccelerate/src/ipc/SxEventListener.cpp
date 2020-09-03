@@ -56,7 +56,7 @@ SxEventListener::SxEventListener(const SxArray<SxString> &evNames,
    for (ssize_t idx = 0; idx < evNames.getSize (); ++idx) {
       // --- spelling mistake, check the event names
       SX_CHECK (SxHashFunction::jenkinsHash (evNames(idx).elements,
-                                             evNames(idx).getSize ())
+                                             (size_t)evNames(idx).getSize ())
                  == evHashes(idx), evNames(idx));
 
       uint32_t evHash = evHashes(idx);
@@ -91,7 +91,7 @@ void SxEventListener::setEvents (const SxArray<SxString> &evNames,
 
          // --- spelling mistake, check the event names
          SX_CHECK (SxHashFunction::jenkinsHash (evNames(idx).elements,
-                                                evNames(idx).getSize ())
+                                                (size_t)evNames(idx).getSize ())
                    == evHashes(idx), evNames(idx));
 
          // --- is the event name already there?
@@ -229,7 +229,7 @@ void SxEventListener::waitForEvents_And (
    size_t n = 0;
    for (const std::atomic<size_t> *w : waitConds)
       n += w->load (std::memory_order_relaxed) > 0 ? 1 : 0;
-   size_t waitN = events.getSize ();
+   size_t waitN = (size_t)events.getSize ();
    while (!killSig.load (std::memory_order_relaxed)) {
       SxTime::msleep (sleepMS);
       for (const std::atomic<size_t> *w : waitConds)

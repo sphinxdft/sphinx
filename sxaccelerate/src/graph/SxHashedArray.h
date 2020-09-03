@@ -14,6 +14,7 @@
 #define _SX_HASHED_ARRAY_H_
 
 #include <SxString.h>
+#include <SxExportGraph.h>
 //#include <SxTypeDefs.h>
 
 /** \brief Hashed Array Tree
@@ -47,7 +48,7 @@ class SxHashedArray
 
       /** Standard assignment operator. */
       SxHashedArray<T> &operator= (const SxHashedArray<T> &);
-      SxHashedArray<T> &operator= (SxHashedArray<T> &&);
+      SxHashedArray<T> &operator= (SxHashedArray<T> &&) noexcept;
 
       /** Standard dereferencing operator for non-const objectes. */
       T &operator() (ssize_t);
@@ -91,7 +92,7 @@ SxHashedArray<T>::SxHashedArray (ssize_t size_, ssize_t blockSize_)
    // --- blockSize is the nearest power of 2
    while (lastBlockIdx < blockSize_)  {
       shift++;
-      lastBlockIdx = 1 << shift;
+      lastBlockIdx = (ssize_t)(1) << shift;
    }
    --lastBlockIdx;
    resize (size_);
@@ -140,7 +141,7 @@ SxHashedArray<T> &SxHashedArray<T>::operator= (const SxHashedArray<T> &in)
 }
 
 template<class T>
-SxHashedArray<T> &SxHashedArray<T>::operator= (SxHashedArray<T> &&in)
+SxHashedArray<T> &SxHashedArray<T>::operator= (SxHashedArray<T> &&in) noexcept
 {
    if (&in == this)  return *this;
 

@@ -14,12 +14,13 @@ LIBS="-lm $LIBS"
 
 # --- some numeric libs require FORTRAN
 AC_CHECK_LIB(gfortran, rand)
-AC_CHECK_LIB(gfortran, _gfortran_copy_string, 
+AC_CHECK_LIB(gfortran, _gfortran_copy_string,
              [AC_DEFINE([HAVE_GFORTRAN_COPY_STRING],[1],
              [Define to 1 if gfortran does not come with gcc bug 33647])])
 SX_BLAS_LIBS="$SX_BLAS_LIBS $LIBS"
 
 SX_PARAM_ATLAS="no"
+SX_PARAM_NETLIB="no"
 SX_PARAM_ACML="no"
 SX_PARAM_MKL="no"
 SX_PARAM_GOTO="no"
@@ -30,6 +31,7 @@ SX_PARAM_MKLFFT="no"
 
 if test x"$ac_cv_with_sxmath" = x"yes"; then :; else
    SX_PARAM_ATLAS="no"
+   SX_PARAM_NETLIB="no"
    SX_PARAM_FFTW="no"
 fi
 
@@ -43,66 +45,58 @@ fi
 
 SX_ARG_WITH(  [numlibs], [.], [NUMLIBS], [$SX_PARAM_NUMLIBS],
               [absolute paths to top level folder for external libraries])
-SX_ARG_ENABLE([numlibschecks], [NUMLIBS_CHECKS], [no], 
+SX_ARG_ENABLE([numlibschecks], [NUMLIBS_CHECKS], [no],
               [check that numlibs can be used])
 if echo x"$ac_cv_enable_numlibschecks" | grep -q '^x *-' ; then
   AC_MSG_NOTICE([Appending $ac_cv_enable_numlibschecks to linker flags for checking numlibs])
    LIBS="$ac_cv_enable_numlibschecks $LIBS"
    ac_cv_enable_numlibschecks="yes"
 fi
-SX_ARG_ENABLE([atlas],    [USE_ATLAS], [$SX_PARAM_ATLAS], 
+SX_ARG_ENABLE([atlas],    [USE_ATLAS], [$SX_PARAM_ATLAS],
               [compile package with ATLAS support])
-SX_ARG_ENABLE([acml],     [USE_ACML], [$SX_PARAM_ACML], 
+SX_ARG_ENABLE([netlib],    [USE_NETLIB], [$SX_PARAM_NETLIB],
+              [compile package with generic netlib-compatible BLAS/LAPACK support])
+SX_ARG_ENABLE([acml],     [USE_ACML], [$SX_PARAM_ACML],
               [compile package with AMD Core Math Library support])
 SX_ARG_WITH(  [mklpath], [.], [MKLPATH], [$SX_PARAM_MKLPATH],
               [absolute path to the Intel MKL top level folder])
-SX_ARG_ENABLE([mkl],      [USE_INTEL_MKL], [$SX_PARAM_MKL], 
+SX_ARG_ENABLE([mkl],      [USE_INTEL_MKL], [$SX_PARAM_MKL],
               [compile package with Intel Math Kernel Library support])
-SX_ARG_ENABLE([goto],     [USE_GOTO], [$SX_PARAM_GOTO], 
+SX_ARG_ENABLE([goto],     [USE_GOTO], [$SX_PARAM_GOTO],
               [compile package with GotoBLAS support])
-SX_ARG_ENABLE([fftw],     [USE_FFTW],  [$SX_PARAM_FFTW], 
+SX_ARG_ENABLE([fftw],     [USE_FFTW],  [$SX_PARAM_FFTW],
               [compile package with FFTW support])
-SX_ARG_ENABLE([mklfft],   [USE_MKL_FFT],  [$SX_PARAM_MKLFFT], 
+SX_ARG_ENABLE([mklfft],   [USE_MKL_FFT],  [$SX_PARAM_MKLFFT],
               [compile package with MKL's FFT support])
-SX_ARG_ENABLE([acmlfft],  [USE_ACML_FFT],  [$SX_PARAM_ACMLFFT], 
+SX_ARG_ENABLE([acmlfft],  [USE_ACML_FFT],  [$SX_PARAM_ACMLFFT],
               [compile package with ACML's FFT support])
-SX_ARG_ENABLE([mpi],      [USE_MPI], [no], 
+SX_ARG_ENABLE([mpi],      [USE_MPI], [no],
               [compile package with Message-Passing Interface support])
-SX_ARG_ENABLE([netcdf4], [USE_NETCDF4], [no], 
+SX_ARG_ENABLE([netcdf4], [USE_NETCDF4], [no],
               [compile package with support for NetCDF4 IO])
-SX_ARG_ENABLE([parnetcdf4], [USE_PARALLEL_NETCDF4], [no], 
+SX_ARG_ENABLE([parnetcdf4], [USE_PARALLEL_NETCDF4], [no],
               [compile package with support for parallel NetCDF4 IO])
-SX_ARG_ENABLE([openmp],   [USE_OPENMP], [no], 
+SX_ARG_ENABLE([openmp],   [USE_OPENMP], [no],
               [compile package with OpenMP support])
 SX_ARG_ENABLE([hdf5], [USE_HDF5], [no], [compile package with HDF5 support])
 SX_ARG_ENABLE([pcre2], [USE_PCRE2], [auto], [compile package with PCRE2 support])
 
 
 # --- check mutual exclusions
-if test x"${ac_cv_enable_acml}"  = x"yes" \
-     -a x"${ac_cv_enable_atlas}" = x"yes"; then
-   AC_MSG_ERROR([Cannot use ACML and ATLAS simultaneously.])
+enabled_bibs="`grep yes <<END_LISTALGEBRA
+ATLAS ${ac_cv_enable_atlas}
+ACML ${ac_cv_enable_acml}
+MKL ${ac_cv_enable_mkl}
+GotoBLAS ${ac_cv_enable_goto}
+netlib ${ac_cv_enable_netlib}
+END_LISTALGEBRA
+`"
+echo "$enabled_bibs"
+if test `echo "$enabled_bibs" | grep -c yes` -gt 1 ; then
+   enabled_bibs=`echo "$enabled_bibs" | xargs | sed -e's/ yes/,/g;s/,$//'`
+   AC_MSG_ERROR([More than one algebra library selected: $enabled_bibs])
 fi
-if test x"${ac_cv_enable_acml}"  = x"yes" \
-     -a x"${ac_cv_enable_mkl}" = x"yes"; then
-   AC_MSG_ERROR([Cannot use ACML and MKL simultaneously.])
-fi
-if test x"${ac_cv_enable_acml}"  = x"yes" \
-     -a x"${ac_cv_enable_goto}" = x"yes"; then
-   AC_MSG_ERROR([Cannot use ACML and GotoBLAS simultaneously.])
-fi
-if test x"${ac_cv_enable_mkl}"  = x"yes" \
-     -a x"${ac_cv_enable_goto}" = x"yes"; then
-   AC_MSG_ERROR([Cannot use MKL and GotoBLAS simultaneously.])
-fi
-if test x"${ac_cv_enable_atlas}"  = x"yes" \
-     -a x"${ac_cv_enable_goto}" = x"yes"; then
-   AC_MSG_ERROR([Cannot use ATLAS and GotoBLAS simultaneously.])
-fi
-if test x"${ac_cv_enable_mkl}"  = x"yes" \
-     -a x"${ac_cv_enable_atlas}" = x"yes"; then
-   AC_MSG_ERROR([Cannot use MKL and ATLAS simultaneously.])
-fi
+
 if test x"${ac_cv_enable_acmlfft}" = x"yes" \
      -a x"${ac_cv_enable_fftw}"    = x"yes"; then
    AC_MSG_ERROR([Cannot use ACML's FFT and FFTW interface simultaneously.])
@@ -131,6 +125,9 @@ fi
 if test x"${ac_cv_enable_fftw}"  = x"yes"; then
    SXCOPY="${SXCOPY}|    - FFTW            http://www.fftw.org\n"
 fi
+if test x"${ac_cv_enable_fftw}"  = x"yes"; then
+   SXCOPY="${SXCOPY}|    - BLAS/LAPACK     http://http://www.netlib.org\n"
+fi
 SXCOPY="${SXCOPY}|    - Flex            http://flex.sourceforge.net\n"
 SXCOPY="${SXCOPY}|    - NetCDF          http://www.unidata.ucar.edu/software/netcdf\n"
 AC_DEFINE_UNQUOTED(SXCOPYRIGHT, "$SXCOPY",[Copyright information])
@@ -154,7 +151,7 @@ for dir in `echo "$ac_cv_with_numlibs" | sed -e's/:/ /g'` ; do
       AC_MSG_NOTICE([No $dir/lib])
    fi
 done
-   
+
 # MKL include and library paths
 if test x"${ac_cv_enable_mkl}"  = x"yes"; then
    if test x"$ac_cv_with_mklpath" = x"null"; then
@@ -179,11 +176,11 @@ if test x"${ac_cv_enable_mkl}"  = x"yes"; then
    else
       AC_MSG_ERROR([Cannot find Intel MKL library path. Expected ${ac_cv_with_mklpath}/lib/intel64 or  ${ac_cv_with_mklpath}/lib/em64t ])
    fi
-     
+
    if test x"${enable_shared}" = x"yes"; then
       LDFLAGS="-L${mkllibpath} -Wl,-rpath,${mkllibpath} ${LDFLAGS}"
    fi
-   
+
    # cxxname is set in sxcompflags.m4
    case "$cxxname" in
       g++)
@@ -203,7 +200,7 @@ if test x"$ac_cv_with_sxmath" = x"yes"; then
       SX_FFT_LIBS="-lfftw3"
       SX_IF_CHECKNUMLIBS([
          AC_CHECK_HEADER([fftw3.h],,[AC_MSG_ERROR([Cannot find fftw3.h])] )
-         AC_CHECK_LIB([fftw3], [fftw_plan_dft], 
+         AC_CHECK_LIB([fftw3], [fftw_plan_dft],
                       [],
                       [AC_MSG_ERROR([Cannot link against FFTW library])])
        ])
@@ -211,8 +208,8 @@ if test x"$ac_cv_with_sxmath" = x"yes"; then
       if test x"$ac_cv_enable_openmp" = x"yes" ; then
          OLD_LIBS="$LIBS"
          # try to find the right FFTW threaded library
-         if test x"$SX_FFTW_OMP" = x ; then 
-            AC_SEARCH_LIBS([fftw_init_threads], [fftw3_omp fftw3_threads], 
+         if test x"$SX_FFTW_OMP" = x ; then
+            AC_SEARCH_LIBS([fftw_init_threads], [fftw3_omp fftw3_threads],
                            [SX_FFTW_OMP=`echo $ac_cv_search_fftw_init_threads | sed -e's/\-lfftw3_//'`],
                            [SX_IF_CHECKNUMLIBS([AC_MSG_ERROR([
 ============================================================================
@@ -266,7 +263,7 @@ if test x"$ac_cv_enable_acml"     = x"yes" \
    esac
    SX_BLAS_LIBS="-l${acmllib} $SX_BLAS_LIBS"
    SX_IF_CHECKNUMLIBS([
-      AC_CHECK_LIB([$acmllib],   [zfft1mx],       
+      AC_CHECK_LIB([$acmllib],   [zfft1mx],
                    [SX_BLAS_LIBS="-l${acmllib} $SX_BLAS_LIBS"],
                    [AC_MSG_ERROR([Cannot link against ACML library $acmllib, $SX_BLAS_LIBS])])
    ])
@@ -287,7 +284,7 @@ if test x"$ac_cv_enable_atlas" = x"yes"; then
          AC_CHECK_HEADER([f2c.h],,[AC_MSG_ERROR([Cannot find f2c.h])] )
          AC_CHECK_HEADER([clapack.h],,[AC_MSG_ERROR([Cannot find clapack.h])],
                          [#include <f2c.h>])
- 
+
          AC_CHECK_LIB([f2c], [dtime_], [],
                       [AC_MSG_ERROR([Cannot link against F2C library])]
          )
@@ -317,7 +314,7 @@ if test x"$ac_cv_enable_atlas" = x"yes"; then
                         [-lf77blas -latlas -lf2c]
          )
          LIBS="$SX_BLAS_LIBS $LIBS"
-         AC_CHECK_FUNC([dsptri_],        
+         AC_CHECK_FUNC([dsptri_],
                       [],
                       [AC_MSG_ERROR([ATLAS does not fully support LAPACK])]
          )
@@ -335,7 +332,7 @@ if test x"$ac_cv_enable_mkl" = x"yes"; then
    else
       mkl_thread=mkl_sequential
    fi
-   
+
    if test x"${enable_shared}" = x"yes"; then
       SX_MKL_LIBS="-lmkl_intel_lp64 -lmkl_core -l${mkl_thread} -ldl"
    else
@@ -354,10 +351,10 @@ if test x"$ac_cv_enable_mkl" = x"yes"; then
 # GCC/ICC sequential: -Wl,--start-group $(MKLROOT)/lib/intel64/libmkl_intel_lp64.a $(MKLROOT)/lib/intel64/libmkl_core.a $(MKLROOT)/lib/intel64/libmkl_sequential.a -Wl,--end-group
 # GCC OMP: -Wl,--start-group $(MKLROOT)/lib/intel64/libmkl_intel_lp64.a $(MKLROOT)/lib/intel64/libmkl_core.a $(MKLROOT)/lib/intel64/libmkl_gnu_thread.a -Wl,--end-group
 # ICC OMP: -Wl,--start-group $(MKLROOT)/lib/intel64/libmkl_intel_lp64.a $(MKLROOT)/lib/intel64/libmkl_core.a $(MKLROOT)/lib/intel64/libmkl_intel_thread.a -Wl,--end-group
-#      SX_MKL_LIBS="-Wl,--start-group ${mkllibpath}/libmkl_intel_lp64.a ${mkllibpath}/libmkl_core.a ${mkllibpath}/lib${mkl_thread}.a -Wl,--end-group"    
+#      SX_MKL_LIBS="-Wl,--start-group ${mkllibpath}/libmkl_intel_lp64.a ${mkllibpath}/libmkl_core.a ${mkllibpath}/lib${mkl_thread}.a -Wl,--end-group"
       SX_MKL_LIBS="-L${mkllibpath} -L`pwd`/mkllibs -lmkl_intel_lp64 -lmkl_core -l${mkl_thread} -lmkl_core_1 -l${mkl_thread}_1 -lmkl_core_2"
    fi
-   
+
    SX_MKL_LIBS="$SX_MKL_LIBS -ldl -lpthread -lm"
 
    SX_BLAS_LIBS="$SX_MKL_LIBS $SX_BLAS_LIBS"
@@ -380,7 +377,7 @@ if test x"$ac_cv_enable_goto" = x"yes"; then
    #
    SX_GOTO_LIBS="-lgoto2 -lgfortran -lpthread -m64"
    SX_BLAS_LIBS="$SX_GOTO_LIBS $SX_BLAS_LIBS"
-   
+
    if test  "$ac_test_LDFLAGS" != "set"; then
       # cxxname is set in sxcompflags.m4
       case "$cxxname" in
@@ -395,9 +392,38 @@ if test x"$ac_cv_enable_goto" = x"yes"; then
             AC_MSG_ERROR([Intel MKL is not supported for your compiler.])
       esac
    fi
-      
+
 fi
 
+if test x"$ac_cv_enable_netlib" = x"yes"; then
+   AC_CHECK_HEADER([cblas.h],,[AC_MSG_ERROR([Cannot find cblas.h])] )
+   AC_CHECK_HEADER([lapacke.h],,[AC_MSG_ERROR([Cannot find lapacke.h])] )
+   SX_IF_CHECKNUMLIBS([
+      AC_CHECK_LIB([blas], [cblas_dnrm2], [],
+                   [AC_MSG_ERROR([Cannot link against CBLAS library])],
+                   []
+      )
+      AC_SEARCH_LIBS([zhpev_], [lapacke lapack], [],
+                     [AC_MSG_ERROR([Cannot link against LAPACK library])],
+                     [-llapack -lblas]
+      )
+   ])
+   SX_BLAS_LIBS="-llapacke -llapack -lblas"
+   if test  "$ac_test_LDFLAGS" != "set"; then
+      # cxxname is set in sxcompflags.m4
+      case "$cxxname" in
+         g++)
+            LDFLAGS="-Wl,-rpath=${ac_cv_with_numlibs}/lib ${LDFLAGS}"
+            ;;
+         icpc)
+            LDFLAGS="-Xlinker -rpath=${ac_cv_with_numlibs}/lib ${LDFLAGS}"
+            ;;
+         *)
+            LDFLAGS=""
+            AC_MSG_ERROR([Intel MKL is not supported for your compiler.])
+      esac
+   fi
+fi
 
 # --- set up the MPI compiler ---
 # (the initialization of CXXLD below is necessary)
@@ -462,9 +488,10 @@ if test ! x"$ac_cv_enable_hdf5" = x"no"; then
    LIBS="-lhdf5_cpp -lhdf5 -lz -lm $LIBS"
 fi
 
-          
+
 
 SX_PARAM_ATLAS="$ac_cv_enable_atlas"
+SX_PARAM_NETLIB="$ac_cv_enable_netlib"
 SX_PARAM_MKL="$ac_cv_enable_mkl"
 SX_PARAM_ACML="$ac_cv_enable_acml"
 SX_PARAM_FFTW="$ac_cv_enable_fftw"
@@ -508,6 +535,7 @@ AC_SUBST([SX_BLAS_LIBS])
 AC_SUBST([SX_PARAM_NUMLIBS])
 AC_SUBST([SX_PARAM_SXMATH])
 AC_SUBST([SX_PARAM_ATLAS])
+AC_SUBST([SX_PARAM_NETLIB])
 AC_SUBST([SX_PARAM_MKL])
 AC_SUBST([SX_PARAM_FFTW])
 AC_SUBST([SX_PARAM_ACML])

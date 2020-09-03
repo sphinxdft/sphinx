@@ -761,7 +761,7 @@ VERBOSE_OFF   (verboseMode{SPACE}off;)
                   }
                   unput (';');  //SxParser_pos--; // fake final ';' in statement
 
-                  SxParser_lineNumber += hereBuffer.getSize();
+                  SxParser_lineNumber += (int)(hereBuffer.getSize());
 
 
                   SxSymbol sym;
@@ -922,7 +922,7 @@ VERBOSE_OFF   (verboseMode{SPACE}off;)
                      // --- concatenate resulting buffer
                      ssize_t size   = popBuffer.getSize ();
                      if (startToken > 0)
-                        left = popBuffer.subString(0, startToken-1);
+                        left = popBuffer.subString(0, (ssize_t)startToken-1);
                      if (endToken < size-1)
                         right = popBuffer.subString (endToken, size-1);
 

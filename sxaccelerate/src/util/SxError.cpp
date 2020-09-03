@@ -230,22 +230,26 @@ void SxDebug::stackDump (int skipLvls)
       SymInitialize (proc, NULL, TRUE);
       WORD nFrames = CaptureStackBackTrace (skipLvls, MAX_STACK_SIZE, stack, NULL);
       SYMBOL_INFO *sym = (SYMBOL_INFO *)malloc (sizeof (SYMBOL_INFO) + (MAX_FNNAME_SIZE - 1) * sizeof(TCHAR));
-      sym->MaxNameLen = MAX_FNNAME_SIZE;
-      sym->SizeOfStruct = sizeof (SYMBOL_INFO);
-      DWORD offset = 0;
-      IMAGEHLP_LINE64 *line = (IMAGEHLP_LINE64 *)malloc (sizeof(IMAGEHLP_LINE64));
-      line->SizeOfStruct = sizeof (IMAGEHLP_LINE64);
-      if (nFrames > 0)  printf ("\nCall stack:\n");
-      for (int i = 0; i < nFrames; i++)  {
-         DWORD64 addr = (DWORD64)(stack[i]);
-         SymFromAddr (proc, addr, NULL, sym);
-         if (SymGetLineFromAddr64 (proc, addr, &offset, line))  {
-            printf ("%d: %s:%lu: %s (0x%llX)\n", i, line->FileName, line->LineNumber, sym->Name, sym->Address);
-         } else {
-//          printf ("%d: SymGetLineFromAddr64 failed (error %lu)\n", iLvl, GetLastError());
-            printf ("%d: ---:--- %s (0x%llX).\n", i, sym->Name, sym->Address);
-        }
-    }
+      if (sym) {
+         sym->MaxNameLen = MAX_FNNAME_SIZE;
+         sym->SizeOfStruct = sizeof (SYMBOL_INFO);
+         DWORD offset = 0;
+         IMAGEHLP_LINE64 *line = (IMAGEHLP_LINE64 *)malloc (sizeof(IMAGEHLP_LINE64));
+         if (line) {
+            line->SizeOfStruct = sizeof (IMAGEHLP_LINE64);
+            if (nFrames > 0)  printf ("\nCall stack:\n");
+            for (int i = 0; i < nFrames; i++)  {
+               DWORD64 addr = (DWORD64)(stack[i]);
+               SymFromAddr (proc, addr, NULL, sym);
+               if (SymGetLineFromAddr64 (proc, addr, &offset, line))  {
+                  printf ("%d: %s:%lu: %s (0x%llX)\n", i, line->FileName, line->LineNumber, sym->Name, sym->Address);
+               } else {
+   //             printf ("%d: SymGetLineFromAddr64 failed (error %lu)\n", iLvl, GetLastError());
+                  printf ("%d: ---:--- %s (0x%llX).\n", i, sym->Name, sym->Address);
+               }
+            }
+         }
+      }
 #   endif
 }
 
@@ -372,12 +376,7 @@ void SxDebug::enumerateThreads (DWORD (WINAPI *cb)(HANDLE),
 
 void sxExit (int exitCode)
 {
-#  ifndef SX_ANDROID
-      fflush (stdout);
-      fflush (stderr);
-      std::cout.flush ();
-      std::cerr.flush ();
-#  endif
+
 
 #  ifdef NDEBUG
       exit (exitCode);
@@ -385,6 +384,13 @@ void sxExit (int exitCode)
       SX_UNUSED (exitCode);
       SxDebug::dump ();
       abort ();
+#  endif
+
+#  ifndef SX_ANDROID
+      fflush (stdout);
+      fflush (stderr);
+      std::cout.flush ();
+      std::cerr.flush ();
 #  endif
 
 #  ifdef SX_IOS
@@ -512,7 +518,7 @@ SxTrace::SxTrace (int enabled_, const char *filename_, long line_,
                   const char *function_, const char *functionShort_,
                   const char *dbgMsg_)
    : enabled (enabled_),
-     line(line_)
+     line(line_), t1(-1), t2(-1)
 {
    if (enabled > 1)  {
       strncpy (filename, filename_, 79);
@@ -539,6 +545,11 @@ SxTrace::SxTrace (int enabled_, const char *filename_, long line_,
 
       // --- wall clock time 1
       t1 = SxTime::getRealTime ();
+   } else {
+      filename[0] = '\0';
+      functionName[0] = '\0';
+      functionNameShort[0] = '\0';
+      dbgMsg[0] = '\0';
    }
 }
    

@@ -36,6 +36,8 @@ class SX_EXPORT_GEOM SxLinEquation
       SxLinEquation (const SxMatrix3<TPrecTauR> &mat, const Coord &res);
       /// Constructor
       SxLinEquation () : soluble (true) {}
+      /// Constructor
+      SxLinEquation (const SxLinEquation &) = default;
 
       /// Add equation
       void addEquation (const Coord &coeff, PrecTauR res);

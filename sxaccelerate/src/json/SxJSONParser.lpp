@@ -29,6 +29,7 @@
 %x IncludeState
 %x StringState
 %x CommentState
+%x GroupDocState
 
 
 SPACE         [ \t]*
@@ -46,15 +47,15 @@ U2_BYTE       [\xc2-\xdf]
 U3_BYTE       [\xe0-\xef]
 U4_BYTE       [\xf0-\xf4]
 U8_CHAR       ({U4_BYTE}{U_BYTE}{3}|{U3_BYTE}{U_BYTE}{2}|{U2_BYTE}{U_BYTE})
-A7_ESC_CHAR   [\x00-\x7f]{-}[\n\\\"]
+A7_ESC_CHAR   [\x00-\x7f]{-}[\t\r\n\\\"]
 U8_STRING     ({U8_CHAR}|{A7_ESC_CHAR})+
 
 INCLUDE       ^{SPACE}[#]*include[ ]+
 
 %%
 
-[\t]+ { }
-[\n]+ { }
+[ \t]+ { }
+[\r\n]+ { }
 
 (?# --- include file handling )
 {INCLUDE}[<"]   {
@@ -76,6 +77,36 @@ INCLUDE       ^{SPACE}[#]*include[ ]+
 <IncludeState>. {
    SXPARSER_ERROR (SxString("Unexpected token ") + yytext );
 }
+
+(?# --- SxDoc )
+"/*"{SPACE}"SxDoc"{SPACE}"{"{SPACE}[\r]?"\n" {
+   SX_DBG_LEX ("SxDoc Block: BEGIN");
+   SXPARSER_SKIP_WHITESPACE ();
+   SXPARSER_PUSH_STATE (GroupDocState);
+   SXPARSER_SEND (TK_GRPDOC_BEGIN);
+}
+
+<GroupDocState>"}"{SPACE}"*/" {
+   SX_DBG_LEX ("<SxDoc> end");
+   SXPARSER_APPEND_STATE ("");
+   SxString token = SxString::join (SXPARSER_COLLECT_STATE(), "");
+   SXPARSER_POP_STATE ();
+   yylval->strPtr = new SxString (token);
+   SXPARSER_SEND (TK_GRPDOC_END);
+}
+
+<GroupDocState>[\r]?"\n" {
+   SX_DBG_LEX ("<SxDoc>#1");
+   SxString s = SxString::unicodeFromUtf8 (yytext);
+   SXPARSER_APPEND_STATE (s);
+}
+
+<GroupDocState>. {
+   SX_DBG_LEX ("<SxDoc>#2");
+   SxString s = SxString::unicodeFromUtf8 (yytext);
+   SXPARSER_APPEND_STATE (s);
+}
+
 
 
 (?# --- Comments )
@@ -116,52 +147,52 @@ INCLUDE       ^{SPACE}[#]*include[ ]+
    SXPARSER_SKIP_WHITESPACE ();
    SXPARSER_REPUSH_STATE ();
 }
-
-<CommentState>[^*/]+        { SX_DBG_LEX ("<Comment>#1"); }
-<CommentState>"*"+[^*/]*    { SX_DBG_LEX ("<Comment>#2"); }
-<CommentState>"*"+"/" {
+<CommentState>"*/" {
    SX_DBG_LEX ("<Comment> C Comment: END");
    SXPARSER_POP_STATE ();
 }
+<CommentState>[^*]+  { SX_DBG_LEX ("<Comment>#1"); }
+<CommentState>"*"    { SX_DBG_LEX ("<Comment>#2"); }
+
 <CommentState><<EOF>> {
-   SxString msg = SXTAG_LEX() + ": Unbalanced block: Comment /*...*/ is not closed.";
+   SxString msg = (SXTAG_LEX()) + ": Unbalanced block: Comment /*...*/ is not closed.";
    SXPARSER_ERROR (msg);
    yyterminate ();
 }
 
 (?# --- Numbers)
 {INTEGER} {
-   yylval->intVal = atoi (yytext);
+   yylval->intVal = atoll (yytext);
    SX_DBG_LEX ("Integer: " << yylval->intVal)
    SXPARSER_SEND (TK_INTEGER);
 }
 
-{FLOAT} {
-   yylval->floatVal = atof(yytext);
-   SX_DBG_LEX ("Float: " << yylval->floatVal);
-   SXPARSER_SEND (TK_FLOAT);
+{REAL} {
+   yylval->realVal = atof(yytext);
+   SX_DBG_LEX ("Real: " << yylval->realVal);
+   SXPARSER_SEND (TK_REAL);
 }
 
 [{] {
-   SX_DBG_LEX ("brace:");
+   SX_DBG_LEX ("brace:{");
    SXPARSER_SKIP_WHITESPACE ();
    SXPARSER_SEND ('{');
 }
 
 [}] {
-   SX_DBG_LEX ("brace:");
+   SX_DBG_LEX ("brace:}");
    SXPARSER_SKIP_WHITESPACE ();
    SXPARSER_SEND ('}');
 }
 
 [\[] {
-   SX_DBG_LEX ("brace:");
+   SX_DBG_LEX ("brace:[");
    SXPARSER_SKIP_WHITESPACE ();
    SXPARSER_SEND ('[');
 }
 
 [\]] {
-   SX_DBG_LEX ("brace:");
+   SX_DBG_LEX ("brace:]");
    SXPARSER_SKIP_WHITESPACE ();
    SXPARSER_SEND (']');
 }
@@ -177,8 +208,6 @@ INCLUDE       ^{SPACE}[#]*include[ ]+
    SXPARSER_SKIP_WHITESPACE ();
    SXPARSER_SEND (',');
 }
-
-{SPACE} { }
 
 (?# --- Strings )
 "\"" {
@@ -204,20 +233,23 @@ INCLUDE       ^{SPACE}[#]*include[ ]+
    SXPARSER_APPEND_STATE ("");
    SxString token = SxString::join (SXPARSER_COLLECT_STATE(), "");
    SXPARSER_POP_STATE ();
+   token = SxParserAst::unescapeStr(token);
    yylval->strPtr = new SxString (token);
    SXPARSER_SEND (TK_STRING);
 }
-<StringState>\n  {
+
+<StringState>[\t\r\n] {
    SX_DBG_LEX ("<String>.#4");
    SXPARSER_POP_STATE ();
-   SxString msg = "Unterminated string";
-   SXPARSER_ERROR (msg);
+   SxString msg = "Unescaped special character: ";
+   SXPARSER_ERROR (msg + yytext);
 }
 
 <StringState>. {
    SXPARSER_POP_STATE ();
    SXPARSER_ERROR (SxString("Invalid UTF-8 character: ") + yytext);
 }
+
 
 (?# --- default fallback: any other character is an error)
 <*>(.|\n)  {

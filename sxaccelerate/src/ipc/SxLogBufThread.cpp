@@ -83,33 +83,33 @@ void SxLogBufThread::main ()
 {
    bool workingLoop = true;
    
-   mutex.lock ();
-   while (workingLoop)  {
-      // --- wait for some messages
-      while (!stopCmd && messages.getSize () < 1)  {
-         condition.wait (&mutex);
-      }
-      
-      // --- collect all messages
-      buffer += SxString::join (messages);
-      messages.removeAll ();
-      
-      // --- print mesages I/O
-      if (buffer.contains ("\n"))  {
-         mutex.unlock ();
-         buffer = write (buffer, false);
-         mutex.lock ();
-      }
-      
-      // --- flush and exit thread main
-      if (stopCmd)  {
-         buffer += SxString(line.elements, lineSize);
-         lineSize = 0;
-         write (buffer, true);
-         workingLoop = false;
+   SX_MUTEX (mutex)  {
+      while (workingLoop)  {
+         // --- wait for some messages
+         while (!stopCmd && messages.getSize () < 1)  {
+            condition.wait (&mutex);
+         }
+
+         // --- collect all messages
+         buffer += SxString::join (messages);
+         messages.removeAll ();
+
+         // --- print mesages I/O
+         if (buffer.contains ("\n"))  {
+            mutex.unlock ();
+            buffer = write (buffer, false);
+            mutex.lock ();
+         }
+
+         // --- flush and exit thread main
+         if (stopCmd)  {
+            buffer += SxString(line.elements, lineSize);
+            lineSize = 0;
+            write (buffer, true);
+            workingLoop = false;
+         }
       }
    }
-   mutex.unlock ();
 }
 
 SxString SxLogBufThread::write (const SxString &line_, bool flush)

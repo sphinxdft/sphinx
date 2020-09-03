@@ -94,6 +94,7 @@ scfDiag             { type="group"; optional;
    printSteps       { type="int"; min=0; optional; }
    dumpTime { type="real"; optional; }
 
+   verboseMixing    { type="flag"; optional; }
    mixingMethod     { type="int"; min=0; max=2; optional; }
    nPulaySteps      { type="int"; min=1; max=50; optional; }
    spinMixing       { type="real"; min=0; max=1; optional; }

@@ -24,6 +24,7 @@
 #include <SxPseudoPot.h>
 #include <SxDensity.h>
 #include <SxDFT.h>
+#include <SxPAWPot.h>
 
 /**
   \brief Electronic charge density \f$\varrho(R)\f$
@@ -46,6 +47,10 @@ class SX_EXPORT_DFT SxRho : public SxDensity
       /** \brief standard constructor */
       SxRho ();
 
+      /// \brief Standard copy constructor
+      SxRho (const SxRho&) = default;
+
+      /// Copy-assignment operator
       void operator= (const SxRho &in);
 
       /** \brief initialization from (spin) density */
@@ -69,7 +74,7 @@ class SX_EXPORT_DFT SxRho : public SxDensity
         */
       SxRho (SxBinIO &io, const SxRBasis* rBasisPtrIn = NULL);
 
-      virtual ~SxRho ();
+      virtual ~SxRho () = default;
 
       /// Return number of spin channels
       inline int getNSpin () const
@@ -159,7 +164,17 @@ class SX_EXPORT_DFT SxRho : public SxDensity
       void displaceHirshfeld (const SxAtomicStructure &toStr,
                               const SxArray<PsiG> &atomRhoG,
                               SxDiracVec<Double> *allAtomRptr = NULL);
-      
+
+      SxArray<double> getHirshfeldEffVolumes (const SxAtomicStructure &toStr,
+                              const SxArray<SxDiracVec<Double>> &atomRhoG,
+                              const SxPAWPot & pawPot,
+                              double gCut,
+                              SxDiracVec<Double> *allAtomRptr = NULL);
+      SxArray<double> getHirshfeldEffCharges (const SxAtomicStructure &toStr,
+                              const SxArray<SxDiracVec<Double>> &atomRhoG,
+                              const SxPAWPot & pawPot,
+                              double gCut,
+                              SxDiracVec<Double> *allAtomRptr = NULL);      
       /** \brief Compute charge density
 
           The charge density will be computed according to

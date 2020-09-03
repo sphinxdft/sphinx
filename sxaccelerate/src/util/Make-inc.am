@@ -18,6 +18,8 @@ include_HEADERS = SxAlg.h \
                   SxContainer.h \
                   SxCrashHandler.h \
                   SxCrashListener.h \
+                  SxEndian.h \
+                  SxEndian.hpp \
                   SxError.h \
                   SxException.h \
                   SxFunction.h \
@@ -48,6 +50,10 @@ include_HEADERS = SxAlg.h \
                   SxSed.h \
                   SxSelection.h \
                   SxSelection.hpp \
+                  SxSerializer.h \
+                  SxSerializer.hpp \
+                  SxSerializerUtil.h \
+                  SxSerializerUtil.hpp \
                   SxSigSlots.h \
                   SxSignals.h \
                   SxSlot.h \
@@ -63,6 +69,7 @@ include_HEADERS = SxAlg.h \
                   SxTree.h \
                   SxTree.hpp \
                   SxTypeDefs.h \
+                  SxUUIDv4.h \
                   SxUnicodeTbl.h \
                   SxUniqueList.h \
                   SxUniqueList.hpp \
@@ -92,6 +99,7 @@ libsxutil_la_SOURCES += SxAllocCache.cpp \
    SxTemplate.cpp \
    SxTimer.cpp \
    SxUtil.cpp \
+   SxUUIDv4.cpp \
    SxVariant.cpp
 
 libsxutil_la_LIBADD   = $(SXIMPORTLIBS)

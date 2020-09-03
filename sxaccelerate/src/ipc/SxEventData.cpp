@@ -18,7 +18,8 @@ SxEventData::SxEventData ()
       offset (0),
       capacity (0),
       data (NULL),
-      eventHash (0)
+      eventHash (0),
+      unused(0)
 {
    SX_TRACE ();
    for (size_t idx = 0; idx < 6; ++idx)
@@ -36,7 +37,8 @@ SxEventData::SxEventData (const SxEventData &in)
       offset (0),
       capacity (in.capacity),
       data (NULL),
-      eventHash (in.eventHash)
+      eventHash (in.eventHash),
+      unused(0)
 {
    for (size_t idx = 0; idx < 6; ++idx)
       layout[idx] = in.layout[idx];

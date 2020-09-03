@@ -585,7 +585,7 @@ void SxGBasis::changeTau (const SxAtomicStructure &tauList)
    UPDATE_MEMORY (structureFactors);
 }
 
-SxDiracVec<TPrecPhase> SxGBasis::getPhaseFactors(int is, int ia) const
+SxDiracVec<TPrecPhase> SxGBasis::getPhaseFactors(ssize_t is, ssize_t ia) const
 {
    SX_CHECK (is >= 0 && is < phaseFactors.getSize (),
              is, phaseFactors.getSize () );
@@ -600,12 +600,12 @@ SxDiracVec<TPrecPhase> SxGBasis::getPhaseFactors(int is, int ia) const
    setupPhase1D (is, ia);
 
    SxDiracVec<TPrecPhase> res = composePhase (phaseFactors(is)(ia));
-   res.handle->auxData.is = is;
-   res.handle->auxData.ia = ia;
+   res.handle->auxData.is = (int)is;
+   res.handle->auxData.ia = (int)ia;
    return res;
 }
 
-SxComplex16 SxGBasis::getPhaseFactors(int is, int ia, ssize_t ig) const
+SxComplex16 SxGBasis::getPhaseFactors(ssize_t is, ssize_t ia, ssize_t ig) const
 {
    SX_CHECK (is >= 0 && is < phaseFactors.getSize (),
              is, phaseFactors.getSize () );
@@ -705,7 +705,7 @@ SxGBasis::get1DPackedVecs () const
    return res;
 }
 
-void SxGBasis::setupPhase1D (int is, int ia) const
+void SxGBasis::setupPhase1D (ssize_t is, ssize_t ia) const
 {
    SX_CHECK (memMode == SaveMemory);
    SX_CHECK (structPtr);
@@ -1141,7 +1141,7 @@ SxGBasis::toRealSpace (const SxRBasis *rBasis_,
    registerBasis(*rBasis_); // does nothing if rBasis_ is already registered
 
    // --- set up fft mesh
-   int ig, ngk   = (int)psiG.getSize ()/nComp;
+   int ngk   = (int)psiG.getSize ()/nComp;
    int idx = getBasisId (rBasis_);
    SX_CHECK (idx >= 0 && idx < fft3d.getSize (), idx, fft3d.getSize ());
 
@@ -1203,14 +1203,13 @@ SxGBasis::toRealSpace (const SxRBasis *rBasis_,
 
 #  ifdef USE_OPENMP
       if (ngk > sxChunkSize)  {
-#        pragma omp parallel for shared(n123Ptr,psiGPtr,ngk) \
-         private(ig) schedule(static)
-         for (ig=0; ig < ngk; ig++)
+#        pragma omp parallel for shared(n123Ptr,psiGPtr,ngk) schedule(static)
+         for (ssize_t ig=0; ig < ngk; ig++)
             fft.setElement (n123Ptr[ig], s * psiGPtr[ig]);
       } else
 #  endif /* USE_OPENMP */
       {
-         for (ig=0; ig < ngk; ig++)
+         for (ssize_t ig=0; ig < ngk; ig++)
             fft.setElement (*n123Ptr++, s * *psiGPtr++);
       }
 

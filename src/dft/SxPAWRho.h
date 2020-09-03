@@ -29,8 +29,11 @@
 class SX_EXPORT_DFT SxPAWRho : public SxDensity
 {
    public:
-      /// Constructor
-      SxPAWRho () { /* empty */ }
+      /// Empty constructor
+      SxPAWRho () = default;
+
+      /// Copy constructor
+      SxPAWRho (const SxPAWRho&) = default;
 
       /// Constructor
       SxPAWRho (const SxConstPtr<SxPAWPot> &pawPot);
@@ -72,7 +75,7 @@ class SX_EXPORT_DFT SxPAWRho : public SxDensity
       ///@}
 
       /** \brief Difference of two densities
-        \note The return value must be an indirect density 
+        \note The return value must be an indirect density
         with a pointer to the specific density type.
         */
       virtual SxDensity operator- (const SxDensity &x) const;

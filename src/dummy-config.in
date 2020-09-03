@@ -75,6 +75,9 @@
 /* Define to 1 if you have the `atlas' library (-latlas). */
 #undef HAVE_LIBATLAS
 
+/* Define to 1 if you have the `blas' library (-lblas). */
+#undef HAVE_LIBBLAS
+
 /* Define to 1 if you have the `f2c' library (-lf2c). */
 #undef HAVE_LIBF2C
 
@@ -186,6 +189,9 @@
 /* The size of `void*', as computed by sizeof. */
 #undef SIZEOF_VOIDP
 
+/* compile with static C/C++ runtime */
+#undef STATIC_LIBC
+
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
 
@@ -215,6 +221,9 @@
 
 /* Setup mobile compilation */
 #undef SX_MOBILE
+
+/* Thread syncronisation tracer tool */
+#undef THREADTRACER
 
 /* Output of uname(1) */
 #undef UNAME
@@ -254,6 +263,9 @@
 
 /* compile package with support for NetCDF4 IO */
 #undef USE_NETCDF4
+
+/* compile package with generic netlib-compatible BLAS/LAPACK support */
+#undef USE_NETLIB
 
 /* compile package with OpenMP support */
 #undef USE_OPENMP

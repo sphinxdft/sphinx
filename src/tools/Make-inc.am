@@ -6,7 +6,7 @@
 
 include_HEADERS = 
 
-bin_PROGRAMS     = sx2aims sx2dx sx2gwst sx2pdb sx2poscar sx2xsf sx2xyz sxaojoin sxaomat sxatomicspin sxb2bspectrum sxbader sxbandaodecomp sxbandinfo sxcalcpot sxcalcquamoloverlap sxcheckinput sxdefectalign sxdefectalign2d sxeffmass sxelnes sxepscontrib sxepscontribpaw sxepsprint sxepsslope sxestimate sxextopt sxfastbs sxfindk sxforces sxgetfermi sxharmpottst sxinterpol sxkpprint sxlocalenergy sxmeshline sxmeshtrace sxmies sxmulliken sxpdos sxpespectrum sxposmatel sxprintocc sxrho2dx sxrhodiff sxrhograd sxrhorep sxrhosplit sxrictst sxsawtooth sxstructcom sxstructdiff sxstructjoin sxstructparam sxstructpatch sxstructprint sxstructrel sxstructrep sxstructrot sxstructshift sxstructsort sxstructsym sxsym sxtdos sxuniqdispl sxwaveh5tosxb sxwavesym sxwavetransfer sxzdos 
+bin_PROGRAMS     = sx2aims sx2dx sx2gwst sx2pdb sx2poscar sx2xsf sx2xyz sxaojoin sxaomat sxatomicspin sxb2bspectrum sxbader sxbandaodecomp sxbandinfo sxcalcpot sxcalcquamoloverlap sxcheckinput sxdefectalign sxdefectalign2d sxeffmass sxelnes sxepscontrib sxepscontribpaw sxepsprint sxepsslope sxestimate sxextopt sxfastbs sxfindk sxforces sxgetfermi sxharmpottst sxinterpol sxkpprint sxlocalenergy sxmeshiso sxmeshline sxmeshtrace sxmies sxmulliken sxpdos sxpespectrum sxposmatel sxprintocc sxrho2dx sxrhodiff sxrhograd sxrhorep sxrhosplit sxrictst sxsawtooth sxstructcom sxstructdiff sxstructjoin sxstructparam sxstructpatch sxstructprint sxstructrel sxstructrep sxstructrot sxstructshift sxstructsort sxstructsym sxsym sxtdos sxuniqdispl sxwaveh5tosxb sxwavesym sxwavetransfer sxzdos 
 
 sx2aims_SOURCES   = $(AUX_SRC)
 sx2aims_SOURCES  += Sx2Aims.cpp
@@ -252,6 +252,13 @@ sxlocalenergy_CPPFLAGS  = $(AM_CPPFLAGS) -DSXLIBTOOL="\"@SXLIBTOOL@\""
 sxlocalenergy_LDADD     =  $(SXIMPORTLIBS)
 sxlocalenergy_LDADD    +=  @SX_FFT_LIBS@ @SX_BLAS_LIBS@
 sxlocalenergy_LDADD    +=  $(SXIMPORTOBJS)
+
+sxmeshiso_SOURCES   = $(AUX_SRC)
+sxmeshiso_SOURCES  += SxMeshIso.cpp
+sxmeshiso_CPPFLAGS  = $(AM_CPPFLAGS) -DSXLIBTOOL="\"@SXLIBTOOL@\""
+sxmeshiso_LDADD     =  $(SXIMPORTLIBS)
+sxmeshiso_LDADD    +=  @SX_FFT_LIBS@ @SX_BLAS_LIBS@
+sxmeshiso_LDADD    +=  $(SXIMPORTOBJS)
 
 sxmeshline_SOURCES   = $(AUX_SRC)
 sxmeshline_SOURCES  += SxMeshLine.cpp

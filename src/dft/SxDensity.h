@@ -87,7 +87,7 @@ SxDensity SxMyDensity::operator- (const SxDensity &x)
       explicit SxDensity (const SxPtr<SxDensity> &inPtr);
 
       /// Destructor
-      virtual ~SxDensity () { /* empty */ }
+      virtual ~SxDensity () = default;
 
       /// Get reference to derived class (if possible)
       template<class T>
@@ -114,6 +114,9 @@ SxDensity SxMyDensity::operator- (const SxDensity &x)
 
       /// Assign from a density
       virtual void operator= (const SxDensity &);
+
+      /// Copy constructor
+      SxDensity (const SxDensity&) = default;
 
       ///\name Vector-like operations
       ///@{

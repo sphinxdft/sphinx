@@ -46,33 +46,37 @@ extern int SxJSONParser_debug;
   enum yytokentype
   {
     TK_INTEGER = 258,
-    TK_FLOAT = 259,
+    TK_REAL = 259,
     TK_BOOL = 260,
     TK_NULL = 261,
-    TK_STRING = 262
+    TK_STRING = 262,
+    TK_GRPDOC_BEGIN = 263,
+    TK_GRPDOC_END = 264
   };
 #endif
 /* Tokens.  */
 #define TK_INTEGER 258
-#define TK_FLOAT 259
+#define TK_REAL 259
 #define TK_BOOL 260
 #define TK_NULL 261
 #define TK_STRING 262
+#define TK_GRPDOC_BEGIN 263
+#define TK_GRPDOC_END 264
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 
 union YYSTYPE
 {
-#line 24 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:1909  */
+#line 26 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:1909  */
 
-   ssize_t   intVal;
+   int64_t   intVal;
    bool      boolVal;
-   double    floatVal;
+   double    realVal;
    SxString *strPtr;
    SxGProps *nPtr;
 
-#line 76 "SxJSONParser.tab.hpp" /* yacc.c:1909  */
+#line 80 "SxJSONParser.tab.hpp" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

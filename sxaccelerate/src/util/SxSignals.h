@@ -50,6 +50,7 @@
                    strncpy (slot, slot_, 79);
                    slot[79] = '\0';
                 }
+                slotTag[0] = '\0';
                 setSlotTag (signalName);
              }
              ~SxSigDbgInfo () {}

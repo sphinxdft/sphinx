@@ -125,7 +125,7 @@ SxRBasis::toGSpace (const SxGBasis *gBasis,
    SX_CHECK (gBasis->nComp == nComp, gBasis->nComp, nComp);
 
    // --- set up fft mesh
-   int ig, ng = gBasis->ng;
+   int ng = gBasis->ng;
    int idx = gBasis->getBasisId (this);
    int size = (int)psiR.getSize() / nComp;
    SX_CHECK (idx >=0 && idx < gBasis->n123.getSize (),
@@ -181,7 +181,7 @@ SxRBasis::toGSpace (const SxGBasis *gBasis,
       //      } else
       //#  endif /* USE_OPENMP */
       {
-         for (ig=0; ig < ng; ig++)
+         for (ssize_t ig=0; ig < ng; ig++)
             *destPtr++ = psiWork.elements[*n123Ptr++] * fft3d.scaleRevFFT;
       }
    }

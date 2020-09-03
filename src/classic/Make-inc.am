@@ -4,12 +4,21 @@
 # From the source folder
 
 
-include_HEADERS = SxClassic.h SxEAM.h SxForst.h SxForstData.h SxStillingerWeber.h SxTaylorExpPotential.h SxVDW.h
-
+include_HEADERS = SxClassic.h \
+                  SxEAM.h \
+                  SxForst.h \
+                  SxForstData.h \
+                  SxStillingerWeber.h \
+                  SxTaylorExpPotential.h
 
 lib_LTLIBRARIES       = libsxclassic.la
 libsxclassic_la_SOURCES  = $(AUX_SRC)
-libsxclassic_la_SOURCES += SxEAM.cpp SxForst.cpp SxForstData.cpp SxStillingerWeber.cpp SxTaylorExpPotential.cpp SxVDW.cpp 
+libsxclassic_la_SOURCES += SxEAM.cpp \
+   SxForst.cpp \
+   SxForstData.cpp \
+   SxStillingerWeber.cpp \
+   SxTaylorExpPotential.cpp
+
 libsxclassic_la_LIBADD   = $(SXIMPORTLIBS)
 libsxclassic_la_LIBADD  += 
 libsxclassic_la_LIBADD  += $(SXIMPORTOBJS)

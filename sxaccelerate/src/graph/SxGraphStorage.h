@@ -27,11 +27,11 @@
       {                                                                       \
          this->removeElem (idx);                                              \
       }                                                                       \
-      VV<TT> &get (ssize_t idx)                                               \
+      VV &get (ssize_t idx)                                                   \
       {                                                                       \
          return this->getElem (idx);                                          \
       }                                                                       \
-      const VV<TT> &get (ssize_t idx) const                                   \
+      const VV &get (ssize_t idx) const                                       \
       {                                                                       \
          return this->getElem (idx);                                          \
       }                                                                       \
@@ -39,9 +39,29 @@
       {                                                                       \
          return this->getIdx (elem);                                          \
       }                                                                       \
+      ssize_t first () const                                                  \
+      {                                                                       \
+         return this->getFirstIdx ();                                         \
+      }                                                                       \
+      ssize_t next (ssize_t currIdx) const                                    \
+      {                                                                       \
+         return this->getNextIdx (currIdx);                                   \
+      }                                                                       \
+      ssize_t prev (ssize_t currIdx) const                                    \
+      {                                                                       \
+         return this->getPrevIdx (currIdx);                                   \
+      }                                                                       \
       bool contains (ssize_t idx)                                             \
       {                                                                       \
          return this->containsElem (idx);                                     \
+      }                                                                       \
+      ssize_t getSize () const                                                \
+      {                                                                       \
+         return this->getNElems ();                                           \
+      }                                                                       \
+      size_t getNBytes () const                                               \
+      {                                                                       \
+         return this->getSizeBytes ();                                        \
       }                                                                       \
       void removeAll () {                                                     \
          this->removeElems ();                                                \

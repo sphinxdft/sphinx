@@ -357,7 +357,6 @@ void SxAOBasis::computeRefOrbitals
 
 SxDiracMat<TAOBasisType> SxAOBasis::calculateOverlap (int ik) const
 {
-   int iOrb;
 #ifndef NDEBUG
    if (cacheRefOrb == CacheAll)  {
       int nk = int(refOrbitals.getSize ());
@@ -372,17 +371,16 @@ SxDiracMat<TAOBasisType> SxAOBasis::calculateOverlap (int ik) const
    SX_CLOCK (Timer::AoTotalTime);
    SX_CLOCK (Timer::AoOverlap);
    SxDiracMat<TAOBasisType> ovlp(nOrb, nOrb);
-   TPsi aoMu, aoNu;
    TAOBasisType::Type SMuNu;
    SxOverlap S(SPtr);
-   //SxAOBasisProj aop(*this, ik);
-   // --- high-mem
-   /*
    const SxGBasis *gBasis = dynamic_cast<const SxGBasis*>
                            (refOrbitals(ik)(0).getBasisPtr ());
    SX_CHECK (gBasis);
    int ng = gBasis->ng;
-   aoMu.reformat(ng, nOrb);
+   // --- high-mem
+   /*
+   //SxAOBasisProj aop(*this, ik);
+   TPsi aoMu.reformat(ng, nOrb);
    for (iOrb = 0; iOrb < nOrb; ++iOrb)
       aoMu.colRef(iOrb) <<= S | getAOinG(ik, iOrb);
    ovlp = aop.getProjection(aoMu);
@@ -390,24 +388,24 @@ SxDiracMat<TAOBasisType> SxAOBasis::calculateOverlap (int ik) const
 
    // ---medium-mem
    ovlp.reformat(nOrb, nOrb);
-   // todo: blocking on iOrb
-   for (iOrb = 0; iOrb < nOrb; ++iOrb)  {
-      //ovlp.colRef(iOrb) <<= aop.getProjection(S | getAOinG(ik, iOrb));
-      ovlp.colRef(iOrb) <<= fromPWBasis (getAOinG(ik, iOrb));
-   }
-
-   /*
-   // --- low-mem
-   for (iOrb = 0; iOrb < nOrb; ++iOrb)  {
-      aoMu = getAOinG (ik, iOrb);
-      for (jOrb = iOrb; jOrb < nOrb; ++jOrb)  {
-         aoNu = S | getAOinG(ik, jOrb);
-         SMuNu = dot(aoMu,aoNu);
-         ovlp(iOrb,jOrb) = SMuNu;
-         ovlp(jOrb,iOrb) = SMuNu.conj ();
+   int nblock = 64;
+   TPsi muBlock;
+   for (int iOrb = 0, ib = 0; iOrb < nOrb; /* inside */)  {
+      if (ib == 0)  {
+         if (iOrb + nblock > nOrb) nblock = nOrb - iOrb;
+         muBlock.reformat (ng, nblock);
+         muBlock.setBasis (gBasis);
+         muBlock.handle->auxData.ik = ik;
+      }
+      muBlock.colRef (ib) <<= getAOinG(ik, iOrb + ib);
+      if (++ib == nblock)  {
+         SxIdx idx(iOrb * nOrb, (iOrb + nblock) * nOrb - 1);
+         ovlp(idx) <<= fromPWBasis (muBlock);
+         iOrb += nblock;
+         ib = 0;
       }
    }
-   */
+
    return ovlp;
 }
 

@@ -11,11 +11,12 @@ sxmacroheaders="
   ${sxbase}/util/SxAutoLoop.h
   ${sxbase}/util/SxError.h
   ${sxbase}/util/SxMemConsumer.h
-  ${sxbase}/util/SxOperator.h
+  ${sxbase}/math/SxOperator.h
   ${sxbase}/util/SxTimer.h
   ${sxbase}/io/SxSimpleParser.h
-  ${sxbase}/ipc/SxMPIMgr.h
-  ${sxbase}/math/SxLoopMPI.h
+  ${sxbase}/mpi/SxMPIMgr.h
+  ${sxbase}/mpi/SxLoopMPI.h
+  ${sxbase}/math/SxGemmm.cpp
   dirac/SxProjMatrix.h
   dirac/SxBasis.h
 "

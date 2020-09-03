@@ -19,6 +19,7 @@
 #include <SxPtr.h>
 #include <SxIPC.h>
 #include <SxSigSlots.h>
+#include <SxException.h>
 
 class SxThreadPool;
 

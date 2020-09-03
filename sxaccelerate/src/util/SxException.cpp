@@ -15,12 +15,16 @@
 #include <SxList.h>
 #include <SxError.h>
 #include <SxConfig.h>
+#include <SxHashFunction.h>
 
 atomic<bool> SxException::dumpCoreFile(false);
 
 SxException::SxException ()
    : message(),
      tag(),
+     subTag(),
+     tagHash(0),
+     subtagHash(0),
      senderFile (),
      senderLine (-1),
      next(NULL),
@@ -33,6 +37,9 @@ SxException::SxException ()
 SxException::SxException (const SxException &in)
    : message(),
      tag(),
+     subTag(),
+     tagHash(0),
+     subtagHash(0),
      senderFile (),
      senderLine (in.senderLine),
      next(NULL),
@@ -65,6 +72,9 @@ SxException::SxException (const SxString &message_,
                           const SxString &senderFile_, int senderLine_)
    : message(),
      tag(),
+     subTag(),
+     tagHash(0),
+     subtagHash(0),
      senderFile (),
      senderLine (senderLine_),
      next(NULL),
@@ -76,7 +86,7 @@ SxException::SxException (const SxString &message_,
    try {
       set_new_handler(NULL);
       tail = this;
-      init (message_, "", senderFile_, senderLine_);
+      init (message_, "", senderFile_);
    } catch (std::bad_alloc &excep) {
       SX_UNUSED(excep);
       std::cerr << std::endl << message_ << std::endl;
@@ -102,6 +112,9 @@ SxException::SxException (const SxString &tag_, const SxString &message_,
                           const SxString &senderFile_, int senderLine_)
    : message(),
      tag(),
+     subTag(),
+     tagHash(0),
+     subtagHash(0),
      senderFile (),
      senderLine (senderLine_),
      next(NULL),
@@ -113,7 +126,7 @@ SxException::SxException (const SxString &tag_, const SxString &message_,
    try {
       set_new_handler(NULL);
       tail = this;
-      init (message_, tag_, senderFile_, senderLine_);
+      init (message_, tag_, senderFile_);
    } catch (std::bad_alloc &excep) {
       SX_UNUSED(excep);
       std::cerr << std::endl << message_ << std::endl;
@@ -141,6 +154,9 @@ SxException::SxException (const SxException &chain_,
                           const SxString &senderFile_, int senderLine_)
    : message(),
      tag(),
+     subTag(),
+     tagHash(0),
+     subtagHash(0),
      senderFile (),
      senderLine (senderLine_),
      next(NULL),
@@ -154,7 +170,7 @@ SxException::SxException (const SxException &chain_,
       set_new_handler(NULL);
       next = new SxException();
       next->copy (chain_);
-      init (message_, "", senderFile_, senderLine_);
+      init (message_, "", senderFile_);
       this->tail = next->tail;
    } catch (std::bad_alloc &excep) {
       SX_UNUSED(excep);
@@ -165,14 +181,23 @@ SxException::SxException (const SxException &chain_,
       int strSize = 0;
       while (ptr) {
          cerr << counter++ << ": ";
+         if (ptr->tag.getSize () > 0)
+            cerr << "[" << ptr->tag << ", " << ptr->subTag << "] ";
          if (ptr->message.getSize () > 0) cerr << ptr->message << " ";
          strSize = (int)ptr->senderFile.getSize ();
          i = strSize - 1;
          while (i >= 0 && ptr->senderFile(i) != '\\' &&
                 ptr->senderFile(i) != '/') i--;
          cerr << "(";
-         while ((i+1) < strSize)  { cerr << ptr->senderFile(i+1); i++; }
-         cerr << ":" << ptr->senderLine << ")" << endl;
+         while (((ssize_t)i+1) < strSize)  { cerr << ptr->senderFile((ssize_t)i+1); i++; }
+         cerr << ":" << ptr->senderLine << ")";
+         ssize_t argSize = ptr->arguments.getSize ();
+         if (argSize > 0) {
+            cerr << " ";
+            for (const SxVariant &v : ptr->arguments)
+               cerr << v << " ";
+         }
+         cerr << endl;
          ptr = ptr->prev;
       }
       cerr << counter++ << ": ";
@@ -181,7 +206,7 @@ SxException::SxException (const SxException &chain_,
       i = strSize - 1;
       while (i >= 0 && senderFile_(i) != '\\' && senderFile_(i) != '/') i--;
       cerr << "(";
-      while ((i+1) < strSize)  { cerr << senderFile_(i+1); i++; }
+      while (((ssize_t)i+1) < strSize)  { cerr << senderFile_((ssize_t)i+1); i++; }
       cerr << ":" << senderLine_ << ")" << endl;
       sxOutOfMemoryHandler ();
    }
@@ -202,6 +227,9 @@ SxException::SxException (const SxException &chain_,
                           const SxString &senderFile_, int senderLine_)
    : message(),
      tag(),
+     subTag(),
+     tagHash(0),
+     subtagHash(0),
      senderFile (),
      senderLine (senderLine_),
      next(NULL),
@@ -214,7 +242,7 @@ SxException::SxException (const SxException &chain_,
       set_new_handler(NULL);
       next = new SxException();
       next->copy (chain_);
-      init (message_, tag_, senderFile_, senderLine_);
+      init (message_, tag_, senderFile_);
       this->tail = next->tail;
    } catch (std::bad_alloc &excep) {
       SX_UNUSED(excep);
@@ -225,15 +253,23 @@ SxException::SxException (const SxException &chain_,
       int strSize = 0;
       while (ptr) {
          cerr << counter++ << ": ";
-         if (ptr->tag.getSize () > 0)  cerr << "[" << ptr->tag << "] ";
+         if (ptr->tag.getSize () > 0)
+            cerr << "[" << ptr->tag << ", " << ptr->subTag << "] ";
          if (ptr->message.getSize () > 0) cerr << ptr->message << " ";
          strSize = (int)ptr->senderFile.getSize ();
          i = strSize - 1;
          while (i >= 0 && ptr->senderFile(i) != '\\' &&
                 ptr->senderFile(i) != '/') i--;
          cerr << "(";
-         while ((i+1) < strSize)  { cerr << ptr->senderFile(i+1); i++; }
-         cerr << ":" << ptr->senderLine << ")" << endl;
+         while (((ssize_t)i+1) < strSize)  { cerr << ptr->senderFile((ssize_t)i+1); i++; }
+         cerr << ":" << ptr->senderLine << ")";
+         ssize_t argSize = ptr->arguments.getSize ();
+         if (argSize > 0) {
+            cerr << " ";
+            for (const SxVariant &v : ptr->arguments)
+               cerr << v << " ";
+         }
+         cerr << endl;
          ptr = ptr->prev;
       }
       cerr << counter++ << ": ";
@@ -243,8 +279,9 @@ SxException::SxException (const SxException &chain_,
       i = strSize - 1;
       while (i >= 0 && senderFile_(i) != '\\' && senderFile_(i) != '/') i--;
       cerr << "(";
-      while ((i+1) < strSize)  { cerr << senderFile_(i+1); i++; }
+      while (((ssize_t)i+1) < strSize)  { cerr << senderFile_((ssize_t)i+1); i++; }
       cerr << ":" << senderLine_ << ")" << endl;
+
       sxOutOfMemoryHandler ();
    }
    set_new_handler(sxOutOfMemoryHandler);
@@ -259,6 +296,133 @@ SxException::SxException (const SxException &chain_,
    }
 }
 
+SxException::SxException (const SxString &tag_,
+                          uint32_t tagHash_,
+                          const SxString &subTag_,
+                          uint32_t subtagHash_,
+                          const SxList<SxVariant> &args,
+                          const SxString &senderFile_,
+                          int senderLine_)
+   : message(),
+     tag(),
+     subTag(),
+     tagHash(tagHash_),
+     subtagHash(subtagHash_),
+     senderFile (),
+     senderLine (senderLine_),
+     next(NULL),
+     prev(NULL),
+     tail(NULL)
+{
+   SX_DBG_MSG ("throwing (" << tag_ << "," << subTag_<< ")" << " from "
+                            << senderFile_ << ":" << senderLine_);
+   try {
+      set_new_handler(NULL);
+      tail = this;
+      init (tag_, subTag_, args, senderFile_);
+   } catch (std::bad_alloc &excep) {
+      SX_UNUSED(excep);
+      std::cerr << std::endl << tag_ << "," << subTag_ << std::endl;
+      std::cerr << args << std::endl;
+      std::cerr << "This Exception was emitted from "
+                << senderFile_
+                << " (line " << senderLine_ << ")\n";
+      sxOutOfMemoryHandler ();
+   }
+   set_new_handler(sxOutOfMemoryHandler);
+
+   if (dumpCoreFile)  {
+      print ();
+#     ifndef SX_ANDROID
+         fflush (stdout);
+         fflush (stderr);
+#     endif
+      SX_BREAK;
+   }
+
+}
+
+SxException::SxException (const SxException &chain_,
+                          const SxString &tag_,
+                          uint32_t tagHash_,
+                          const SxString &subTag_,
+                          uint32_t subtagHash_,
+                          const SxList<SxVariant> &args,
+                          const SxString &senderFile_,
+                          int senderLine_)
+   : message(),
+     tag(),
+     subTag(),
+     tagHash(tagHash_),
+     subtagHash(subtagHash_),
+     senderFile (),
+     senderLine (senderLine_),
+     next(NULL),
+     prev(NULL),
+     tail(NULL)
+{
+   SX_DBG_MSG ("throwing (" << tag_ << "," << subTag_<< ")" << " from "
+                            << senderFile_ << ":" << senderLine_);
+   try {
+      set_new_handler(NULL);
+      next = new SxException();
+      next->copy (chain_);
+      init (tag_, subTag_, args, senderFile_);
+      this->tail = next->tail;
+   } catch (std::bad_alloc &excep) {
+      SX_UNUSED(excep);
+      cerr << "Exception Stack: \n";
+      const SxException *ptr = chain_.tail;
+      int counter = 1;
+      int i = 0;
+      int strSize = 0;
+      while (ptr) {
+         cerr << counter++ << ": ";
+         if (ptr->tag.getSize () > 0)
+            cerr << "[" << ptr->tag << ", " << ptr->subTag << "] ";
+         if (ptr->message.getSize () > 0) cerr << ptr->message << " ";
+         strSize = (int)ptr->senderFile.getSize ();
+         i = strSize - 1;
+         while (i >= 0 && ptr->senderFile(i) != '\\' &&
+                ptr->senderFile(i) != '/') i--;
+         cerr << "(";
+         while (((ssize_t)i+1) < strSize)  { cerr << ptr->senderFile((ssize_t)i+1); i++; }
+         cerr << ":" << ptr->senderLine << ")";
+         ssize_t argSize = ptr->arguments.getSize ();
+         if (argSize > 0) {
+            cerr << " ";
+            for (const SxVariant &v : ptr->arguments)
+               cerr << v << " ";
+         }
+         cerr << endl;
+         ptr = ptr->prev;
+      }
+      cerr << counter++ << ": ";
+      cerr << "[" << tag_, subTag_ << "] ";
+      strSize = (int)senderFile_.getSize ();
+      i = strSize - 1;
+      while (i >= 0 && senderFile_(i) != '\\' && senderFile_(i) != '/') i--;
+      cerr << "(";
+      while (((ssize_t)i+1) < strSize)  { cerr << senderFile_((ssize_t)i+1); i++; }
+      cerr << ":" << senderLine_ << ")";
+      cerr << " ";
+      for (const SxVariant &v : args) {
+         cerr << v << " ";
+      }
+      cerr << endl;
+      sxOutOfMemoryHandler ();
+   }
+   set_new_handler(sxOutOfMemoryHandler);
+
+   if (dumpCoreFile)  {
+      print ();
+#     ifndef SX_ANDROID
+         fflush (stdout);
+         fflush (stderr);
+#     endif
+      SX_BREAK;
+   }
+}
 
 SxException::~SxException ()
 {
@@ -271,22 +435,36 @@ SxException &SxException::operator= (const SxException &in)
       copy (in);
    }
    return *this;
-} 
+}
 
 void SxException::init (const SxException &in)
 {
-   init (in.message, in.tag, in.senderFile, in.senderLine);
+   init (in.message, in.tag, in.senderFile);
+   subTag     = in.subTag;
+   tagHash    = in.tagHash;
+   subtagHash = in.subtagHash;
+   arguments  = in.arguments;
+   senderLine = in.senderLine;
 }
 
 void SxException::init (const SxString &message_,
                         const SxString &tag_,
-                        const SxString &senderFile_,
-                        int            senderLine_)
+                        const SxString &senderFile_)
 {
    message    = message_;
    tag        = tag_;
    senderFile = senderFile_;
-   senderLine = senderLine_;
+}
+
+void SxException::init (const SxString &tag_,
+                        const SxString &subTag_,
+                        const SxList<SxVariant> &args,
+                        const SxString &senderFile_)
+{
+   tag = tag_;
+   subTag = subTag_;
+   arguments = args;
+   senderFile = senderFile_;
 }
 
 void SxException::destroy ()
@@ -339,7 +517,20 @@ void SxException::print (bool printSender) const
 {
    const SxException *ptr = this;
    while (ptr)  {
-      std::cerr << std::endl << ptr->message << std::endl;
+      std::cerr << std::endl;
+      if (tag.getSize () > 0) {
+         std::cerr << "[" << ptr->tag << ", " << ptr->subTag << "]";
+      }
+      ssize_t argSize = ptr->arguments.getSize ();
+      if (argSize > 0) {
+         std::cerr << " ";
+         for (const SxVariant &v : ptr->arguments)
+             std::cerr << v.toString () << " ";
+         std::cerr << std::endl;
+      }
+      if (ptr->message != "")
+         std::cerr << ptr->message << std::endl;
+
       if (printSender)
          std::cerr << "This Exception was emitted from "
                    << ptr->senderFile
@@ -367,9 +558,15 @@ SxString SxException::toString (int mode,
          str = " (" + str + ":" + SxString(ptr->senderLine) + ")";
       }
       if (mode & Stack && ptr->tag.getSize () > 0)  {
-         type = "[" + SxString(ptr->tag) + "] ";
+         type = "[" + ptr->tag + ", " + ptr->subTag + "] ";
       }
       str = type + ptr->message + str;
+      ssize_t argSize = ptr->arguments.getSize ();
+      if (argSize > 0) {
+         str += " ";
+         for (const SxVariant &v : ptr->arguments)
+             str += v.toString () + " ";
+      }
       list.prepend (str);
       ptr = ptr->next;
    }
@@ -391,15 +588,22 @@ void SxException::printStack (const SxString &delimiter_) const
    int strSize = 0;
    while (ptr) {
       cerr << counter++ << ": ";
-      if (ptr->tag.getSize () > 0)  cerr << "[" << ptr->tag << "] ";
+      if (ptr->tag.getSize () > 0)
+         cerr << "[" << ptr->tag << ", " << ptr->subTag << "] ";
       if (ptr->message.getSize () > 0) cerr << ptr->message << " ";
       strSize = (int)ptr->senderFile.getSize ();
       i = strSize - 1;
       while (i >= 0 && ptr->senderFile(i) != '\\' && ptr->senderFile(i) != '/')
          i--;
       cerr << "(";
-      while ((i+1) < strSize)  { cerr << ptr->senderFile(i+1); i++; }
+      while (((ssize_t)i+1) < strSize)  { cerr << ptr->senderFile((ssize_t)i+1); i++; }
       cerr << ":" << ptr->senderLine << ")";
+      ssize_t argSize = ptr->arguments.getSize ();
+      if (argSize > 0) {
+         cerr << " ";
+         for (const SxVariant &v : ptr->arguments)
+            cerr << v << " ";
+      }
       cerr << delimiter_;
       ptr = ptr->prev;
    }
@@ -423,4 +627,55 @@ bool SxException::findTag (const SxString &tag_) const
    return false;
 }
 
+bool SxException::foundTagHash (uint32_t tagHash_) const
+{
+   SxException *it = this->tail;
+   SX_CHECK (it);
 
+   do {
+      if (it->tagHash == tagHash_) return true;
+   } while ((it = it->next));
+   return false;
+}
+
+bool SxException::foundSubtagHash (uint32_t subtagHash_) const
+{
+   SxException *it = this->tail;
+   SX_CHECK (it);
+   do {
+      if (it->subtagHash == subtagHash_) return true;
+   } while ((it = it->next));
+   return false;
+}
+
+/* This exception table is populated by static initialization; before
+ * entering main (). Currently, accesses to this map are NOT thread safe.
+ * Potential races may occur by dynamically loading libraries from threads
+ * different from main, if those libraries also use SX_EXCEPTION_TYPE macros.
+*/
+
+SxMap<SxString, SxMap<SxString,SxList<SxString> > > &getExceptionTable ()
+{
+   static SxMap<SxString, SxMap<SxString, SxList<SxString> > > exceptionTable;
+   return exceptionTable;
+}
+
+static void SxException_addTableEntry (
+   SxString tag,
+   SxString subtag,
+   SxList<SxString> argNames)
+{
+   SxMap<SxString, SxMap<SxString,SxList<SxString> > > &exceptionTable
+      = getExceptionTable ();
+   (exceptionTable(tag))(subtag) = argNames;
+}
+
+SxExceptionEntry::SxExceptionEntry (
+   const char *tag_,
+   const char *subtag_,
+   const SxList<SxString> &argNames)
+{
+   SxString tag (tag_);
+   SxString subtag (subtag_);
+   SxException_addTableEntry (tag, subtag, argNames);
+}

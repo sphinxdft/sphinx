@@ -11,9 +11,9 @@
 // ---------------------------------------------------------------------------
  
 #include <SxProcess.h> 
-#include <SxConfig.h> 
+#include <SxConfig.h>
 #include <SxTime.h>
-#include <stdlib.h> 
+#include <stdlib.h>
 #ifdef HAVE_SYS_TYPES_H
 #  include <sys/types.h> 
 #endif
@@ -37,6 +37,7 @@
 #include <errno.h>
 
 #ifdef WIN32
+#  include <SxUUIDv4.h>
 #  include <windows.h>
 //#  include <process.h>
 #  include <sxputenv.h>
@@ -159,12 +160,15 @@ bool SxProcess::isRunning () const
 SxProcess::SxProcExecuter::SxProcExecuter (SxProcess *obj_, const SxString &cmd_)
    : SxSystemThread (),
      obj(obj_), cmd(cmd_),
+     mainProc(NULL),
      processExitStatus(0),
      processExitSignal(0),
      pid(0),
+     thread0ID(0),
      gotPid(false),
      hiddenWindow(false),
-     jobObjectHndl(NULL)
+     jobObjectHndl(NULL),
+     jobSigPort(NULL)
 {
    // empty
 }
@@ -252,16 +256,18 @@ void SxProcess::SxProcExecuter::createProcess (const SxString &cmd)
 
    // -- create suspended process
    int success;
+   // required to be TRUE for IO redirection
+   bool bInheritHandles = usePipes;
    if (cmd.isUnicode ()) {
       LPSTARTUPINFOW siWPtr = (STARTUPINFOW *)&si;
       success = CreateProcessW (NULL, (LPWSTR)cmd.utf16 ().elements,        
-         NULL, NULL, FALSE, CREATE_SUSPENDED,
+         NULL, NULL, bInheritHandles, CREATE_SUSPENDED,
          NULL, NULL, siWPtr, &procInfo);
       SX_DBG_MSG ("Process " << cmd << " created: " 
                   << (success ? "successful" : "failed"));
    } else  {
       success = CreateProcessA (NULL, (LPSTR)cmd.ascii (),
-         NULL, NULL, FALSE, CREATE_SUSPENDED,
+         NULL, NULL, bInheritHandles, CREATE_SUSPENDED,
          NULL, NULL, &si, &procInfo);
       SX_DBG_MSG ("Process " << cmd << " created: "
                   << (success ? "successful" : "failed"));
@@ -371,11 +377,15 @@ void SxProcess::SxProcExecuter::createJobObject ()
    // --- specify job object limits
    JOBOBJECT_EXTENDED_LIMIT_INFORMATION jobInfo;
    ::ZeroMemory (&jobInfo, sizeof (jobInfo));
-   jobInfo.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE | JOB_OBJECT_LIMIT_BREAKAWAY_OK;
+   jobInfo.BasicLimitInformation.LimitFlags
+      = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE | JOB_OBJECT_LIMIT_BREAKAWAY_OK;
    // limit maximal application time if required
    if (obj->processTimeout > 0)  {
-      jobInfo.BasicLimitInformation.PerJobUserTimeLimit.QuadPart = obj->processTimeout * 1e7; // time in 100 ns
-      jobInfo.BasicLimitInformation.LimitFlags = jobInfo.BasicLimitInformation.LimitFlags | JOB_OBJECT_LIMIT_JOB_TIME;
+      jobInfo.BasicLimitInformation.PerJobUserTimeLimit.QuadPart
+         = (int64_t)(obj->processTimeout * 10000000LL); // time in 100 ns
+      jobInfo.BasicLimitInformation.LimitFlags
+         = jobInfo.BasicLimitInformation.LimitFlags
+         | JOB_OBJECT_LIMIT_JOB_TIME;
    }
    if (!::SetInformationJobObject(hJobObj, JobObjectExtendedLimitInformation,
       &jobInfo, sizeof (jobInfo)))  {
@@ -390,7 +400,9 @@ void SxProcess::SxProcExecuter::createJobObject ()
    JOBOBJECT_ASSOCIATE_COMPLETION_PORT port;
    port.CompletionKey = jobObjectHndl;
    port.CompletionPort = jobSigPort;
-   SetInformationJobObject (jobObjectHndl, JobObjectAssociateCompletionPortInformation, &port, sizeof(port));
+   SetInformationJobObject (jobObjectHndl,
+                            JobObjectAssociateCompletionPortInformation,
+                            &port, sizeof(port));
 
    // --- Clean up
    //if (aclPtr != NULL)  LocalFree(aclPtr);
@@ -491,7 +503,7 @@ void SxProcess::SxProcExecuter::main ()
                          + " failed: " + sxstrerror (err));
             }
             SX_DBG_MSG ("SxProcess waits for main process " 
-                        << (long)proc << " with pid " << pid);
+                        << (size_t)proc << " with pid " << pid);
             waitForProcess (proc);
             CloseHandle (proc);
          } 
@@ -547,7 +559,7 @@ SxArray<HANDLE> SxProcess::SxProcExecuter::getProcessHandles (DWORD access)
    }
 
    for (DWORD iProc = 0; iProc < nProcs; ++iProc) {
-      DWORD pid = procIDs->ProcessIdList[iProc];
+      DWORD pid = (DWORD)(procIDs->ProcessIdList[iProc]);
       HANDLE proc = OpenProcess (access, false, pid);
       if (proc == NULL) {
          DWORD err = GetLastError ();
@@ -740,11 +752,17 @@ SxProcess::SxProcess (Mode mode_)
 #    endif
      processTimeout(-1.),
      eofStdErr(false),
-     eofStdOut(false)
+     eofStdOut (false)
+     
 {
    srand((unsigned int)time(0));
    initPid ();
    initPipes ();
+#  ifdef WIN32
+      hEvents[0] = INVALID_HANDLE_VALUE;
+      hEvents[1] = INVALID_HANDLE_VALUE;
+      hEvents[2] = INVALID_HANDLE_VALUE;
+#  endif
 }
  
  
@@ -766,12 +784,17 @@ SxProcess::SxProcess (const SxString &cmdLine, Mode mode_)
 #    endif
      processTimeout(-1.),
      eofStdErr(false),
-     eofStdOut(false)
+     eofStdOut (false)
 { 
    srand((unsigned int)time(0));
    initPid ();
    initPipes ();
-   setCommandLine (cmdLine); 
+   setCommandLine (cmdLine);
+   #  ifdef WIN32
+      hEvents[0] = INVALID_HANDLE_VALUE;
+      hEvents[1] = INVALID_HANDLE_VALUE;
+      hEvents[2] = INVALID_HANDLE_VALUE;
+   #  endif
 } 
  
  
@@ -800,7 +823,12 @@ SxProcess::SxProcess (const SxString &cmd_, const SxList<SxString> &argList_,
    initPid ();
    initPipes ();
    setCommand (cmd_);
-   setArguments (argList_); 
+   setArguments (argList_);
+   #  ifdef WIN32
+      hEvents[0] = INVALID_HANDLE_VALUE;
+      hEvents[1] = INVALID_HANDLE_VALUE;
+      hEvents[2] = INVALID_HANDLE_VALUE;
+   #  endif
 } 
  
  
@@ -1082,41 +1110,6 @@ int SxProcess::start (const SxList<SxString> &env)
    return wait ();
 }
 
-#ifdef WIN32
-unsigned char SxProcess::getRndByte () const
-{
-   unsigned int rndVal = 0;
-   unsigned int limit = RAND_MAX - (RAND_MAX % 256);
-
-   do {
-      rndVal = rand ();
-
-   } while (rndVal >= limit);
-
-   return rndVal % 256;
-}
-
-SxString SxProcess::getUUIDv4 ()
-{
-   ssize_t i;
-   const ssize_t nBytes = 16;
-   SxArray<unsigned char> data(nBytes);
-   for (i=0; i < 16; ++i)  {  // generate 128 random bits
-      data(i) = getRndByte ();
-   }
-   // --- RFC 4122, 4.4
-   data(6) = 0x40 | (data(6) & 0x0f);
-   data(8) = 0x80 | (data(8) & 0x3f);
-   SxString res; // "XXXXXXXX-XXXX-4XXX-XXXX-XXXXXXXXXXXX";
-   for (i = 0; i < 16; ++i) {
-      res += SxString::sprintf ("%02X", data(i));
-      if (i == 3 || i == 5 || i == 7 || i == 9) {
-         res += "-";
-      }
-   }
-   return res;
-}
-#endif
 void SxProcess::run (const SxList<SxString> &env)
 {
    if (killTree && (mode == SxProcess::Daemon))  {
@@ -1276,7 +1269,7 @@ void SxProcess::run (const SxList<SxString> &env)
                SX_THROW("PipeFailed", "Create event failed for STDERR");
             }
             name = "\\\\.\\pipe\\";
-            name += getUUIDv4 ();
+            name += SxUUIDv4 ().getStr ();
             LPTSTR pipeName = TEXT(name.elements);
             HANDLE tmpErrHandle = CreateNamedPipe(pipeName,
                                                   PIPE_ACCESS_INBOUND
@@ -1317,7 +1310,7 @@ void SxProcess::run (const SxList<SxString> &env)
                SX_THROW("PipeFailed", "Create event failed for STDOUT");
             }
             name = "\\\\.\\pipe\\";
-            name += getUUIDv4 ();
+            name += SxUUIDv4 ().getStr ();
             LPTSTR pipeName = TEXT(name.elements);
             HANDLE tmpOutHandle = CreateNamedPipe(pipeName,
                                                   PIPE_ACCESS_INBOUND |
@@ -1356,7 +1349,7 @@ void SxProcess::run (const SxList<SxString> &env)
                SX_THROW("PipeFailed", "Create event failed for STDIN");
             }
             name = "\\\\.\\pipe\\";
-            name += getUUIDv4 ();
+            name += SxUUIDv4 ().getStr ();
             LPTSTR pipeName = TEXT(name.elements);
             HANDLE tmpInHandle = CreateNamedPipe(pipeName,
                                                  PIPE_ACCESS_OUTBOUND |

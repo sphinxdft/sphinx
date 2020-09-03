@@ -175,6 +175,7 @@ class SXVEC : public SxMemConsumer
                ptr = in.ptr;
                return *this;
             }
+            Iterator (const typename SXVEC<T>::Iterator &in) = default;
 
             typename T::Type *ptr;
       };

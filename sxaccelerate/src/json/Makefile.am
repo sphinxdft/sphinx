@@ -46,10 +46,10 @@ CLEANFILES += $(AUX_SRC) SxJSONParser.output
 %.tab.lo: AM_CXXFLAGS += @LEX_CXXFLAGS@
 
 %.lex.cpp: %.lpp %.tab.cpp %.grammar
-	$(LEX) -o $@ $<
+	export LANG="" ; $(LEX) -o $@ $<
 
 %.tab.cpp %.tab.hpp: %.ypp
-	$(YACC) --report=itemset $< -o $@
+	export LANG="" ; $(YACC) --report=itemset $< -o $@
 
 %.grammar: %.tab.cpp
 	@head -1 $(@:.grammar=.output) 2>/dev/null | grep '^Grammar' > $@ \

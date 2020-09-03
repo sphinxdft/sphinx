@@ -199,7 +199,7 @@ DIST_SUBDIRS = nonstd util graph fs ipc parserkit json io mpi math \
 	util/tests fs/examples io/examples ipc/examples math/examples \
 	mpi/examples util/examples
 am__DIST_COMMON = $(srcdir)/Makefile.in AUTHORS ChangeLog compile \
-	config.guess config.sub depcomp install-sh ltmain.sh missing
+	config.guess config.sub install-sh ltmain.sh missing
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 distdir = $(PACKAGE)-$(VERSION)
 top_distdir = $(distdir)
@@ -363,6 +363,7 @@ SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHARED_VERSION_INFO = @SHARED_VERSION_INFO@
 SHELL = @SHELL@
+STATIC_LIBC = @STATIC_LIBC@
 STRIP = @STRIP@
 SUBDIRS = nonstd util graph fs ipc parserkit json io mpi \
 	$(am__append_1) apps system $(am__append_2) share \
@@ -388,10 +389,12 @@ SX_PARAM_ATLAS = @SX_PARAM_ATLAS@
 SX_PARAM_FFTW = @SX_PARAM_FFTW@
 SX_PARAM_MKL = @SX_PARAM_MKL@
 SX_PARAM_MKLFFT = @SX_PARAM_MKLFFT@
+SX_PARAM_NETLIB = @SX_PARAM_NETLIB@
 SX_PARAM_NUMLIBS = @SX_PARAM_NUMLIBS@
 SX_PARAM_SXMATH = @SX_PARAM_SXMATH@
 SX_SHORTCUT_LIBS = @SX_SHORTCUT_LIBS@
 TAIL = @TAIL@
+THREADTRACER = @THREADTRACER@
 TODAY = @TODAY@
 UNAME = @UNAME@
 USE_ACML = @USE_ACML@
@@ -405,6 +408,7 @@ USE_INTEL_MKL = @USE_INTEL_MKL@
 USE_MKL_FFT = @USE_MKL_FFT@
 USE_MPI = @USE_MPI@
 USE_NETCDF4 = @USE_NETCDF4@
+USE_NETLIB = @USE_NETLIB@
 USE_OPENMP = @USE_OPENMP@
 USE_PARALLEL_NETCDF4 = @USE_PARALLEL_NETCDF4@
 USE_PCRE2 = @USE_PCRE2@

@@ -362,7 +362,7 @@ getBlockIdx (const SxString &str,
       else                 b = str.getSize(); // just a large value
       if (eIdx < nTokens)  e = endIdx(eIdx);
       else                 e = str.getSize(); // just a large value
-      SX_CHECK_3VARS (b < str.getSize() || e < str.getSize(), b, e, str.getSize());
+      SX_CHECK (b < str.getSize() || e < str.getSize(), b, e, str.getSize());
       if (b > threshold && e > threshold)  {
          SX_CHECK (b != e, b);
          if (b < e)  {
@@ -496,7 +496,7 @@ SxString getBlock (const SxString &tmpl, const SxString &id)
 {
    SxList<SxString> blocks = getBlocks (tmpl, "<!-- BEGIN " + id + " -->",
          "<!-- END " + id + " -->", false);
-   SX_CHECK_VAR (blocks.getSize() == 1, blocks);
+   SX_CHECK (blocks.getSize() == 1, blocks);
    return blocks.first ();
 }
 

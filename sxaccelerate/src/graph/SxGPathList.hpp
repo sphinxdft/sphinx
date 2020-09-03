@@ -10,114 +10,123 @@
 //
 // ---------------------------------------------------------------------------
 
-SxGPathList::SxGPathList (const SxPtr<SxGraph<SxGProps> > &gPtr_,
-                          const SelSet &sels_)
+template<class N,class E,template<class,bool> class GS>
+SxGPathList<N,E,GS>::SxGPathList (const SxPtr<SxGraph<N,E,GS> > &gPtr_,
+                                  const SelSet &sels_)
 {
+   SX_TRACE ();
    SX_CHECK (gPtr_.getPtr ());
    SX_CHECK (sels_.getPtr ());
 
-   gPtr     = gPtr_;
-   sels     = sels_;
+   gPtr = gPtr_;
+   sels = sels_;
 }
 
-SxGPathList::SxGPathList (const SxPtr<SxGraph<SxGProps> > &gPtr_,
-                          const Selection &sel_)
+template<class N,class E,template<class,bool> class GS>
+SxGPathList<N,E,GS>::SxGPathList (const SxPtr<SxGraph<N,E,GS> > &gPtr_,
+                                  const Selection &sel_)
 {
+   SX_TRACE ();
    SX_CHECK (gPtr_.getPtr ());
    SX_CHECK (sel_.getPtr ());
 
-   gPtr     = gPtr_;
+   gPtr = gPtr_;
    sels = SelSet::create ();
    sels->append (sel_);
 }
 
-SxGPathList::~SxGPathList () { }
-
-ssize_t SxGPathList::getSize () const
+template<class N,class E,template<class,bool> class GS>
+SxGPathList<N,E,GS>::~SxGPathList ()
 {
+   // empty
+}
+
+template<class N,class E,template<class,bool> class GS>
+ssize_t SxGPathList<N,E,GS>::getSize () const
+{
+   SX_TRACE ();
    return sels->getSize ();
 }
 
-ssize_t SxGPathList::getPathSize () const
+template<class N,class E,template<class,bool> class GS>
+ssize_t SxGPathList<N,E,GS>::getPathSize () const
 {
-   if (sels->getSize () > 0)
-      return sels->first()->getSize ();
-   else
-      return 0;
+   SX_TRACE ();
+   if (sels->getSize () > 0)  return sels->first()->getSize ();
+   else                       return 0;
 }
 
-SxGPath SxGPathList::operator() (ssize_t selIdx)
+template<class N,class E,template<class,bool> class GS>
+SxGPath<N,E,GS>
+SxGPathList<N,E,GS>::operator() (ssize_t selIdx)
 {
+   SX_TRACE ();
    SX_CHECK (selIdx < sels->getSize (), selIdx, sels->getSize ());
-   return SxGPath(gPtr, (*sels)(selIdx));
+   return SxGPath<N,E,GS>(gPtr, (*sels)(selIdx));
 }
 
-SxGPathList::Iterator SxGPathList::begin ()
+template<class N,class E,template<class,bool> class GS>
+typename SxGPathList<N,E,GS>::Iterator
+SxGPathList<N,E,GS>::begin ()
 {
-   return typename SxGPathList::Iterator (this, sels->begin ());
-}
-SxGPathList::ConstIterator SxGPathList::begin () const
-{
-   return typename SxGPathList::ConstIterator (this, sels->begin ());
+   SX_TRACE ();
+   return typename SxGPathList<N,E,GS>::Iterator (this, sels->begin ());
 }
 
-SxGPathList::Iterator SxGPathList::begin (ssize_t idx)
+template<class N,class E,template<class,bool> class GS>
+typename SxGPathList<N,E,GS>::ConstIterator
+SxGPathList<N,E,GS>::begin () const
 {
+   return typename SxGPathList<N,E,GS>::ConstIterator (this, sels->begin ());
+}
+
+template<class N,class E,template<class,bool> class GS>
+typename SxGPathList<N,E,GS>::Iterator
+SxGPathList<N,E,GS>::begin (ssize_t idx)
+{
+   SX_TRACE ();
    SX_CHECK (idx < sels->getSize (), idx, sels->getSize ());
-   return typename SxGPathList::Iterator (this, sels->begin (idx));
+   return typename SxGPathList<N,E,GS>::Iterator (this, sels->begin (idx));
 }
 
-SxGPathList::ConstIterator SxGPathList::begin (ssize_t idx) const
+template<class N,class E,template<class,bool> class GS>
+typename SxGPathList<N,E,GS>::ConstIterator
+SxGPathList<N,E,GS>::begin (ssize_t idx) const
 {
+   SX_TRACE ();
    SX_CHECK (idx < sels->getSize (), idx, sels->getSize ());
-   return typename SxGPathList::ConstIterator (this, sels->begin (idx));
+   return typename SxGPathList<N,E,GS>::ConstIterator (this, sels->begin (idx));
 }
 
-SxGPathList::Iterator SxGPathList::end ()
+template<class N,class E,template<class,bool> class GS>
+typename SxGPathList<N,E,GS>::Iterator
+SxGPathList<N,E,GS>::end ()
 {
-   return typename SxGPathList::Iterator (this, sels->end ());
+   SX_TRACE ();
+   return typename SxGPathList<N,E,GS>::Iterator (this, sels->end ());
 }
 
-SxGPathList::ConstIterator SxGPathList::end () const
+template<class N,class E,template<class,bool> class GS>
+typename SxGPathList<N,E,GS>::ConstIterator
+SxGPathList<N,E,GS>::end () const
 {
-   return typename SxGPathList::ConstIterator (this, sels->end ());
+   SX_TRACE ();
+   return typename SxGPathList<N,E,GS>::ConstIterator (this, sels->end ());
 }
 
+template<class N,class E,template<class,bool> class GS>
 template<class Fn>
-void SxGPathList::foreach (Fn fn)
+void SxGPathList<N,E,GS>::foreach (Fn fn)
 {
+   SX_TRACE ();
    sx::foreach (begin (), end (), fn);
 }
+
+template<class N,class E,template<class,bool> class GS>
 template<class Fn>
-void SxGPathList::foreach (Fn fn) const
+void SxGPathList<N,E,GS>::foreach (Fn fn) const
 {
+   SX_TRACE ();
    sx::foreach (begin (), end (), fn);
-}
-
-
-std::ostream &operator<< (std::ostream &s,
-                          const SxGPathList::ConstIterator &in)
-{
-   ssize_t i = 0;
-   in->foreach ([&](auto it) {
-                  if (i != 0)  s << " - ";
-                  s << it->getId ();
-                  i++;
-               });
-   s << "\n";
-   return s;
-}
-
-std::ostream &operator<< (std::ostream &s,
-                          const SxGPathList::Iterator &in)
-{
-   ssize_t i = 0;
-   in->foreach ([&](auto it) {
-                  if (i != 0)  s << " - ";
-                  s << it->getId ();
-                  i++;
-               });
-   s << "\n";
-   return s;
 }
 

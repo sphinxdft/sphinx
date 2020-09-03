@@ -31,17 +31,30 @@ N1 && N2 && N3 ...
 where N is object of class sx::N
 \endcode
  */
-class SxGQAnd : public SxGQExprBase
+
+class SxGQAnd;
+
+// --- functions to evaluate SxGQAnd
+namespace SxGQInternal
+{
+   template<class N,class E,template<class,bool> class GS>
+   bool match (const SxPtr<SxGQAnd> &expr,
+               const typename SxGraph<N,E,GS>::ConstIterator &it,
+               const SxGQExprBase::Selection &sel);
+
+   template<class N,class E,template<class,bool> class GS>
+   bool matchAll (const SxPtr<SxGQAnd> &expr,
+                  const typename SxGraph<N,E,GS>::ConstIterator &it,
+                  const SxGQExprBase::SelSet &sels);
+}
+
+class SX_EXPORT_GRAPH SxGQAnd : public SxGQExprBase
 {
    public:
       SxGQAnd ();
       SxGQAnd (const SxPtr<SxGQExprBase> &l, const SxPtr<SxGQExprBase> &r);
      ~SxGQAnd ();
 
-      bool eval (const SxGraph<SxGProps>::ConstIterator &it,
-                 const Selection &sel) const override;
-      bool matchAll (const SxGraph<SxGProps>::ConstIterator &it,
-                     const SelSet &sels) const override;
 
       SxPtr<SxList<SxPtr<SxGQExprBase> > > firsts () const override;
       SxPtr<SxList<SxPtr<SxGQExprBase> > > lasts () const override;
@@ -51,12 +64,22 @@ class SxGQAnd : public SxGQExprBase
       void setLasts (const SxPtr<SxList<SxPtr<SxGQExprBase> > > &lst) override;
 
       bool isOp () const override;
-      OpType getOp () const override;
-      OpType getRightOp () const override;
+      SxGQExprBase::ExprType getRightOp () const override;
       size_t getHash () const override;
 
-      void makeGraph (SxGraph<SxGQPattern> *g) const override;
+      void makeGraph (SxGraph<SxGQPattern> *gPtr) const override;
       SxGQPattern getGraphNode () const override;
+
+      template<class N,class E,template<class,bool> class GS>
+      friend bool SxGQInternal::match (const SxPtr<SxGQAnd> &expr,
+                                       const typename SxGraph<N,E,GS>::ConstIterator &it,
+                                       const Selection &sel);
+
+      template<class N,class E,template<class,bool> class GS>
+      friend bool SxGQInternal::matchAll (const SxPtr<SxGQAnd> &expr,
+                                          const typename SxGraph<N,E,GS>::ConstIterator &it,
+                                          const SelSet &sels);
+
 
    protected:
       std::ostream &print (std::ostream &s) const override;
@@ -64,5 +87,6 @@ class SxGQAnd : public SxGQExprBase
       SxPtr<SxGQExprBase> left;
       SxPtr<SxGQExprBase> right;
 };
+
 
 #endif /* _SX_GQ_AND_H_ */

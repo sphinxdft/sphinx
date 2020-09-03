@@ -24,7 +24,7 @@ SxFileParser::SxFileParser ()
 }
 
 SxFileParser::SxFileParser (const SxString &fileName)
-   : fp(NULL), fpos(-1), verbose (false)
+   : fp(NULL), line(-1), fpos(-1), verbose (false)
 {
    open (fileName);
 }
@@ -67,12 +67,14 @@ void SxFileParser::updateLine ()
    fseek (fp, fpos, SEEK_SET);
    char buffer[1024];
    while (currentPos > fpos)  {
-      size_t n = size_t (currentPos - fpos);
+      size_t n = (size_t)(currentPos) - (size_t)(fpos);
       if (n > 1024) n = 1024;
-#ifndef NDEBUG
-      size_t nn =
-#endif
-      fread (buffer, sizeof(char), n, fp);
+      size_t nn = fread (buffer, sizeof(char), n, fp);
+      if (nn != n)  {
+         cout << "Read error ";
+         where ();
+         SX_EXIT;
+      }
       SX_CHECK (nn == n, nn, n);
       for (size_t i = 0; i < n; ++i)
          if (buffer[i] == '\n') line++;
@@ -194,7 +196,8 @@ SxString SxFileParser::getLine ()
 void SxFileParser::skipWhite ()
 {
    SX_CHECK (fp);
-   fscanf (fp, " ");
+   int n = fscanf (fp, " ");
+   (void)n;
 }
 
 void SxFileParser::read (const char* what)

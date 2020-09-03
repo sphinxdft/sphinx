@@ -172,6 +172,7 @@ fi
 
 AC_CHECK_TOOLS([GDB], [ddd gdb])
 AC_CHECK_PROG([MEMTRACER], [valgrind], [`which valgrind` --leak-check=full --show-reachable=yes --run-libc-freeres=no --log-fd=1])
+AC_CHECK_PROG([THREADTRACER], [valgrind], [`which valgrind` --log-fd=1 --tool=helgrind])
 GDB=`which $GDB`
 case "${host}" in
    *-mingw32)
@@ -234,6 +235,7 @@ AC_DEFINE_UNQUOTED(PROCESSOR,     "$PROCESSOR",     [CPU type])
 AC_DEFINE_UNQUOTED(WHOAMI,        "$WHOAMI",        [User who compiled package])
 AC_DEFINE_UNQUOTED(GDB,           "$GDB",           [Debugger])
 AC_DEFINE_UNQUOTED(MEMTRACER,     "$MEMTRACER",     [Memory tracer tool])
+AC_DEFINE_UNQUOTED(THREADTRACER,  "$THREADTRACER",  [Thread syncronisation tracer tool])
 AC_DEFINE_UNQUOTED(DIST_OS,       "$DIST_OS",       [Operating system ID])
 AC_DEFINE_UNQUOTED(DIST_NAME,     "$DIST_NAME",     [Distribution ID])
 AC_DEFINE_UNQUOTED(DIST_VERSION,  "$DIST_VERSION",  [Distribution Version])

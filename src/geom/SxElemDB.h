@@ -109,12 +109,31 @@ class SX_EXPORT_GEOM SxElemDB
       SxString getChemSymbol   (int i) const;
       /** Returns the (engl.) name  of the i-th element */
       SxString getName         (int i) const;
+
+      /** Returns the polarizability of the i-th element */
+      double getPolarizability (const SxString &chemName_) const;
+      double getPolarizability (int i) const;
+
+      /** Returns the dispersion coefficient (C6) of the i-th element */
+      double getC6D2 (const SxString &chemName_) const;
+      double getC6D2 (int i) const;
+      double getC6TS (const SxString &chemName_) const;
+      double getC6TS (int i) const;
+
+      /** Returns the vdW radius of the i-th element */
+      double getVdwRadiusD2 (const SxString &chemName_) const;
+      double getVdwRadiusD2 (int i) const;
+      double getVdwRadiusTS (const SxString &chemName_) const;
+      double getVdwRadiusTS (int i) const;
+
 		 /** Returns the atomic weight for a given chemical symbol
           (does not work for isotopes) 
           \author Lars Ismer */
 		double getAtomicWeight (const SxString &chemName) const; 
 		double getAtomicWeight (int idx) const; 
       double getGyrRatio (const SxString &chemName_) const;
+
+
 
       int getSize () const { return int(name.getSize()); }
 
@@ -159,6 +178,14 @@ class SX_EXPORT_GEOM SxElemDB
       SxArray<double>  green;
       /** The blue color channel for the CPK model, 0 ... 1 */
       SxArray<double>  blue;
+      /** The polarizability in Bohr^3 */
+      SxArray<double>  polarizability;
+      /** The dispersion coefficient C6 in Hartree * Bohr^6 */
+      SxArray<double> C6D2;
+      SxArray<double> C6TS;
+      /** The vdW radius in Bohr */
+      SxArray<double> vdwRadiusD2;
+      SxArray<double> vdwRadiusTS;
 };
 
 #endif /* SX_ELEMENTS_H */

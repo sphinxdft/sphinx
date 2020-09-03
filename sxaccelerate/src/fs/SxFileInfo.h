@@ -74,6 +74,9 @@ class SX_EXPORT_FS SxFileInfo
 
       SxFileInfo (const SxFileInfo &);
 
+      /// Assignment
+      SxFileInfo& operator=(const SxFileInfo&) = default;
+
       // Destructor
       virtual ~SxFileInfo ();
 

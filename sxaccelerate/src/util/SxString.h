@@ -145,7 +145,7 @@ class SX_EXPORT_UTIL SxString : public SxArray<char>
 
       SxString (const SxString &);
       SxString (const SxArray<char> &);
-      SxString (SxString &&);
+      SxString (SxString &&) noexcept;
 
       /** Creates a string object from the contents of the given buffer.
           Handles Unicode automatically. */
@@ -571,7 +571,7 @@ wrap ( prefix.wrap("",indent), 0 , length);
 
       /** Assignment operator for strings */
       SxString &operator=  (const SxString &);
-      SxString &operator=  (SxString &&);
+      SxString &operator=  (SxString &&) noexcept;
       SxString &operator=  (const SxArray<char> &);
       /** Assignment operator for C-like strings */
       SxString &operator=  (const char *);

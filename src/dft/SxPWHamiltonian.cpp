@@ -33,6 +33,7 @@ SxPWHamiltonian::SxPWHamiltonian ()
    ekt = 0.;
    eKin = eHartreeElec = eHartreeGauss = eHartree = eLocPs = eNl
         = eEwald = eSelf = eTotal = eDoubleCounting = 0.;
+   applyVDWCorrection = false;
    contrib = CALC_DEFAULT;
    nlBlockSize = -1;
    dipoleCorrection = false;
@@ -57,6 +58,7 @@ SxPWHamiltonian::SxPWHamiltonian (const SxPWSet &wavesIn,
    ekt = 0.;
    eKin = eHartreeElec = eHartreeGauss = eHartree = eLocPs = eNl
         = eEwald = eSelf = eTotal = eDoubleCounting = 0.;
+   applyVDWCorrection = false;
    ekt         = 0.;
 
    nlBlockSize = -1;
@@ -107,6 +109,7 @@ SxPWHamiltonian::SxPWHamiltonian (const SxGBasis  &G,
    ekt = 0.;
    eKin = eHartreeElec = eHartreeGauss = eHartree = eLocPs = eNl
         = eEwald = eSelf = eTotal = eDoubleCounting = 0.;
+   applyVDWCorrection = false;
    contrib = CALC_DEFAULT;
    nlBlockSize = -1;
    dipoleCorrection = false;
@@ -586,6 +589,19 @@ void SxPWHamiltonian::update (const SxFermi &fermi)
           + (contrib & CALC_EXT     ? eExt       : 0.)
           + (contrib & CALC_NL      ? eNl        : 0.)
           +  eEwald - eSelf;
+
+   if (applyVDWCorrection) {
+      if (vdwCorrection.needEffVolumes ())
+      {
+         cout << "Tkatchenko-Scheffler Van-der-Waals is not available" << endl;
+         cout << "No effective volumes for PWHamiltonian yet" << endl;
+         SX_QUIT;
+      }
+      vdwCorrection.update (structure);
+      vdwCorrection.compute();
+      eVDW = vdwCorrection.totalEnergy;
+      eTotal = eTotal + eVDW;
+   }
    eDoubleCounting += eEwald - eSelf;
 
    if (wavesPtr && fermi.getNk () > 0) {
@@ -614,6 +630,7 @@ void SxPWHamiltonian::update (const SxFermi &fermi)
    if (calcForces)  {
       fTotal = fHartree + fLocPs + fNl + fXC + fScr;
       if (contrib & CALC_EXT && vExtActsOnNuclei) fTotal += fExt;
+      if (applyVDWCorrection) fTotal += vdwCorrection.forces;
       cout << fTotal << endl;
    }
 }
@@ -1508,6 +1525,11 @@ void SxPWHamiltonian::read (const SxSymbolTable *table)
 //       nExcessElectrons = hamiltonian->get("nExcessElectrons")->toReal();
 //    if (hamiltonian->contains("ekt"))
 //       ekt = hamiltonian->get("ekt")->toReal();
+
+      if (hamiltonian->containsGroup("vdwCorrection")) {
+         applyVDWCorrection = true;
+         vdwCorrection = SxVDW(structure, table);
+      }
 
       ekt = hamiltonian->get("ekt")->toReal() / HA2EV;
 

@@ -76,6 +76,9 @@ class SX_EXPORT_FS SxFileIO : public std::streambuf
       };
 
       SxFileIO ();
+      SxFileIO (const SxString &path,
+                const SxString &mode,
+                int            permission = 0600);
      ~SxFileIO ();
 
       void open (const SxString &path,
@@ -144,6 +147,9 @@ class SX_EXPORT_FS SxFileIO : public std::streambuf
       static inline SxArray<char> readTail (const SxString &filename,
                                             int64_t nLines = 0);
 
+      static inline SxString readUtf8 (const SxString &filename);
+      static inline SxString readUtf16 (const SxString &filename);
+
       static inline void write (const SxString &str, const SxString &filename,
                                 int mode);
       static inline void appendToFile (const SxString &str,
@@ -167,8 +173,8 @@ class SX_EXPORT_FS SxFileIO : public std::streambuf
          try {
             f.write (buffer, buffer.getSize ());
          } catch (SxException ex) {
-            SX_THROW (ex, "FileWriteError",
-                      SxFileIO::fileReadErr (f.getFilePath ()));
+            SX_RETHROW (ex, "FileWriteError",
+                        SxFileIO::fileReadErr (f.getFilePath ()));
          }
          return f;
       }
@@ -178,8 +184,8 @@ class SX_EXPORT_FS SxFileIO : public std::streambuf
          try {
             f.read (&buffer, buffer.getSize ());
          } catch (SxException ex) {
-            SX_THROW (ex, "FileReadError",
-                      SxFileIO::fileWriteErr (f.getFilePath ()));
+            SX_RETHROW (ex, "FileReadError",
+                        SxFileIO::fileWriteErr (f.getFilePath ()));
          }
          return f;
       }
@@ -251,6 +257,10 @@ class SX_EXPORT_FS SxFileIO : public std::streambuf
       SxFileIO::int_type underflow ();
       SxFileIO::int_type sgetc ();
 
+   private:
+      SxFileIO  (const SxFileIO &in) = delete;
+      SxFileIO &operator= (const SxFileIO &in) = delete;
+
 };
 
 SxArray<char> SxFileIO::readLines (const SxString &filename, int64_t nLines)
@@ -287,18 +297,47 @@ SxArray<char> SxFileIO::readBinary (const SxString &filename,
 
 SxArray<char> SxFileIO::readTail (const SxString &filename, int64_t nLines)
 {
-   //SX_TRACE ();
-
    SxFileIO f;
    f.open (filename, "r");
    return f.readTail (nLines);
 }
 
+SxString SxFileIO::readUtf8 (const SxString &filename)
+{
+   SxFileIO f;
+   f.open (filename, "rb");
+
+   uint64_t len = f.getSize ();
+   SxArray<char> res;
+   // --- +1 for null character
+   res.resize ((ssize_t)(len+1));
+   f.readBuffer (res.elements, len);
+   // --- append \0
+   res.elements[len] = 0x00;
+
+   return SxString::fromUtf8 (res.elements);
+}
+
+SxString SxFileIO::readUtf16 (const SxString &filename)
+{
+   SxFileIO f;
+   f.open (filename, "rb");
+
+   uint64_t len = f.getSize ();
+   SxArray<char> res;
+   // --- +2 for UTF16 null character
+   res.resize ((ssize_t)(len+2));
+   f.readBuffer (res.elements, len);
+   // --- append \0
+   res.elements[len] = 0x00;
+   res.elements[len+1] = 0x00;
+
+   return SxString::fromUtf16 (reinterpret_cast<uint16_t *>(res.elements));
+}
+
 void SxFileIO::write (const SxString &str, const SxString &filename,
                       int permissions)
 {
-   //SX_TRACE ();
-
    const int minPerm = 0;
    const int maxPerm = 7777;
 

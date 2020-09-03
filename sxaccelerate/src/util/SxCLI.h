@@ -282,7 +282,9 @@ class SX_EXPORT_UTIL SxCLI
                     bool     optIn = true,
                     bool     eoIn = false);
             /// Constructor
-            CliArg () : optional(false) { }
+            CliArg () : optional(false), emptyOption(false),
+                        used(false), stickyOption(false),
+                        group(NULL), parent(NULL) { }
             /// Destructor
             ~CliArg () { /* empty */ }
 
@@ -377,10 +379,6 @@ class SX_EXPORT_UTIL SxCLI
             int toInt (Given<int> def = false,
                        Given<int> min = false,
                        Given<int> max = false);
-            /// Convert to long int
-            long int toLong (Given<long int> def = false,
-                             Given<long int> min = false,
-                             Given<long int> max = false);
             /// Convert to int64
             int64_t toInt64 (Given<int64_t> def = false,
                              Given<int64_t> min = false,
@@ -901,7 +899,7 @@ cli.version ("1.3a");
 //     Windows: <T> = {char, wchar_t}
 template<class T>
 SxCLI::SxCLI (int argc_, T **argv_, const SxString &libtool_)
-   : stickyDefault(true), libtool(libtool_)
+   : mode(Normal), stickyDefault(true), libtool(libtool_)
 {
    /// initialize the dateStr variable.
 #ifdef DATE

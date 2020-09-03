@@ -14,9 +14,6 @@
 #define _SX_GQ_EXPR_LIST_H_
 
 #include <SxGQExprBase.h>
-#include <SxGQRelations.h>
-#include <SxGQAnd.h>
-#include <SxGQOr.h>
 
 /** \brief Graph Query List of expressions
 
@@ -33,7 +30,7 @@ where op can be either of the four
 types of siblings: >=,<,<=,>
 \endcode
  */
-class SxGQExprList : public SxGQExprBase
+class SX_EXPORT_GRAPH SxGQExprList : public SxGQExprBase
 {
 
    public:
@@ -65,11 +62,6 @@ class SxGQExprList : public SxGQExprBase
       SiblingType getSibType () const;
       const SxList<SxPtr<SxGQExprBase> > &getExprList () const;
 
-      virtual bool matchAll (const SxGraph<SxGProps>::ConstIterator &it,
-                             const SelSet &sels) const override;
-
-      virtual bool eval (const SxGraph<SxGProps>::ConstIterator &it,
-                         const Selection &sel) const override;
 
       SxPtr<SxList<SxPtr<SxGQExprBase> > > firsts () const override;
       SxPtr<SxList<SxPtr<SxGQExprBase> > > lasts () const override;
@@ -79,12 +71,11 @@ class SxGQExprList : public SxGQExprBase
       void setLast (const SxPtr<SxGQExprBase> &p) override;
 
       bool isOp () const override;
-      OpType getOp () const override;
-      OpType getRightOp () const override;
+      SxGQExprBase::ExprType getRightOp () const override;
 
       size_t getHash () const override;
 
-      void makeGraph (SxGraph<SxGQPattern> *g) const override;
+      void makeGraph (SxGraph<SxGQPattern> *gPtr) const override;
       SxGQPattern getGraphNode () const override;
 
    protected:

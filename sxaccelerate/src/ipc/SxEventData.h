@@ -288,7 +288,7 @@ void SxEventData::read (int64_t *i)
 {
    SX_TRACE ();
    SX_CHECK (offset + sizeof (int64_t) <= capacity, offset, capacity);
-   *i = *((int64_t*)(data + offset));
+   *i = *(reinterpret_cast<int64_t*>(data + offset));
    offset += sizeof (int64_t);
 }
 
@@ -296,7 +296,7 @@ void SxEventData::read (SxString *str)
 {
    SX_TRACE ();
    *str = SxString ((const char *)&data[offset]);
-   offset += str->getSize () + 1;
+   offset += (size_t)str->getSize () + 1;
 }
 
 void SxEventData::write (int64_t i, size_t layoutIdx)
@@ -314,7 +314,7 @@ void SxEventData::write (const SxString &str, size_t layoutIdx)
    SX_CHECK (layoutIdx < nElem, layoutIdx, nElem);
    layout[layoutIdx] = sx::String;
    for (const char &c : str) {
-      data[offset++] = c;
+      data[offset++] = (uint8_t)c;
    }
 }
 
@@ -324,7 +324,9 @@ void SxEventData::write (const char *str, size_t layoutIdx)
    SX_CHECK (layoutIdx < nElem, layoutIdx, nElem);
    layout[layoutIdx] = sx::String;
    // strcpy, and increasing offset
-   while ((data[offset++] = *str++)) { }
+   while ((data[offset++] = (uint8_t)*str)) {
+      ++str;
+   }
 }
 
 #endif /* _SX_EVENT_DATA_H_ */

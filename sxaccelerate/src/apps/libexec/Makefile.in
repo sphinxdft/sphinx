@@ -154,8 +154,9 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 @COND_BUILD_WIN32_TRUE@am__append_1 = -D_EXPORT_$(NAME)
-libexec_PROGRAMS = sxloghash$(EXEEXT) sxmsvcproj$(EXEEXT) \
-	sxprint$(EXEEXT) sxtee$(EXEEXT) sxtestproc$(EXEEXT)
+libexec_PROGRAMS = sx2json$(EXEEXT) sxloghash$(EXEEXT) \
+	sxmsvcproj$(EXEEXT) sxprint$(EXEEXT) sxtee$(EXEEXT) \
+	sxtestproc$(EXEEXT)
 @COND_BUILD_SXMATH_TRUE@am__append_2 = $(top_builddir)/math/libsxmath.la
 @COND_BUILD_WIN32_TRUE@am__append_3 = @WIN32FLAGS@
 subdir = apps/libexec
@@ -182,15 +183,18 @@ CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(libexecdir)" "$(DESTDIR)$(scriptsdir)" \
 	"$(DESTDIR)$(includedir)"
 PROGRAMS = $(libexec_PROGRAMS)
-am_sxloghash_OBJECTS = sxloghash-SxLogHash.$(OBJEXT)
-sxloghash_OBJECTS = $(am_sxloghash_OBJECTS)
+am_sx2json_OBJECTS = sx2json-Sx2JSON.$(OBJEXT)
+sx2json_OBJECTS = $(am_sx2json_OBJECTS)
 am__DEPENDENCIES_1 = $(SXIO) $(SXIPC) $(SXFS) $(SXUTIL) $(SXNONSTD)
 am__DEPENDENCIES_2 = $(am__DEPENDENCIES_1)
-sxloghash_DEPENDENCIES = $(am__DEPENDENCIES_2)
+sx2json_DEPENDENCIES = $(am__DEPENDENCIES_2)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
+am_sxloghash_OBJECTS = sxloghash-SxLogHash.$(OBJEXT)
+sxloghash_OBJECTS = $(am_sxloghash_OBJECTS)
+sxloghash_DEPENDENCIES = $(am__DEPENDENCIES_2)
 am_sxmsvcproj_OBJECTS = sxmsvcproj-SxMSVCProj.$(OBJEXT)
 sxmsvcproj_OBJECTS = $(am_sxmsvcproj_OBJECTS)
 sxmsvcproj_DEPENDENCIES = $(am__DEPENDENCIES_2)
@@ -264,10 +268,12 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-SOURCES = $(sxloghash_SOURCES) $(sxmsvcproj_SOURCES) \
-	$(sxprint_SOURCES) $(sxtee_SOURCES) $(sxtestproc_SOURCES)
-DIST_SOURCES = $(sxloghash_SOURCES) $(sxmsvcproj_SOURCES) \
-	$(sxprint_SOURCES) $(sxtee_SOURCES) $(sxtestproc_SOURCES)
+SOURCES = $(sx2json_SOURCES) $(sxloghash_SOURCES) \
+	$(sxmsvcproj_SOURCES) $(sxprint_SOURCES) $(sxtee_SOURCES) \
+	$(sxtestproc_SOURCES)
+DIST_SOURCES = $(sx2json_SOURCES) $(sxloghash_SOURCES) \
+	$(sxmsvcproj_SOURCES) $(sxprint_SOURCES) $(sxtee_SOURCES) \
+	$(sxtestproc_SOURCES)
 RECURSIVE_TARGETS = all-recursive check-recursive cscopelist-recursive \
 	ctags-recursive dvi-recursive html-recursive info-recursive \
 	install-data-recursive install-dvi-recursive \
@@ -467,6 +473,7 @@ SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHARED_VERSION_INFO = @SHARED_VERSION_INFO@
 SHELL = @SHELL@
+STATIC_LIBC = @STATIC_LIBC@
 STRIP = @STRIP@
 SUBDIRS = @SUBDIRS@
 SXACCELERATE = @SXACCELERATE@
@@ -490,10 +497,12 @@ SX_PARAM_ATLAS = @SX_PARAM_ATLAS@
 SX_PARAM_FFTW = @SX_PARAM_FFTW@
 SX_PARAM_MKL = @SX_PARAM_MKL@
 SX_PARAM_MKLFFT = @SX_PARAM_MKLFFT@
+SX_PARAM_NETLIB = @SX_PARAM_NETLIB@
 SX_PARAM_NUMLIBS = @SX_PARAM_NUMLIBS@
 SX_PARAM_SXMATH = @SX_PARAM_SXMATH@
 SX_SHORTCUT_LIBS = @SX_SHORTCUT_LIBS@
 TAIL = @TAIL@
+THREADTRACER = @THREADTRACER@
 TODAY = @TODAY@
 UNAME = @UNAME@
 USE_ACML = @USE_ACML@
@@ -507,6 +516,7 @@ USE_INTEL_MKL = @USE_INTEL_MKL@
 USE_MKL_FFT = @USE_MKL_FFT@
 USE_MPI = @USE_MPI@
 USE_NETCDF4 = @USE_NETCDF4@
+USE_NETLIB = @USE_NETLIB@
 USE_OPENMP = @USE_OPENMP@
 USE_PARALLEL_NETCDF4 = @USE_PARALLEL_NETCDF4@
 USE_PCRE2 = @USE_PCRE2@
@@ -626,6 +636,9 @@ CLEANFILES = $(tmp_filelists) $(abs_builddir)/*.tab.cpp \
 # --- print dependencies (used to generate MSVC solution files)
 getguid = $(top_srcdir)/system/sxmkguid.sh $(subdir) $(abs_srcdir)
 include_HEADERS = 
+sx2json_SOURCES = $(AUX_SRC) Sx2JSON.cpp
+sx2json_CPPFLAGS = $(AM_CPPFLAGS) -DSXLIBTOOL="\"@SXLIBTOOL@\""
+sx2json_LDADD = $(SXIMPORTLIBS) $(SXIMPORTOBJS)
 sxloghash_SOURCES = $(AUX_SRC) SxLogHash.cpp
 sxloghash_CPPFLAGS = $(AM_CPPFLAGS) -DSXLIBTOOL="\"@SXLIBTOOL@\""
 sxloghash_LDADD = $(SXIMPORTLIBS) $(SXIMPORTOBJS)
@@ -765,6 +778,10 @@ clean-libexecPROGRAMS:
 	echo " rm -f" $$list; \
 	rm -f $$list
 
+sx2json$(EXEEXT): $(sx2json_OBJECTS) $(sx2json_DEPENDENCIES) $(EXTRA_sx2json_DEPENDENCIES) 
+	@rm -f sx2json$(EXEEXT)
+	$(AM_V_CXXLD)$(CXXLINK) $(sx2json_OBJECTS) $(sx2json_LDADD) $(LIBS)
+
 sxloghash$(EXEEXT): $(sxloghash_OBJECTS) $(sxloghash_DEPENDENCIES) $(EXTRA_sxloghash_DEPENDENCIES) 
 	@rm -f sxloghash$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(sxloghash_OBJECTS) $(sxloghash_LDADD) $(LIBS)
@@ -826,6 +843,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sx2json-Sx2JSON.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sxloghash-SxLogHash.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sxmsvcproj-SxMSVCProj.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sxprint-SxPrint.Po@am__quote@
@@ -852,6 +870,20 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LTCXXCOMPILE) -c -o $@ $<
+
+sx2json-Sx2JSON.o: Sx2JSON.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(sx2json_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT sx2json-Sx2JSON.o -MD -MP -MF $(DEPDIR)/sx2json-Sx2JSON.Tpo -c -o sx2json-Sx2JSON.o `test -f 'Sx2JSON.cpp' || echo '$(srcdir)/'`Sx2JSON.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sx2json-Sx2JSON.Tpo $(DEPDIR)/sx2json-Sx2JSON.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='Sx2JSON.cpp' object='sx2json-Sx2JSON.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(sx2json_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o sx2json-Sx2JSON.o `test -f 'Sx2JSON.cpp' || echo '$(srcdir)/'`Sx2JSON.cpp
+
+sx2json-Sx2JSON.obj: Sx2JSON.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(sx2json_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT sx2json-Sx2JSON.obj -MD -MP -MF $(DEPDIR)/sx2json-Sx2JSON.Tpo -c -o sx2json-Sx2JSON.obj `if test -f 'Sx2JSON.cpp'; then $(CYGPATH_W) 'Sx2JSON.cpp'; else $(CYGPATH_W) '$(srcdir)/Sx2JSON.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sx2json-Sx2JSON.Tpo $(DEPDIR)/sx2json-Sx2JSON.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='Sx2JSON.cpp' object='sx2json-Sx2JSON.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(sx2json_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o sx2json-Sx2JSON.obj `if test -f 'Sx2JSON.cpp'; then $(CYGPATH_W) 'Sx2JSON.cpp'; else $(CYGPATH_W) '$(srcdir)/Sx2JSON.cpp'; fi`
 
 sxloghash-SxLogHash.o: SxLogHash.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(sxloghash_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT sxloghash-SxLogHash.o -MD -MP -MF $(DEPDIR)/sxloghash-SxLogHash.Tpo -c -o sxloghash-SxLogHash.o `test -f 'SxLogHash.cpp' || echo '$(srcdir)/'`SxLogHash.cpp

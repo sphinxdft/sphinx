@@ -19,6 +19,13 @@ energy tail -1 $energy | awk '{print $3}'
 E=energy
 e=energy
 
+energyT0 "final T=0K energy (Hartree)
+energyT0 !energy
+energyT0 tail -1 $energy | awk '{print $5}'
+ET0=energyT0
+et0=energyT0
+
+
 zenergy "final total energy (Hartree) from zipped file"
 zenergy !zenergy
 zenergy zcat $zenergy | tail -1 | awk '{print $3}'
@@ -27,8 +34,8 @@ ze=zenergy
 
 freeEnergy "Final free energy (Hartree)
 F=freeEnergy
-freeEnergy !log
-freeEnergy sed -ne '/^F(/h;${x;s/.*=//p}' $log
+freeEnergy !energy
+freeEnergy tail -1 $energy | awk '{print $4}'
 
 volume "cell volume (bohr**3)
 volume !log

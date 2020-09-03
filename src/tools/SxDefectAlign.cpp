@@ -218,7 +218,7 @@ int main (int argc, char** argv)
             break;
          default:
             cout << "Failed to interpret --tensor with " << epsVals.getSize ()
-                 << "values - must be 3, 6, or 9" << endl;
+                 << " values - must be 3, 6, or 9" << endl;
             cli.setError ();
       }
    }

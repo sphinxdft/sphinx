@@ -79,6 +79,7 @@ include_HEADERS = SxAOBasis.h \
                   SxTBHamSolver.h \
                   SxTBSpecies.h \
                   SxTypes.h \
+                  SxVDW.h \
                   SxXC.h \
                   SxXCFunctional.h
 
@@ -149,6 +150,7 @@ libsxdft_la_SOURCES += SxAOBasis.cpp \
    SxTBAtomAtom.cpp \
    SxTBHamSolver.cpp \
    SxTBSpecies.cpp \
+   SxVDW.cpp \
    SxXC.cpp \
    SxXCFunctional.cpp
 

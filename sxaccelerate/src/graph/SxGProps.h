@@ -18,6 +18,7 @@
 #include <SxMap.h>
 #include <SxHashFunction.h>
 #include <SxPair.h>
+#include <SxExportGraph.h>
 
 /** \brief Graph Node for property graphs
 
@@ -28,11 +29,14 @@
      in a property graph can store multiple
      key-value pairs called properties.
  */
-class SxGProps
+class SX_EXPORT_GRAPH SxGProps
 {
    public:
       SxGProps ();
       SxGProps (ssize_t id_);
+      SxGProps (const SxGProps &in);
+
+      SxGProps &operator= (const SxGProps &in);
 
       ssize_t getId () const;
       SxVariant &getProperty (const SxString &key);
@@ -63,5 +67,5 @@ class SxGProps
       SxMap<SxString,SxVariant> props;
 };
 
-size_t sxHash (const SxGProps &in);
+SX_EXPORT_GRAPH size_t sxHash (const SxGProps &in);
 #endif /*_SX_G_PROPS_H_*/

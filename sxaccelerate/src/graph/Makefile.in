@@ -198,7 +198,7 @@ am__DEPENDENCIES_1 = $(SX_DEPLIBS)
 libsxgraph_la_DEPENDENCIES = $(am__DEPENDENCIES_1)
 am_libsxgraph_la_OBJECTS = SxExportGraph.lo SxGProps.lo SxGQAnd.lo \
 	SxGQExpr.lo SxGQExprList.lo SxGQOr.lo SxGQPattern.lo \
-	SxGQuery.lo
+	SxGQRelations.lo SxGQuery.lo SxN.lo
 libsxgraph_la_OBJECTS = $(am_libsxgraph_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -443,6 +443,7 @@ SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHARED_VERSION_INFO = @SHARED_VERSION_INFO@
 SHELL = @SHELL@
+STATIC_LIBC = @STATIC_LIBC@
 STRIP = @STRIP@
 SUBDIRS = 
 SXACCELERATE = @SXACCELERATE@
@@ -466,10 +467,12 @@ SX_PARAM_ATLAS = @SX_PARAM_ATLAS@
 SX_PARAM_FFTW = @SX_PARAM_FFTW@
 SX_PARAM_MKL = @SX_PARAM_MKL@
 SX_PARAM_MKLFFT = @SX_PARAM_MKLFFT@
+SX_PARAM_NETLIB = @SX_PARAM_NETLIB@
 SX_PARAM_NUMLIBS = @SX_PARAM_NUMLIBS@
 SX_PARAM_SXMATH = @SX_PARAM_SXMATH@
 SX_SHORTCUT_LIBS = @SX_SHORTCUT_LIBS@
 TAIL = @TAIL@
+THREADTRACER = @THREADTRACER@
 TODAY = @TODAY@
 UNAME = @UNAME@
 USE_ACML = @USE_ACML@
@@ -483,6 +486,7 @@ USE_INTEL_MKL = @USE_INTEL_MKL@
 USE_MKL_FFT = @USE_MKL_FFT@
 USE_MPI = @USE_MPI@
 USE_NETCDF4 = @USE_NETCDF4@
+USE_NETLIB = @USE_NETLIB@
 USE_OPENMP = @USE_OPENMP@
 USE_PARALLEL_NETCDF4 = @USE_PARALLEL_NETCDF4@
 USE_PCRE2 = @USE_PCRE2@
@@ -594,20 +598,19 @@ include_HEADERS = SxArrayList.h \
                   SxGQOr.h \
                   SxGQPattern.h \
                   SxGQRelations.h \
-                  SxGQRelations.hpp \
                   SxGQuery.h \
+                  SxGQuery.hpp \
                   SxGraph.h \
                   SxGraph.hpp \
                   SxGraphStorage.h \
                   SxHashedArray.h \
                   SxN.h \
-                  SxN.hpp \
                   SxSet.h
 
 lib_LTLIBRARIES = libsxgraph.la
 libsxgraph_la_SOURCES = $(AUX_SRC) SxExportGraph.cpp SxGProps.cpp \
 	SxGQAnd.cpp SxGQExpr.cpp SxGQExprList.cpp SxGQOr.cpp \
-	SxGQPattern.cpp SxGQuery.cpp
+	SxGQPattern.cpp SxGQRelations.cpp SxGQuery.cpp SxN.cpp
 libsxgraph_la_LIBADD = $(SXIMPORTLIBS) $(SXIMPORTOBJS)
 libsxgraph_la_LDFLAGS = -version-info $(VERSION) $(am__append_2)
 
@@ -771,7 +774,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SxGQExprList.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SxGQOr.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SxGQPattern.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SxGQRelations.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SxGQuery.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SxN.Plo@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<

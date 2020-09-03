@@ -70,7 +70,7 @@
 #define yychar          SxParser_char
 
 /* Copy the first part of user declarations.  */
-#line 15 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.ypp" /* yacc.c:339  */
+#line 15 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.ypp" /* yacc.c:339  */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -153,7 +153,7 @@ extern int SxParser_debug;
 
 union YYSTYPE
 {
-#line 38 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.ypp" /* yacc.c:355  */
+#line 38 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.ypp" /* yacc.c:355  */
 
    char     *str;
    double    val;
@@ -1282,7 +1282,7 @@ yyreduce:
   switch (yyn)
     {
         case 4:
-#line 63 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.ypp" /* yacc.c:1646  */
+#line 63 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.ypp" /* yacc.c:1646  */
     { //cout << "result = " << *$1 << endl; 
                              if (SxParser_symbolStack.getSize())  {
                                 SxString name = SxParser_symbolStack(0).getName ();
@@ -1306,7 +1306,7 @@ yyreduce:
     break;
 
   case 5:
-#line 84 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.ypp" /* yacc.c:1646  */
+#line 84 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.ypp" /* yacc.c:1646  */
     { //cout << "NUM " << *$1 << endl;
                              //printStack ();
                              SxSymbol a ( *(yyvsp[0].sym) );
@@ -1319,7 +1319,7 @@ yyreduce:
     break;
 
   case 6:
-#line 92 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.ypp" /* yacc.c:1646  */
+#line 92 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.ypp" /* yacc.c:1646  */
     { //cout << "STR " << *$1 << endl;
                              //printStack ();
                              SxSymbol a ( *(yyvsp[0].sym) );
@@ -1331,7 +1331,7 @@ yyreduce:
     break;
 
   case 7:
-#line 99 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.ypp" /* yacc.c:1646  */
+#line 99 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.ypp" /* yacc.c:1646  */
     { //cout << "VAR: " << $1->name << endl;
                              SxSymbol a ( *(yyvsp[0].sym) );
                              SxParser_symbolStack.prepend ( a );
@@ -1342,7 +1342,7 @@ yyreduce:
     break;
 
   case 8:
-#line 105 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.ypp" /* yacc.c:1646  */
+#line 105 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.ypp" /* yacc.c:1646  */
     { //cout << "ASSIGN: " << $1->name << " = " << *$3 << endl;
                              //printStack ();
                              SxString name ((yyvsp[-2].sym)->name);
@@ -1379,7 +1379,7 @@ yyreduce:
     break;
 
   case 9:
-#line 137 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.ypp" /* yacc.c:1646  */
+#line 137 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.ypp" /* yacc.c:1646  */
     { //cout << '[' << *$2 << ']' << endl;
                              //printStack ();
                              SxSymbol a ( *(yyvsp[-1].sym) );
@@ -1395,7 +1395,7 @@ yyreduce:
     break;
 
   case 10:
-#line 148 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.ypp" /* yacc.c:1646  */
+#line 148 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.ypp" /* yacc.c:1646  */
     { //cout << *$1 << " , " << *$3 << endl;
                              SxSymbol sym, a (*(yyvsp[-2].sym)), b (*(yyvsp[0].sym));
                              a = a.flatten(); b = b.flatten();
@@ -1435,7 +1435,7 @@ yyreduce:
     break;
 
   case 11:
-#line 184 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.ypp" /* yacc.c:1646  */
+#line 184 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.ypp" /* yacc.c:1646  */
     { //cout << *$1 << "+" << *$3 << endl;
                              //printStack ();
                              SxSymbol a (*(yyvsp[-2].sym)), b (*(yyvsp[0].sym));
@@ -1448,7 +1448,7 @@ yyreduce:
     break;
 
   case 12:
-#line 192 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.ypp" /* yacc.c:1646  */
+#line 192 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.ypp" /* yacc.c:1646  */
     { //cout << "-" << *$2 << endl;
                              //printStack ();
                              SxSymbol a (*(yyvsp[0].sym));
@@ -1460,7 +1460,7 @@ yyreduce:
     break;
 
   case 13:
-#line 199 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.ypp" /* yacc.c:1646  */
+#line 199 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.ypp" /* yacc.c:1646  */
     { //cout << "+" << *$2 << endl;
                              //printStack ();
                              SxSymbol a (*(yyvsp[0].sym));
@@ -1472,7 +1472,7 @@ yyreduce:
     break;
 
   case 14:
-#line 206 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.ypp" /* yacc.c:1646  */
+#line 206 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.ypp" /* yacc.c:1646  */
     { //cout << *$1 << "-" << *$3 << endl;
                              //printStack ();
                              SxSymbol a (*(yyvsp[-2].sym)), b (*(yyvsp[0].sym));
@@ -1485,7 +1485,7 @@ yyreduce:
     break;
 
   case 15:
-#line 214 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.ypp" /* yacc.c:1646  */
+#line 214 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.ypp" /* yacc.c:1646  */
     { //cout << *$1 << "*" << *$3 << endl;
                              //printStack ();
                              SxSymbol a (*(yyvsp[-2].sym)), b (*(yyvsp[0].sym));
@@ -1499,7 +1499,7 @@ yyreduce:
     break;
 
   case 16:
-#line 223 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.ypp" /* yacc.c:1646  */
+#line 223 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.ypp" /* yacc.c:1646  */
     { //cout << *$1 << "/" << *$3 << endl;
                              //printStack ();
                              SxSymbol a (*(yyvsp[-2].sym)), b (*(yyvsp[0].sym));
@@ -1512,7 +1512,7 @@ yyreduce:
     break;
 
   case 17:
-#line 231 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.ypp" /* yacc.c:1646  */
+#line 231 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.ypp" /* yacc.c:1646  */
     { //cout << *$1 << "^" << *$3 << endl;
                              //printStack ();
                              SxSymbol a (*(yyvsp[-2].sym)), b (*(yyvsp[0].sym));
@@ -1525,7 +1525,7 @@ yyreduce:
     break;
 
   case 18:
-#line 239 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.ypp" /* yacc.c:1646  */
+#line 239 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.ypp" /* yacc.c:1646  */
     { //cout << '(' << *$2 << ')' << endl;
                              //printStack ();
                              SxSymbol res (*(yyvsp[-1].sym));
@@ -1537,7 +1537,7 @@ yyreduce:
     break;
 
   case 19:
-#line 246 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.ypp" /* yacc.c:1646  */
+#line 246 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.ypp" /* yacc.c:1646  */
     { //cout<<"Function: "<<*$1<<'('<<*$3<<")\n";
                              //printStack ();
                              SxSymbol a ("func", (*((yyvsp[-3].sym)->func))((*(yyvsp[-1].sym)).val) );
@@ -1550,7 +1550,7 @@ yyreduce:
     break;
 
   case 20:
-#line 254 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.ypp" /* yacc.c:1646  */
+#line 254 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.ypp" /* yacc.c:1646  */
     { //cout<<"StringFunction: "<<*$1<<'('<<*$3<<")\n";
                              //printStack ();
                              SxSymbol a ("strfunc", (*((yyvsp[-3].sym)->strfunc))((*(yyvsp[-1].sym)).str) );
@@ -1791,5 +1791,5 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 265 "/home/freysoldt/devel/sphinx/sxaccelerate/src/io/SxParser.ypp" /* yacc.c:1906  */
+#line 265 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/io/SxParser.ypp" /* yacc.c:1906  */
 

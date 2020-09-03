@@ -10,30 +10,39 @@
 //
 // ---------------------------------------------------------------------------
 
+#include <SxN.h>
+
 sx::N::N () : propName(""),
-              op(SxGQExprBase::OpType::None),
-              captureEnabled(false) { }
+              op(SxGQExprBase::ExprType::None),
+              captureEnabled(false)
+{
+   // empty
+}
 
 sx::N::N (SxString prop_)
 {
+   SX_TRACE ();
    SX_CHECK (prop_ != "");
    propName = prop_;
-   op = SxGQExprBase::OpType::None;
+   op = SxGQExprBase::ExprType::None;
    captureEnabled = false;
 }
 
 SxString sx::N::getPropName () const
 {
+   SX_TRACE ();
    return propName;
 }
 
 SxString sx::N::getCName () const
 {
+   SX_TRACE ();
    return captureName;
 }
 
 sx::N &sx::N::c (SxString name)
 {
+   SX_TRACE ();
    captureEnabled = true;
    captureName = name;
    return *this;
@@ -41,17 +50,20 @@ sx::N &sx::N::c (SxString name)
 
 bool sx::N::isCaptured () const
 {
+   SX_TRACE ();
    return captureEnabled;
 }
 
 sx::N &sx::N::any ()
 {
-   op = SxGQExprBase::OpType::Any;
+   SX_TRACE ();
+   op = SxGQExprBase::ExprType::Any;
    return *this;
 }
 
 sx::N::operator SxPtr<SxGQExprBase>() const
 {
+   SX_TRACE ();
    SxPtr<SxGQExpr> e = SxPtr<SxGQExpr>::create (propName, val,
                                                 captureName,
                                                 op,
@@ -59,19 +71,4 @@ sx::N::operator SxPtr<SxGQExprBase>() const
    return e;
 }
 
-template<class T>
-sx::N &sx::N::eq(const T &propVal)
-{
-   op  = SxGQExprBase::OpType::Equal;
-   val = SxVariant(propVal);
-   return *this;
-}
-
-template<class T>
-N &N::neq(const T &propVal)
-{
-   op  = SxGQExprBase::OpType::NotEqual;
-   val = SxVariant(propVal);
-   return *this;
-}
 

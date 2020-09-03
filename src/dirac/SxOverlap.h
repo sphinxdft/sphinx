@@ -31,7 +31,7 @@ class SX_EXPORT_DIRAC SxOverlapBase
 {
    public:
       /// Virtual destructor
-      virtual ~SxOverlapBase () {}
+      virtual ~SxOverlapBase () = default;
 
       /// Norm square
       virtual double normSqr (const SxDiracVec<Complex16> &psi) const = 0;

@@ -137,9 +137,6 @@ SxVector<Double> SxHubbardU::computeAtom(int iTl, const SxVector<Double> &Dij,
    return Vij;
 }
 
-/// AtomicSite has empty constructor/destructor
-SXSTACK_SIMPLE(SxHubbardU::AtomicSite)
-
 static void inputProblem (const SxSymbolTable *table)
 {
    cout << "Hubbard U in " 

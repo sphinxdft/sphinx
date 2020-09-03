@@ -34,10 +34,10 @@
 // --- redefine some POSIX functions to Windows style
 #  include <direct.h>
 #  include <io.h>
-inline int chdir (const char *p)         { return _chdir (p); }
+inline _Check_return_ int chdir (_In_z_ const char *p)         { return _chdir (p); }
 inline char *getcwd (char *b, size_t s)  { return _getcwd (b,(int)s); }
-inline int rmdir (const char *d)         { return _rmdir (d); }
-inline int umask (int m)                 { return _umask (m); }
+inline _Check_return_ int rmdir (_In_z_ const char *d)         { return _rmdir (d); }
+inline int umask (_In_ int m)                 { return _umask (m); }
 
 #  define mode_t     int
 

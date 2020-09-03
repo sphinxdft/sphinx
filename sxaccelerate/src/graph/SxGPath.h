@@ -24,21 +24,24 @@
     and it allows to fetch the nodes based on idx.
 
  */
+
+template<class N,class E=SxBlankEdge,
+         template<class,bool> class GS=SxGraphStorage>
 class SxGPath
 {
    public:
       typedef SxPtr<SxUniqueList<ssize_t> > Selection;
-      typedef SxPtr<SxList<Selection> >  SelSet;
+      typedef SxPtr<SxList<Selection> >     SelSet;
 
       SxGPath ();
-      SxGPath (const SxPtr<SxGraph<SxGProps> > &gPtr_,
+      SxGPath (const SxPtr<SxGraph<N,E,GS> > &gPtr_,
                const Selection &sel_);
 
      ~SxGPath ();
 
       ssize_t getSize () const;
 
-      SxGProps &operator() (ssize_t idx);
+      N &operator() (ssize_t idx);
 
       template<class Fn>
       void foreach (Fn fn);
@@ -47,7 +50,7 @@ class SxGPath
       void foreach (Fn fn) const;
 
    protected:
-      SxPtr<SxGraph<SxGProps> > gPtr;
+      SxPtr<SxGraph<N,E,GS> > gPtr;
       Selection sel;
 };
 

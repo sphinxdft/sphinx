@@ -714,6 +714,7 @@ void SxAtomicStructure::set (const SxList<SxList<Coord> > &atoms)
    aInfo->nSpecies = int(atoms.getSize ());
    aInfo->nAtoms.resize (aInfo->nSpecies);
 
+   nSpecies = aInfo->nSpecies;
    nTlAtoms = 0;
    SxList<SxList<Coord> >::ConstIterator specIt = atoms.begin ();
    for (int is = 0; is < aInfo->nSpecies; ++is, ++specIt)
@@ -892,7 +893,6 @@ bool SxAtomicStructure::isEqual (const SxAtomicStructure &x,
    SxArray<bool> found (nTlAtoms); // atoms found in x
    found.set (false);
    int iSpecies, i, iAtom, jAtom, jStart, dim;
-   int nSpecies = getNSpecies ();
    Coord position, dist;
    // do not map distance into cell if cell is uninitialized
    bool periodicCoords = cell.volume > 0.;
@@ -903,7 +903,7 @@ bool SxAtomicStructure::isEqual (const SxAtomicStructure &x,
 
    // --- loop over species
    iAtom = 0;
-   for (iSpecies = 0; iSpecies < nSpecies; iSpecies++)  {
+   for (iSpecies = 0; iSpecies < getNSpecies (); iSpecies++)  {
       jStart = iAtom;
 
       // --- loop over own atoms in species
@@ -1558,9 +1558,8 @@ SxAtomicStructure::operator* (const SxVector<TPrecTauR> &v) const
       SX_CHECK (v.getSize() == getNSpecies(), v.getSize(), getNSpecies());
 
       SxAtomicStructure res (*this, SxAtomicStructure::Copy);
-      int iSpecies, nSpecies = getNSpecies ();
       SxIdx range;
-      for (iSpecies=0; iSpecies < nSpecies; iSpecies++)  {
+      for (int iSpecies=0; iSpecies < getNSpecies (); iSpecies++)  {
          // get atom index range
          range = getRange (iSpecies);
          // switch to single coordinate ranges
@@ -1591,9 +1590,8 @@ SxAtomicStructure::operator/ (const SxVector<TPrecTauR> &v) const
       SX_CHECK (v.getSize() == getNSpecies(), v.getSize(), getNSpecies());
 
       SxAtomicStructure res (*this, SxAtomicStructure::Copy);
-      int iSpecies, nSpecies = getNSpecies ();
       SxIdx range;
-      for (iSpecies=0; iSpecies < nSpecies; iSpecies++)  {
+      for (int iSpecies=0; iSpecies < getNSpecies (); iSpecies++)  {
          // get atom index range
          range = getRange (iSpecies);
          // switch to single coordinate ranges
@@ -1621,9 +1619,8 @@ SxAtomicStructure::operator*= (const SxVector<TPrecTauR> &v)
       SX_CHECK (atomInfo);
       SX_CHECK (v.getSize() == getNSpecies(), v.getSize(), getNSpecies());
 
-      int iSpecies, nSpecies = getNSpecies ();
       SxIdx range;
-      for (iSpecies=0; iSpecies < nSpecies; iSpecies++)  {
+      for (int iSpecies=0; iSpecies < getNSpecies (); iSpecies++)  {
          // get atom index range
          range = getRange (iSpecies);
          // switch to single coordinate ranges
@@ -1650,9 +1647,8 @@ SxAtomicStructure::operator/= (const SxVector<TPrecTauR> &v)
       SX_CHECK (atomInfo);
       SX_CHECK (v.getSize() == getNSpecies(), v.getSize(), getNSpecies());
 
-      int iSpecies, nSpecies = getNSpecies ();
       SxIdx range;
-      for (iSpecies=0; iSpecies < nSpecies; iSpecies++)  {
+      for (int iSpecies=0; iSpecies < getNSpecies (); iSpecies++)  {
          // get atom index range
          range = getRange (iSpecies);
          // switch to single coordinate ranges

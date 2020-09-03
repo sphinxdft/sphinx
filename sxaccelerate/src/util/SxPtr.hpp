@@ -355,19 +355,6 @@ SxConstPtr<T>::SxConstPtr (const SxPtr<const B> &in)
    if (this->ptr) this->ref ();
 }
 
-// SxConstPtr<T> a;
-// SxConstPtr<T> t(a);
-template<class T>
-SxConstPtr<T>::SxConstPtr (const SxConstPtr<T> &in)
-   : SxPtr<const T> ()
-{
-   this->ptr         = in.ptr,
-   this->selfPtr     = in.selfPtr;
-   this->refCounter  = in.refCounter;
-   this->receiver    = (typename SxConstPtr<T>::Receiver *)in.receiver;
-   if (this->ptr) this->ref ();
-}
-
 // SxConstPtr<B> b;
 // SxConstPtr<T> t(b);
 template<class T>

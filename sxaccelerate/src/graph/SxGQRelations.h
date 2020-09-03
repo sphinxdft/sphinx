@@ -14,6 +14,7 @@
 #define _SX_GQ_RELATIONS_H_
 
 #include <SxGQExprBase.h>
+#include <SxGQExprList.h>
 
 /** \brief Graph Query Parent-Child relationship expression
 
@@ -31,23 +32,16 @@ where N1 is the parent of N2 and N3
 
 \endcode
  */
-template<class FromType,class ToType>
-class SxGQRelations : public SxGQExprBase
+class SX_EXPORT_GRAPH SxGQRelations : public SxGQExprBase
 {
    public:
       SxGQRelations ();
-      SxGQRelations (const SxPtr<FromType> &frm_, size_t min_=1, size_t max_=1);
-      SxGQRelations (const SxPtr<FromType> &frm_, const SxPtr<ToType> &to_,
+      SxGQRelations (const SxPtr<SxGQExprBase> &frm_,
+                     size_t min_=1, size_t max_=1);
+      SxGQRelations (const SxPtr<SxGQExprBase> &frm_,
+                     const SxPtr<SxGQExprList> &to_,
                      size_t min_=1, size_t max_=1);
      ~SxGQRelations ();
-
-      bool matchAll (const SxGraph<SxGProps>::ConstIterator &it,
-                     const SelSet &sels) const override;
-
-      // eval function finds match for given parent/child
-      // pattern
-      bool eval (const SxGraph<SxGProps>::ConstIterator &it,
-                 const Selection &sel) const override;
 
       SxPtr<SxList<SxPtr<SxGQExprBase> > > firsts () const override;
       SxPtr<SxList<SxPtr<SxGQExprBase> > > lasts () const override;
@@ -58,23 +52,20 @@ class SxGQRelations : public SxGQExprBase
       void setLasts (const SxPtr<SxList<SxPtr<SxGQExprBase> > > &lst) override;
 
       bool isOp () const override;
-      OpType getOp () const override;
-      OpType getRightOp () const override;
+      SxGQExprBase::ExprType getRightOp () const override;
       size_t getHash () const override;
 
-      void makeGraph (SxGraph<SxGQPattern> *g) const override;
+      void makeGraph (SxGraph<SxGQPattern> *gPtr) const override;
       SxGQPattern getGraphNode () const override;
 
    protected:
       std::ostream &print (std::ostream &s) const override;
 
-      SxPtr<FromType> from;
-      SxPtr<ToType>   to;
+      SxPtr<SxGQExprBase> from;
+      SxPtr<SxGQExprList> to;
       size_t minDist;
       size_t maxDist;
 
 };
-
-#include <SxGQRelations.hpp>
 
 #endif /*_SX_GQ_RELATIONS_H_*/

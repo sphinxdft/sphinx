@@ -7,6 +7,8 @@ SX_ARG_ENABLE([logging],  [USE_SX_LOG], [yes],
               [compile package with logging support])
 SX_ARG_ENABLE([profile],  [PRO_MODE], [no], 
               [compile package in the profile mode])
+SX_ARG_ENABLE([staticlibc],  [STATIC_LIBC], [no],
+              [compile with static C/C++ runtime])
 SX_ARG_ENABLE([openmp],   [USE_OPENMP], [no], 
               [compile package with symmetric multiprocessing support])
 SX_ARG_ENABLE([mpi],      [USE_MPI], [no], 
@@ -31,6 +33,20 @@ SX_ARG_WITH(  [cuda], [.], [CUDA], [$SX_PARAM_CUDA],
 # ---
 AC_MSG_CHECKING(operating system)
 
+
+# --- static vs shared building
+if test x"$enable_static" = x"yes"; then
+   if test x"$enable_shared" = x"yes"; then
+      AC_MSG_ERROR([--enable-static and --enable-shared are mutually exclusive])
+      exit 1
+   fi
+fi
+if test x"$ac_cv_enable_staticlibc" = x"yes"; then
+   if test x"$enable_static" = x"yes"; then :; else
+      AC_MSG_ERROR([--enable-staticlib requires --enable-static])
+      exit 1
+   fi
+fi
 
 AC_MSG_NOTICE([Determine compiler flags])
 
@@ -268,6 +284,18 @@ ERRMSG
    exit 1
 fi
 
+# --- static C/C++ runtime
+if test x"${ac_cv_enable_staticlibc}" = x"yes"; then
+   case "$cxxname" in
+      g++)  # GNU C/C++ Compiler
+            LDFLAGS="-static-libgcc -static-libstdc++ $LDFLAGS"
+            ;;
+      *)
+            AC_MSG_ERROR([Static C/C++ runtime linking not supported with $cxxname.])
+            ;;
+   esac
+fi
+
 # --- GPU: NVIDIA CUDA compiler wrapper and flags
 if test x"${ac_cv_enable_gpu}"  = x"yes"; then
    AC_MSG_CHECKING(CUDA toolkit)
@@ -326,7 +354,9 @@ LIBS="$ORIG_LIBS"
 
 
 # --- check OS dependent libraries
-AC_CHECK_LIB([dl],[dlopen], [LIBS="$LIBS -ldl"])
+if test x"$enable_static" = x"yes"; then :; else
+   AC_CHECK_LIB([dl],[dlopen], [LIBS="$LIBS -ldl"])
+fi
 AC_CHECK_LIB([pthreadGCE2], [pthread_create], [LIBS="$LIBS -lpthreadGCE2"],
    [AC_CHECK_LIB([pthread], [pthread_create], [LIBS="$LIBS -lpthread"])]
 )

@@ -91,11 +91,6 @@ SxRho::SxRho (SxBinIO &io, const SxRBasis* rBasisPtrIn)
 
 }
 
-SxRho::~SxRho ()
-{
-   // empty
-}
-
 void SxRho::operator= (const SxRho &in)
 {
    rBasisPtr  = in.rBasisPtr;
@@ -587,14 +582,14 @@ void SxRho::displaceHirshfeld (const SxAtomicStructure &toStr,
    //     density weighted by w(r) = thisAtom(r) / allAtoms(r)
    SX_LOOP2(is,ia)  {
       Coord dx = toStr(is, ia) - structure(is, ia);
-      if (dx.norm () < 1e-6) continue;
+      //if (dx.norm () < 1e-6) continue;
       PsiG myAtomG = atomRhoG(is) * G.getPhaseFactors ((int)is, (int)ia);
       // decompose density like the overlap of atomic densities
       SxDiracVec<Double> weight = (R | myAtomG) * allAtomR;
       // --- get the contribution and shift it in G-space
+
       for (int iSpin = 0.; iSpin < nSpin; ++iSpin)  {
          SxDiracVec<Double> myAtomR = weight * rhoR(iSpin);
-         //cout << "atomnrm = " << myAtomR.sum () * R.dOmega << endl;
          dRhoG.colRef(iSpin) += (G | myAtomR)
                               * (G.getPhaseFactors (dx) - 1.);
       }
@@ -604,4 +599,198 @@ void SxRho::displaceHirshfeld (const SxAtomicStructure &toStr,
       rhoR(iSpin) += R | dRhoG.colRef (iSpin);
    }
    if (!haveAllAtom) delete allAtomRptr;
+}
+
+
+SxArray<double> SxRho::getHirshfeldEffVolumes (const SxAtomicStructure &toStr,
+                               const SxArray<SxDiracVec<Double>> &atomRhoG,
+                               const SxPAWPot &pawPot,
+                               double gCut,
+                               SxDiracVec<Double> *allAtomRptr)
+{
+   SX_CHECK (atomRhoG.getSize () > 0);
+   SX_CHECK (rhoR.getSize () > 0);
+   const SxGBasis &G = atomRhoG(0).getBasis<SxGBasis> ();
+   const SxRBasis &R = rhoR(0).getBasis<SxRBasis> ();
+   SX_CHECK (G.structPtr);
+   const SxAtomicStructure structure = *G.structPtr;
+
+   int nSpecies = structure.getNSpecies ();
+   int nAtoms = structure.getNAtoms ();
+   int nSpin = getNSpin ();
+
+   SX_CHECK (atomRhoG.getSize () == nSpecies,
+             atomRhoG.getSize (), nSpecies);
+
+   SxArray<SxDiracVec<Double> > rhoAtomFree(nSpecies),
+                                rhoAtomFreeR3(nSpecies),
+                                shapeG(nSpecies),
+                                shapeR3G(nSpecies),
+                                rhoAtomG(nSpecies),
+                                rhoAtomG3(nSpecies);
+
+   SxArray<double> r3Free(nSpecies), effectiveVolumes(nAtoms);
+   effectiveVolumes.set (0.);
+
+   const SxRadBasis &rad  = pawPot.getRadBasis ();
+   double rMax = rad.getRMax ();
+   rMax = 20.;
+
+   double gMax = sqrt(gCut)*1.05;
+
+   int nrRad = 1000; // ad hoc
+   SxRadRBasis radR(0.,rMax,nrRad,SxRadRBasis::Linear);
+   int ngRad = 1000; // ad hoc
+   SxRadGBasis radG(0., gMax, ngRad, SxRadGBasis::Linear);
+   const SxDiracVec<Double> &rVals = radR.getRadRFunc ();
+
+   for (int is = 0; is < nSpecies; is++)  {
+      // calculate and store free atomic "volumes"
+      rhoAtomFree(is) = radR | pawPot.rhoInit(is);
+      rhoAtomFreeR3(is) = rhoAtomFree(is) * rVals.cub ();
+
+      shapeG(is) = radG | rhoAtomFree(is);
+      shapeR3G(is) = radG | rhoAtomFreeR3(is);
+
+      rhoAtomG(is) = G | shapeG(is);
+      rhoAtomG3(is) = G | shapeR3G(is);
+      SxDiracVec<Double> rhoAtomR3 = R | rhoAtomG3(is);
+
+      SxDiracVec<Double> unity(rhoAtomR3.getSize());
+      unity.set (1.);
+
+      r3Free(is) = dot(unity, rhoAtomR3);
+   }
+
+   // --- get overlap of all atomic densities (if not available)
+   bool haveAllAtom = allAtomRptr;
+   if (!haveAllAtom)  {
+      PsiG allAtom(G);
+      allAtom.set (0.);
+      SX_LOOP(is)  {
+         allAtom += rhoAtomG(is) * G.structureFactors(is);
+      }
+      allAtomRptr = new SxDiracVec<Double> ();
+      *allAtomRptr = R | allAtom;
+   }
+   SxDiracVec<Double> &allAtomR = *allAtomRptr;
+
+   // all-atom density, forced to be >= 1e-4
+   SX_LOOP(ir) allAtomR(ir) = sqrt(1e-10 + sqr(allAtomR(ir)));
+
+   // --- now extract contribution of each atom to the deformation
+   //     density weighted by w(r) = thisAtom(r) / allAtoms(r)
+   for (int iAtom = 0; iAtom < nAtoms; iAtom++) {
+      int is = structure.getISpecies(iAtom);
+      int ia = iAtom - structure.atomInfo->offset(is);
+
+      PsiG myAtomG = rhoAtomG3(is) * G.getPhaseFactors ((int)is, (int)ia);
+      SxDiracVec<Double> myAtomR = (R | myAtomG);
+
+      // Also force this atom's density to be >= 1e-4
+      //SX_LOOP(ir) myAtomR(ir) = sqrt(1e-10 + sqr(myAtomR(ir)));
+      SxDiracVec<Double> weight = myAtomR / allAtomR;
+      double r3Real = 0.;
+      for (int iSpin = 0.; iSpin < nSpin; ++iSpin)  {
+         r3Real += dot(weight, rhoR(iSpin));// * sqrt(FOUR_PI);
+      }
+      effectiveVolumes(iAtom) = r3Real / r3Free(is);
+   }
+   return effectiveVolumes;
+}
+
+SxArray<double> SxRho::getHirshfeldEffCharges (const SxAtomicStructure &toStr,
+                               const SxArray<SxDiracVec<Double>> &atomRhoG,
+                               const SxPAWPot &pawPot,
+                               double gCut,
+                               SxDiracVec<Double> *allAtomRptr)
+{
+   SX_CHECK (atomRhoG.getSize () > 0);
+   SX_CHECK (rhoR.getSize () > 0);
+   const SxGBasis &G = atomRhoG(0).getBasis<SxGBasis> ();
+   const SxRBasis &R = rhoR(0).getBasis<SxRBasis> ();
+   SX_CHECK (G.structPtr);
+   const SxAtomicStructure structure = *G.structPtr;
+
+   int nSpecies = structure.getNSpecies ();
+   int nAtoms = structure.getNAtoms ();
+   int nSpin = getNSpin ();
+
+   SX_CHECK (atomRhoG.getSize () == nSpecies,
+             atomRhoG.getSize (), nSpecies);
+
+   SxArray<SxDiracVec<Double> > rhoAtomFree(nSpecies),
+                                rhoAtomFreeR3(nSpecies),
+                                shapeG(nSpecies),
+                                shapeR3G(nSpecies),
+                                rhoAtomG(nSpecies),
+                                rhoAtomG3(nSpecies);
+
+   SxArray<double> r3Free(nSpecies), effectiveCharges(nAtoms);
+   effectiveCharges.set (0.);
+
+   const SxRadBasis &rad  = pawPot.getRadBasis ();
+   double rMax = rad.getRMax ();
+
+   double gMax = sqrt(gCut)*1.05;
+
+   int nrRad = 1000; // ad hoc
+   SxRadRBasis radR(0.,rMax,nrRad,SxRadRBasis::Linear);
+   int ngRad = 1000; // ad hoc
+   SxRadGBasis radG(0., gMax, ngRad, SxRadGBasis::Linear);
+   const SxDiracVec<Double> &rVals = radR.getRadRFunc ();
+
+   for (int is = 0; is < nSpecies; is++)  {
+      // calculate and store free atomic "volumes"
+      rhoAtomFree(is) = radR | pawPot.rhoInit(is);
+      rhoAtomFreeR3(is) = rhoAtomFree(is) * rVals.cub ();
+
+      shapeG(is) = radG | rhoAtomFree(is);
+      shapeR3G(is) = radG | rhoAtomFreeR3(is);
+
+      rhoAtomG(is) = G | shapeG(is);
+      rhoAtomG3(is) = G | shapeR3G(is);
+      SxDiracVec<Double> rhoAtomR3 = R | rhoAtomG3(is);
+
+      SxDiracVec<Double> unity(rhoAtomR3.getSize());
+      unity.set (1.);
+
+      r3Free(is) = dot(unity, rhoAtomR3);
+   }
+
+   // --- get overlap of all atomic densities (if not available)
+   bool haveAllAtom = allAtomRptr;
+   if (!haveAllAtom)  {
+      allAtomRptr = new SxDiracVec<Double> ();
+      PsiG allAtom(G);
+      allAtom.set (0.);
+      SX_LOOP(is)  {
+         allAtom += atomRhoG(is) * G.structureFactors(is);
+      }
+      *allAtomRptr = R | allAtom;
+   }
+   SxDiracVec<Double> &allAtomR = *allAtomRptr;
+
+   // all-atom density, forced to be >= 1e-4
+   SX_LOOP(ir) allAtomR(ir) = sqrt(1e-8 + sqr(allAtomR(ir)));
+
+   // --- now extract contribution of each atom to the deformation
+   //     density weighted by w(r) = thisAtom(r) / allAtoms(r)
+   for (int iAtom = 0; iAtom < nAtoms; iAtom++) {
+      int is = structure.getISpecies(iAtom);
+      int ia = iAtom - structure.atomInfo->offset(is);
+
+      PsiG myAtomG = rhoAtomG3(is) * G.getPhaseFactors ((int)is, (int)ia);
+      SxDiracVec<Double> myAtomR = (R | myAtomG);
+
+      // Also force this atom's density to be >= 1e-4
+      SX_LOOP(ir) myAtomR(ir) = sqrt(1e-8 + sqr(myAtomR(ir)));
+      SxDiracVec<Double> weight = myAtomR / allAtomR;
+      double r3Real = 0.;
+      for (int iSpin = 0.; iSpin < nSpin; ++iSpin)  {
+         r3Real += dot(weight, rhoR(iSpin));
+      }
+      effectiveCharges(iAtom) = pawPot.valenceCharge(is)*r3Real/r3Free(is) - pawPot.valenceCharge(is);
+   }
+   return effectiveCharges;
 }

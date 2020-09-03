@@ -57,7 +57,24 @@ class SX_EXPORT_DFT SxFermi
       Real8   noneqEntropy;
       bool    keepSpinMoment;
       /// Order of MethfesselPaxton scheme, -1 for Fermi-Dirac
-      int     orderMethfesselPaxton;
+      enum { FermiDirac = 0,
+             MethfesselPaxton = 1 } smearType;
+      int     smearingOrder;
+      /** \brief Mixing factor for inner energy for T=0 approximation
+          The Taylor expansion of U (and F) in temperatur T determines the optimal
+          mixing factor for estimating the T=0 energy. If n is the leading order (n>=2), then
+          \f[
+               E(T=0) = \frac{1}{n} U + (1-\frac{1}{n}) F = U - (1-\frac{1}{n}) T S
+          \f]
+          This routine returns \frac{1}{n} according to the mixing scheme.
+          For the presently supported schemes (N-order Methfessel-Paxton) and
+          zero- or first-order Fermi-Dirac, n = 2*(N+1).
+        */
+      double zeroTfactorU ()
+      {
+         if (smearType <= 1)  return 1./(2. * (smearingOrder + 1));
+         return 0.5; // should never happen
+      }
 
       /// Whether to use occupation numbers or not
       enum FoccHandling { NoFocc, UseFocc};
@@ -68,12 +85,14 @@ class SX_EXPORT_DFT SxFermi
       SxFermi ();
       SxFermi (Real8 nElectrons, int nStates, int nSpin, const SxKPoints &);
       SxFermi (int nStates, int nSpin, int nk);
-      SxFermi (const SxBinIO &io, bool keepNStates = false) { 
-         kpPtr = NULL; 
+      SxFermi (const SxBinIO &io, bool keepNStates = false)
+         : smearType(FermiDirac),
+         smearingOrder(0)
+      {
+         kpPtr = NULL;
          nSpin = -1;
          nElectrons = -1;
          read (io, keepNStates);
-         orderMethfesselPaxton = -1;
       }
       ~SxFermi ();
 
@@ -170,6 +189,10 @@ class SX_EXPORT_DFT SxFermi
       Real8 getSpinMoment ();
       Real8 getEntropy ();
 
+   protected:
+      /// Get maximum |eps-E_Fermi| / kT for beyond which occupations are 1 or 0
+      double getLimitX () const;
+   public:
       /// Methfessel-Paxton occupation number
       static Real8 foccMethfesselPaxton(Real8 x, int order);
       /// Methfessel-Paxton distribution function
@@ -207,7 +230,7 @@ class SX_EXPORT_DFT SxFermi
                A_n = \frac{1}{n! 4^n \sqrt\pi}
           \f]
         */
-      Real8 dFoccFermi(int i, int iSpin, int ik) const;
+      Real8 dFoccFermi(ssize_t i, ssize_t iSpin, ssize_t ik) const;
 
 
    protected:

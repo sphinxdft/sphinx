@@ -164,6 +164,9 @@ class SX_EXPORT_DFT SxRhoMixer
       /// Request residue profiles (for debugging)
       bool residueProfile;
 
+      /// Request extra information
+      bool verbose;
+
    protected:
 
       /// \brief History buffer of previous input densities
@@ -205,8 +208,6 @@ class SX_EXPORT_DFT SxRhoMixer
       double normRPol;
 
    protected:
-      const SxXC::Type UP, DN;
-
       void removeFirst ();
 
       /// Reset Pulay mixer (remove history except for one)

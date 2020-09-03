@@ -208,13 +208,13 @@ am__libsxutil_la_SOURCES_DIST = SxAllocCache.cpp SxBitArray.cpp \
 	SxException.cpp SxLog.cpp SxLogBuf.cpp SxMemConsumer.cpp \
 	SxMemMonitor.cpp SxMetadata.cpp SxRedirect.cpp SxRegex.cpp \
 	SxSed.cpp SxString.cpp SxTemplate.cpp SxTimer.cpp SxUtil.cpp \
-	SxVariant.cpp SxLog-ios.mm
+	SxUUIDv4.cpp SxVariant.cpp SxLog-ios.mm
 @COND_BUILD_IOS_TRUE@am__objects_1 = SxLog-ios.lo
 am_libsxutil_la_OBJECTS = SxAllocCache.lo SxBitArray.lo SxChar.lo \
 	SxCLI.lo SxCrashHandler.lo SxError.lo SxException.lo SxLog.lo \
 	SxLogBuf.lo SxMemConsumer.lo SxMemMonitor.lo SxMetadata.lo \
 	SxRedirect.lo SxRegex.lo SxSed.lo SxString.lo SxTemplate.lo \
-	SxTimer.lo SxUtil.lo SxVariant.lo $(am__objects_1)
+	SxTimer.lo SxUtil.lo SxUUIDv4.lo SxVariant.lo $(am__objects_1)
 libsxutil_la_OBJECTS = $(am_libsxutil_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -493,6 +493,7 @@ SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHARED_VERSION_INFO = @SHARED_VERSION_INFO@
 SHELL = @SHELL@
+STATIC_LIBC = @STATIC_LIBC@
 STRIP = @STRIP@
 SUBDIRS = $(am__append_1)
 SXACCELERATE = @SXACCELERATE@
@@ -516,10 +517,12 @@ SX_PARAM_ATLAS = @SX_PARAM_ATLAS@
 SX_PARAM_FFTW = @SX_PARAM_FFTW@
 SX_PARAM_MKL = @SX_PARAM_MKL@
 SX_PARAM_MKLFFT = @SX_PARAM_MKLFFT@
+SX_PARAM_NETLIB = @SX_PARAM_NETLIB@
 SX_PARAM_NUMLIBS = @SX_PARAM_NUMLIBS@
 SX_PARAM_SXMATH = @SX_PARAM_SXMATH@
 SX_SHORTCUT_LIBS = @SX_SHORTCUT_LIBS@
 TAIL = @TAIL@
+THREADTRACER = @THREADTRACER@
 TODAY = @TODAY@
 UNAME = @UNAME@
 USE_ACML = @USE_ACML@
@@ -533,6 +536,7 @@ USE_INTEL_MKL = @USE_INTEL_MKL@
 USE_MKL_FFT = @USE_MKL_FFT@
 USE_MPI = @USE_MPI@
 USE_NETCDF4 = @USE_NETCDF4@
+USE_NETLIB = @USE_NETLIB@
 USE_OPENMP = @USE_OPENMP@
 USE_PARALLEL_NETCDF4 = @USE_PARALLEL_NETCDF4@
 USE_PCRE2 = @USE_PCRE2@
@@ -646,6 +650,8 @@ include_HEADERS = SxAlg.h \
                   SxContainer.h \
                   SxCrashHandler.h \
                   SxCrashListener.h \
+                  SxEndian.h \
+                  SxEndian.hpp \
                   SxError.h \
                   SxException.h \
                   SxFunction.h \
@@ -676,6 +682,10 @@ include_HEADERS = SxAlg.h \
                   SxSed.h \
                   SxSelection.h \
                   SxSelection.hpp \
+                  SxSerializer.h \
+                  SxSerializer.hpp \
+                  SxSerializerUtil.h \
+                  SxSerializerUtil.hpp \
                   SxSigSlots.h \
                   SxSignals.h \
                   SxSlot.h \
@@ -691,6 +701,7 @@ include_HEADERS = SxAlg.h \
                   SxTree.h \
                   SxTree.hpp \
                   SxTypeDefs.h \
+                  SxUUIDv4.h \
                   SxUnicodeTbl.h \
                   SxUniqueList.h \
                   SxUniqueList.hpp \
@@ -705,7 +716,7 @@ libsxutil_la_SOURCES = $(AUX_SRC) SxAllocCache.cpp SxBitArray.cpp \
 	SxException.cpp SxLog.cpp SxLogBuf.cpp SxMemConsumer.cpp \
 	SxMemMonitor.cpp SxMetadata.cpp SxRedirect.cpp SxRegex.cpp \
 	SxSed.cpp SxString.cpp SxTemplate.cpp SxTimer.cpp SxUtil.cpp \
-	SxVariant.cpp $(am__append_6)
+	SxUUIDv4.cpp SxVariant.cpp $(am__append_6)
 libsxutil_la_LIBADD = $(SXIMPORTLIBS) $(SXIMPORTOBJS)
 libsxutil_la_LDFLAGS = -version-info $(VERSION) $(am__append_3)
 
@@ -898,6 +909,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SxString.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SxTemplate.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SxTimer.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SxUUIDv4.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SxUtil.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SxVariant.Plo@am__quote@
 

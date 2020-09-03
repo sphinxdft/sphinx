@@ -17,7 +17,6 @@
 #define _SX_POTENTIAL_H_
 
 #include <SxAtomicStructure.h>
-//#include <SxVDW.h>
 #include <SxSpeciesData.h>
 #include <SxSymbolTable.h>
 #include <SxForceSym.h>
@@ -168,12 +167,6 @@ class SX_EXPORT_GEOM SxPotential
       SxAtomicStructure getForces (const SxAtomicStructure &tau,
                                    const SxArray<const SxSymbolTable *> &cmds);
 
-      /** \brief getting potential energy, including optional van-der-waals
-                 correction*/
-
-      double getPotentialEnergy ();
-
-
       /** \brief Force symmetrize filter
         */
       SxForceSym forceSymmetrizer;
@@ -232,13 +225,6 @@ class SX_EXPORT_GEOM SxPotential
           \param cmd  minimization command
           \sa SxPotential::execute */
       void print (const SxSymbolTable *cmd) { execute (cmd, false); }
-
-//       /**\brief apply van-der-Waals correcion */
-//      bool applyVDWCorrection;
-//      /** \brief additive van-der-Waals correction*/
-//      SxVDW VDWCorrection;
-//      /** \brief sets the van-der-Waals correction*/
-//      void setVDWCorrection (const SxVDW &);
 
       bool dEnergyLow;
 

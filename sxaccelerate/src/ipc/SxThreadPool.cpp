@@ -43,44 +43,43 @@ void SxThreadPool::PoolThread::main ()
    SX_DBG_MSG (SxString("PoolThread #" + SxString(id)).ascii ());
    bool workingLoop = true;
 
-   pool->mutex.lock ();
+   SX_MUTEX ((pool->mutex))  {
+      while (workingLoop)  {
+         while (!pool->terminateCmd && pool->waitingTasks.getSize () < 1)  {
+            SX_DBG_MSG ("PoolThread #" << id << " waiting for new data");
+            pool->condition.wait (&pool->mutex);
+         }
+         SX_DBG_MSG ("PoolThread #" << id << " new data present");
 
-   while (workingLoop)  {
-      while (!pool->terminateCmd && pool->waitingTasks.getSize () < 1)  {
-         SX_DBG_MSG ("PoolThread #" << id << " waiting for new data");
-         pool->condition.wait (&pool->mutex);
-      }
-      SX_DBG_MSG ("PoolThread #" << id << " new data present");
+         if (pool->terminateCmd)  {
+            SX_DBG_MSG ("PoolThread #" << id << " terminate command");
+            workingLoop = false;
 
-      if (pool->terminateCmd)  {
-         SX_DBG_MSG ("PoolThread #" << id << " terminate command");
-         workingLoop = false;
+         }  else  {
+            SX_DBG_MSG ("PoolThread #" << id << " start working");
+            // --- move from waiting tasks to running tasks
+            SxList<SxPtr<SxThread> >::Node* task = pool->waitingTasks.first ();
+            pool->waitingTasks.removeFirst ();
+            pool->runningTasks << task;
 
-      }  else  {
-         SX_DBG_MSG ("PoolThread #" << id << " start working");
-         // --- move from waiting tasks to running tasks
-         SxList<SxPtr<SxThread> >::Node* task = pool->waitingTasks.first ();
-         pool->waitingTasks.removeFirst ();
-         pool->runningTasks << task;
-
-         // --- run the thread
-         SxPtr<SxThread> thread = task->elem;
-         SX_CHECK (thread.getPtr ());
-         pool->mutex.unlock ();
+            // --- run the thread
+            SxPtr<SxThread> thread = task->elem;
+            SX_CHECK (thread.getPtr ());
+            pool->mutex.unlock ();
             thread->mainWrap ();
-         pool->mutex.lock ();
-         SX_DBG_MSG ("PoolThread #" << id << " work finished");
+            pool->mutex.lock ();
+            SX_DBG_MSG ("PoolThread #" << id << " work finished");
 
-         // --- remove the task
-         pool->runningTasks.removeElement (task);
-         pool->tasks.removeItem (task);
+            // --- remove the task
+            pool->runningTasks.removeElement (task);
+            pool->tasks.removeItem (task);
 
-         pool->waitCondition.wakeAll ();
+            pool->waitCondition.wakeAll ();
+         }
       }
-   }
 
-   SX_DBG_MSG ("PoolThread #" << id << " terminated");
-   pool->mutex.unlock ();
+      SX_DBG_MSG ("PoolThread #" << id << " terminated");
+   }
 
 }
 

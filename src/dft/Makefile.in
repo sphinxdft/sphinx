@@ -224,7 +224,8 @@ am_libsxdft_la_OBJECTS = SxAOBasis.lo SxAtomicOrbitals.lo \
 	SxRadRBasis.lo SxRBasis.lo SxRho.lo SxRhoFilter.lo \
 	SxRhoMixer.lo SxRSProj.lo SxSpaceSeparator.lo SxSpectrum.lo \
 	SxSpinConstraint.lo SxStars.lo SxStrain.lo SxTBAtomAtom.lo \
-	SxTBHamSolver.lo SxTBSpecies.lo SxXC.lo SxXCFunctional.lo
+	SxTBHamSolver.lo SxTBSpecies.lo SxVDW.lo SxXC.lo \
+	SxXCFunctional.lo
 libsxdft_la_OBJECTS = $(am_libsxdft_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -462,6 +463,7 @@ SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHARED_VERSION_INFO = @SHARED_VERSION_INFO@
 SHELL = @SHELL@
+STATIC_LIBC = @STATIC_LIBC@
 STRIP = @STRIP@
 SUBDIRS = @SUBDIRS@
 SXACCELERATE = @SXACCELERATE@
@@ -479,10 +481,12 @@ SX_PARAM_ATLAS = @SX_PARAM_ATLAS@
 SX_PARAM_FFTW = @SX_PARAM_FFTW@
 SX_PARAM_MKL = @SX_PARAM_MKL@
 SX_PARAM_MKLFFT = @SX_PARAM_MKLFFT@
+SX_PARAM_NETLIB = @SX_PARAM_NETLIB@
 SX_PARAM_NUMLIBS = @SX_PARAM_NUMLIBS@
 SX_PARAM_SXMATH = @SX_PARAM_SXMATH@
 SX_SHORTCUT_LIBS = @SX_SHORTCUT_LIBS@
 TAIL = @TAIL@
+THREADTRACER = @THREADTRACER@
 TODAY = @TODAY@
 UNAME = @UNAME@
 USE_ACML = @USE_ACML@
@@ -496,6 +500,7 @@ USE_INTEL_MKL = @USE_INTEL_MKL@
 USE_MKL_FFT = @USE_MKL_FFT@
 USE_MPI = @USE_MPI@
 USE_NETCDF4 = @USE_NETCDF4@
+USE_NETLIB = @USE_NETLIB@
 USE_OPENMP = @USE_OPENMP@
 USE_PARALLEL_NETCDF4 = @USE_PARALLEL_NETCDF4@
 USE_PCRE2 = @USE_PCRE2@
@@ -575,6 +580,7 @@ MODE = "libOnly"
 SX_DEPLIBS = $(SXGEOM) $(SXDIRAC) $(SXIO) $(SXFS) $(SXIPC) $(SXMATH) \
 	$(SXUTIL) $(SXNONSTD) $(SXMPI)
 NUM_DEPLIBS = $(FFT) $(BLAS)
+EXTRA_DIST = d3Data.h
 scriptsdir = $(prefix)/scripts
 scripts_SCRIPTS = 
 
@@ -682,6 +688,7 @@ include_HEADERS = SxAOBasis.h \
                   SxTBHamSolver.h \
                   SxTBSpecies.h \
                   SxTypes.h \
+                  SxVDW.h \
                   SxXC.h \
                   SxXCFunctional.h
 
@@ -704,7 +711,8 @@ libsxdft_la_SOURCES = $(AUX_SRC) SxAOBasis.cpp SxAtomicOrbitals.cpp \
 	SxRBasis.cpp SxRho.cpp SxRhoFilter.cpp SxRhoMixer.cpp \
 	SxRSProj.cpp SxSpaceSeparator.cpp SxSpectrum.cpp \
 	SxSpinConstraint.cpp SxStars.cpp SxStrain.cpp SxTBAtomAtom.cpp \
-	SxTBHamSolver.cpp SxTBSpecies.cpp SxXC.cpp SxXCFunctional.cpp
+	SxTBHamSolver.cpp SxTBSpecies.cpp SxVDW.cpp SxXC.cpp \
+	SxXCFunctional.cpp
 libsxdft_la_LIBADD = $(SXIMPORTLIBS) @SX_FFT_LIBS@ @SX_BLAS_LIBS@ \
 	$(SXIMPORTOBJS)
 libsxdft_la_LDFLAGS = -version-info $(VERSION) $(am__append_2)
@@ -948,6 +956,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SxTBAtomAtom.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SxTBHamSolver.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SxTBSpecies.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SxVDW.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SxXC.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SxXCFunctional.Plo@am__quote@
 

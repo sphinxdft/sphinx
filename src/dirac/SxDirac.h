@@ -83,7 +83,10 @@ class SxDiracAux
       inline SxDiracAux (int)  { init (); }
 
       /// \brief Destructor. 
-      inline ~SxDiracAux ()    { /* empty */ }
+      ~SxDiracAux () = default;
+
+      /// Copy constructor
+      SxDiracAux (const SxDiracAux&) = default;
 
       /** \brief actual constructor
 

@@ -28,9 +28,6 @@
 
 class SxGrid;
 
-// say that Coord is a simple type (no destructor, memcpy ok)
-SXSTACK_SIMPLE(Coord)
-
 /**
   This class contains the structural information of a periodic system
   - cell (lattice periodicity)
@@ -50,6 +47,9 @@ class SX_EXPORT_GEOM SxAtomicStructure
 
       /// Number of atoms
       int nTlAtoms;
+
+      /// Number of unique species
+      int nSpecies;
 
       /// The periodic boundary conditions
       SxCell cell;

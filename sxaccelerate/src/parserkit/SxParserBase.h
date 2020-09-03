@@ -12,6 +12,13 @@
 #include <sstream>
 
 
+SX_EXCEPTION_CAT ("ParserKit");
+SX_EXCEPTION_TAG ("FileIOError");
+SX_EXCEPTION_TAG ("ParseError");
+
+SX_EXCEPTION_TYPE ("ParserKit", "FileIOError", "message", SxString);
+SX_EXCEPTION_TYPE ("ParserKit", "ParseError", "message", SxString);
+
 
 /** \brief This class ...
 
@@ -141,7 +148,7 @@ class SX_EXPORT_PARSER_KIT SxParserBase
 
 #     define SXTAG_LEX()  yyextra->getLexTag () + "-"                         \
                           + yylloc->last_line + "."                           \
-                          + yylloc->last_column;
+                          + yylloc->last_column
 
 #     define YY_USER_INIT  yylloc->last_line += yyextra->getLineOffset();
 #     define YY_USER_ACTION                                                   \
@@ -169,12 +176,10 @@ class SX_EXPORT_PARSER_KIT SxParserBase
 #     define YY_INPUT(buf,result,max_size) {                                  \
          if (yyextra->readerCB) {                                             \
             char c = yyextra->readerCB ();                                    \
-            if (c == '\r')  c = yyextra->readerCB ();                         \
             if (c == '\0')  result = YY_NULL;                                 \
             else { buf[0] = c; result = 1; }                                  \
          } else {                                                             \
             char c = yyextra->inStream->get();                                \
-            if (c == '\r')  c = yyextra->inStream->get ();                    \
             if (yyextra->inStream->eof()) result = YY_NULL;                   \
             else { buf[0] = c; result = 1; }                                  \
          }                                                                    \
@@ -183,7 +188,7 @@ class SX_EXPORT_PARSER_KIT SxParserBase
 #     define YY_EXTRA_TYPE SXPARSER_TYPE *
 #     define SXPARSER_PREFIX()     SXPARSER_TYPE ## _
 
-      class YYLTYPE;
+      struct YYLTYPE;
       class SXPARSER_TYPE;
 
       extern "C" bool SXPARSER_FUNC(SXPARSER_TYPE,_error) (YYLTYPE *, SXPARSER_TYPE *, const SxString&);
@@ -309,7 +314,7 @@ class SX_EXPORT_PARSER_KIT SxParserBase
 
    int SXPARSER_FUNC(SXPARSER_TYPE,_lex)(YYSTYPE *lvalp, YYLTYPE *location, void *scannerPtr);
 
-   class YYLTYPE;
+   struct YYLTYPE;
    class SXPARSER_TYPE;
    extern "C" void SXPARSER_FUNC(SXPARSER_TYPE,_error)(YYLTYPE *loc, SXPARSER_TYPE *pPtr,
                       const SxString &msg)
@@ -331,11 +336,11 @@ class SX_EXPORT_PARSER_KIT SxParserBase
 #  define _SxTag1(iLoc1)                                                      \
       parserPtr->getInFile() + ":"                                            \
       + iLoc1.first_line + "." + iLoc1.first_column + "-"                     \
-      + iLoc1.last_line  + "." + (iLoc1.last_column-1)
+      + iLoc1.last_line  + "." + iLoc1.last_column
 #  define _SxTag2(iLoc1,iLoc2)                                                \
       parserPtr->getInFile() + ":"                                            \
       + iLoc1.first_line + "." + iLoc1.first_column + "-"                     \
-      + iLoc2.last_line  + "." + (iLoc2.last_column-1)
+      + iLoc2.last_line  + "." + iLoc2.last_column
 
 # define SXTAG_YACC(...)  SX_VMACRO_FUNC (_SxTag, __VA_ARGS__)
 

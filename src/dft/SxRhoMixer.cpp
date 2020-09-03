@@ -24,18 +24,19 @@
 #include <SxSymMatrix.h>
 #include <SxRho.h>
 #include <SxPAWRho.h>
+#include <SxSimpleParser.h>
 
 SxRhoMixer::SxRhoMixer (MixerType typeIn, double rhoMixingIn, int maxStepsIn)
    : linearVacMixing(false),
      adaptiveScaling(false),
      residueProfile(false),
+     verbose (false),
      maxSteps (maxStepsIn),
      type (typeIn),
      renormModus (SxRhoMixer::RenormOn),
      spinMixing (-1.),
      normR (-1.),
-     normRPol (-1.),
-     UP (SxXC::UP), DN (SxXC::DOWN)
+     normRPol (-1.)
 {
    rhoMixing = rhoMixingIn;
    maxVacDensity   = 3e-5; // not well tested
@@ -46,11 +47,11 @@ SxRhoMixer::SxRhoMixer (const SxSymbolTable *table, bool spin)
    : linearVacMixing(false),
      adaptiveScaling(false),
      residueProfile(false),
+     verbose (false),
      renormModus (SxRhoMixer::RenormOn),
      spinMixing (-1.),
      normR (-1.),
-     normRPol (-1.),
-     UP (SxXC::UP), DN (SxXC::DOWN)
+     normRPol (-1.)
 {
    maxVacDensity   = 3e-5; // not well tested
    vacSmoothFactor = 1.5;  // not well tested
@@ -60,6 +61,7 @@ SxRhoMixer::SxRhoMixer (const SxSymbolTable *table, bool spin)
       type = Pulay;
       preconditioner.useKerker (1., 1.);
       rhoMixing = 1.;
+      maxSteps = 7;
    }
    
    if (!spin) spinMixing = -1.;
@@ -68,10 +70,8 @@ SxRhoMixer::SxRhoMixer (const SxSymbolTable *table, bool spin)
 void SxRhoMixer::readTable (const SxSymbolTable *cmd)
 {
    SX_CHECK(cmd);
-   try  {
-      int mixingMethod  = cmd->contains("mixingMethod")
-                        ? cmd->get("mixingMethod")->toInt()
-                        : 2;
+   SYMBOLPARSE(cmd) {
+      int mixingMethod  = SYMBOLGET("mixingMethod") || 2;
       switch (mixingMethod)  {
          case 0 : type = Linear; break;
          case 1 : type = Linear;
@@ -81,14 +81,10 @@ void SxRhoMixer::readTable (const SxSymbolTable *cmd)
                           "instead." << endl;
                   break;
          case 2 : type = Pulay;
-                  maxSteps  = cmd->contains ("nPulaySteps")
-                            ? cmd->get("nPulaySteps")->toInt()
-                            : 7;
+                  maxSteps  = SYMBOLGET ("nPulaySteps") || 7;
                   break;
          case 3 : type = Pulay;
-                  maxSteps  = cmd->contains ("nPulaySteps")
-                            ? cmd->get("nPulaySteps")->toInt()
-                            : 7;
+                  maxSteps  = SYMBOLGET ("nPulaySteps") || 7;
                   preconditioner.readTable (cmd);
                   cout << "Warning: mixingMethod PRECOND_PULAY is deprecate. "
                           "Use mixingMethod=PULAY  and preconditioner group "
@@ -97,38 +93,26 @@ void SxRhoMixer::readTable (const SxSymbolTable *cmd)
          default: sxprintf ("Unknown mixing method: %d\n", mixingMethod);
                   SX_QUIT;
       }
-      if (cmd->containsGroup ("preconditioner"))
-         preconditioner.readTable (cmd->getGroup("preconditioner"));
+      /*if*/ SYMBOLGROUP ("preconditioner")
+         preconditioner.readTable (SYMBOLGROUP_TABLE);
       else
          preconditioner.useKerker (1., 1.);
       
       // --- set rhoMixing
-      if (cmd->contains("rhoMixing"))
-         rhoMixing = cmd->get("rhoMixing")->toReal ();
-      else if (preconditioner.getType () != SxPreconditioner::Identity)
-         rhoMixing = 1.;
-      else if (preconditioner.scaling < 1. - 1e-3)
-         rhoMixing = 1.;
-      else
-         rhoMixing = 0.8;
-      
-      spinMixing = (cmd->contains("spinMixing"))
-                 ?  cmd->get("spinMixing")->toReal()
-                 :  -1.;
+      double defaultMixing 
+         = (   preconditioner.getType () != SxPreconditioner::Identity
+            || preconditioner.scaling < 1. - 1e-3) 
+         ? 1. : 0.8;
+      rhoMixing  = SYMBOLGET("rhoMixing")  || defaultMixing;
+      spinMixing = SYMBOLGET("spinMixing") || -1.;
 
-      if (cmd->contains ("linearVacMixing"))
-         linearVacMixing = cmd->get("linearVacMixing")->toAttribute ();
+      linearVacMixing << SYMBOLGET("linearVacMixing");
+      residueProfile  << SYMBOLGET("residueProfile");
+      adaptiveScaling << SYMBOLGET("adaptiveScaling");
 
-      if (cmd->contains("residueProfile"))
-         residueProfile = cmd->get("residueProfile")->toAttribute ();
-      if (cmd->contains("adaptiveScaling"))
-         adaptiveScaling = cmd->get("adaptiveScaling")->toAttribute ();
-
-      if (cmd->containsGroup("filter"))
-         filterPtr = SxPtr<SxRhoFilter>::create (cmd->getGroup ("filter"));
-   } catch (SxException e)  {
-      e.print ();
-      SX_EXIT;
+      /*if*/ SYMBOLGROUP("filter")
+         filterPtr = SxPtr<SxRhoFilter>::create (SYMBOLGROUP_TABLE);
+      verbose = SYMBOLGET("verboseMixing").toBool ();
    }
 }
 
@@ -337,10 +321,10 @@ SxDensity SxRhoMixer::getMixedRho ()
             oldIt = rhoRIn(0).begin ();
             mixedIt = rhoROpt(0).begin ();
          } else {
-            rhoOutSpinAvg = .5 * (rhoROut(UP) + rhoROut(DN));
-            rhoInSpinAvg  = .5 * (rhoRIn(UP)  + rhoRIn(DN));
-            rhoMix  = .5 * (rhoROpt(UP) + rhoROpt(DN));
-            rhoSpin = .5 * (rhoROpt(UP) - rhoROpt(DN));
+            rhoOutSpinAvg = .5 * (rhoROut(0) + rhoROut(1));
+            rhoInSpinAvg  = .5 * (rhoRIn(0)  + rhoRIn(1));
+            rhoMix  = .5 * (rhoROpt(0) + rhoROpt(1));
+            rhoSpin = .5 * (rhoROpt(0) - rhoROpt(1));
             rhoIt = rhoOutSpinAvg.begin ();
             oldIt = rhoInSpinAvg.begin ();
             mixedIt = rhoMix.begin ();
@@ -365,8 +349,8 @@ SxDensity SxRhoMixer::getMixedRho ()
             }
          }
          if (nSpin > 1)  {
-            rhoROpt(UP) = rhoMix + rhoSpin;
-            rhoROpt(DN) = rhoMix - rhoSpin;
+            rhoROpt(0) = rhoMix + rhoSpin;
+            rhoROpt(1) = rhoMix - rhoSpin;
          }
          cout << "Vacuum: partial linear mixing around " << avgRes << " -> "
               << count << " times (" << (double(count) / double(nr) * 100.) 
@@ -435,10 +419,10 @@ SxDensity SxRhoMixer::getMixedRho ()
          oldIt = rhoRIn(0).begin ();
          mixedIt = rhoROpt(0).begin ();
       } else {
-         rhoOutSpinAvg = .5 * (rhoROut(UP) + rhoROut(DN));
-         rhoInSpinAvg  = .5 * (rhoRIn(UP)  + rhoRIn(DN));
-         rhoMix  = .5 * (rhoROpt(UP) + rhoROpt(DN));
-         rhoSpin = .5 * (rhoROpt(UP) - rhoROpt(DN));
+         rhoOutSpinAvg = .5 * (rhoROut(0) + rhoROut(1));
+         rhoInSpinAvg  = .5 * (rhoRIn(0)  + rhoRIn(1));
+         rhoMix  = .5 * (rhoROpt(0) + rhoROpt(1));
+         rhoSpin = .5 * (rhoROpt(0) - rhoROpt(1));
          rhoIt = rhoOutSpinAvg.begin ();
          oldIt = rhoInSpinAvg.begin ();
          mixedIt = rhoMix.begin ();
@@ -467,8 +451,8 @@ SxDensity SxRhoMixer::getMixedRho ()
       }
       if (nSpin > 1)  {
          rhoMix *= nElecOpt / nElecNew;
-         rhoROpt(UP) = rhoMix + rhoSpin;
-         rhoROpt(DN) = rhoMix - rhoSpin;
+         rhoROpt(0) = rhoMix + rhoSpin;
+         rhoROpt(1) = rhoMix - rhoSpin;
       } else {
          rhoROpt(0) *= nElecOpt/nElecNew;
       }
@@ -565,11 +549,14 @@ SxDensity SxRhoMixer::getMixedRhoPulay ()
       cout << "alpha = " << alpha << endl;
       // cout << "A = " << A.expand() << endl;
       // cout << "B = " << B << endl;
-      double r2Now = R(bestIdx) | R(bestIdx),
-             r2New = dot(rhoMixing * alpha,
-                         (A.expand () ^ (rhoMixing * alpha)) + 2. * B) + r2Now;
-      cout << "Pulay R now      : " << sqrt(r2Now) << endl;
-      cout << "Pulay R predicted: " << sqrt(r2New) << endl;
+      if (verbose)  {
+         double r2Now = R(bestIdx) | R(bestIdx),
+                r2New = dot(rhoMixing * alpha,
+                            (A.expand () ^ (rhoMixing * alpha)) + 2. * B)
+                      + r2Now;
+         cout << "Pulay R now      : " << sqrt(r2Now) << endl;
+         cout << "Pulay R predicted: " << sqrt(fabs(r2New)) << endl;
+      }
 
       SxDensity mixedR;
       rhoOpt = rhoOut(bestIdx).getCopy ();
@@ -583,8 +570,7 @@ SxDensity SxRhoMixer::getMixedRhoPulay ()
       mixedR = preconditioner * mixedR - R(bestIdx);
       mixedR += (*filterPtr) | dRhoMixed;
       rhoOpt += mixedR;
-      /*
-      {
+      if (verbose) {
          SxDensity change     = rhoOpt - rhoIn(m);
          SxDensity lastChange = rhoIn(m) - rhoIn(m-1);
          double chNorm = sqrt(change.normSqr ());
@@ -593,7 +579,6 @@ SxDensity SxRhoMixer::getMixedRhoPulay ()
          cout << "colinearity = " << fabs(dotp/chNorm / lchNorm) << endl;
          cout << "projection  = " << (dotp/lchNorm / lchNorm) << endl;
       }
-      */
    }
    if (fabs(rhoMixing - 1.) > 1e-6 || spinMixing >= 0.)  {
       if (bestIdx != m)  {
@@ -605,7 +590,10 @@ SxDensity SxRhoMixer::getMixedRhoPulay ()
          rhoOpt.plus_assign_aspin (spinMixing - rhoMixing, rhoOpt.spin () - rhoIn(bestIdx).spin ());
       }
    }
-   cout << "final Pulay step: " << ((rhoOpt - rhoIn(bestIdx)).normSqr ()) << endl;
+   if (verbose)  {
+      cout << "final Pulay step: " << ((rhoOpt - rhoIn(bestIdx)).normSqr ()) 
+           << endl;
+   }
 
    return rhoOpt;
 }

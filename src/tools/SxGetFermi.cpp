@@ -43,9 +43,9 @@ void freeplot (SxFermi &fermi, double ekt0)
    SX_LOOP3(ik,iSpin,i)  {
       double kw = fermi.kpPtr->weights(ik);
       Uref += fermi.focc(i,iSpin,ik) * fermi.eps(i, iSpin, ik) * kw;
-      double fn = fermi.focc(i,iSpin,ik) * fermi.getNSpin () / 2.;
+      //double fn = fermi.focc(i,iSpin,ik) * fermi.getNSpin () / 2.;
    }
-   double Sref = fermi.getEntropy ();
+   //double Sref = fermi.getEntropy ();
    //double Fref = Uref - ekt0 * Sref;
 
    ofstream out("free.dat");
@@ -92,7 +92,7 @@ int main (int argc, char **argv)
                 .toDouble (0.0,0);
 
    int orderMethfesselPaxton
-      = cli.option ("-N", "int", "Methfessel-Paxton order").toInt (-1);
+      = cli.option ("-N", "int", "Methfessel-Paxton order").toInt (-2);
    cli.last ().defaultValue = "default: Fermi-Dirac smearing";
    int normal = cli.newGroup ("compute Fermi energy/occupations");
    double ekt = cli.option ("-e|--ekt", "energy", "temperature in eV")
@@ -151,7 +151,13 @@ int main (int argc, char **argv)
       fermi = SxFermi (statesInFile, 1, kpInFile);
       fermi.readSpectrum (epsFile, &cell, &kp);
    }
-   fermi.orderMethfesselPaxton = orderMethfesselPaxton;
+   if (orderMethfesselPaxton >= 0)  {
+      fermi.smearType = SxFermi::MethfesselPaxton;
+      fermi.smearingOrder = orderMethfesselPaxton;
+   } else {
+      fermi.smearType = SxFermi::FermiDirac;
+      fermi.smearingOrder = -orderMethfesselPaxton - 1;
+   }
 
    // --- Recalculate Fermi distribution
    // get current number of electrons

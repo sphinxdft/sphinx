@@ -70,6 +70,11 @@ void SxElemDB::read (const SxSymbolTable *table)
       red.resize(nElem);
       green.resize(nElem);
       blue.resize(nElem);
+      polarizability.resize(nElem);
+      C6D2.resize(nElem);
+      C6TS.resize(nElem);
+      vdwRadiusD2.resize(nElem);
+      vdwRadiusTS.resize(nElem);
 
       SxList<double> color;
 //    while (elem && i < nElem)  {
@@ -92,6 +97,12 @@ void SxElemDB::read (const SxSymbolTable *table)
          green(i)          = (color(1)/255.);
          blue(i)           = (color(2)/255.);
          
+         polarizability(i) = (elem->get ("polarizability", true)->toReal());
+         C6D2(i) = (elem->get ("C6D2", true)->toReal());
+         C6TS(i) = (elem->get ("C6TS", true)->toReal());
+         vdwRadiusD2(i) = (elem->get ("vdwRadiusD2", true)->toReal());
+         vdwRadiusTS(i) = (elem->get ("vdwRadiusTS", true)->toReal());
+
          elem = elem->nextSibling ("elem");
          ++i;
       }
@@ -150,6 +161,56 @@ int SxElemDB::getRow (const SxString &chemName) const
    if (Z <= 86) return 6;
    if (Z <= 118) return 7;
    return -1;
+}
+
+double SxElemDB::getPolarizability (const SxString &chemName) const
+{
+    return polarizability(getAtomicNumber(chemName));
+}
+
+double SxElemDB::getPolarizability (int i) const
+{
+    return polarizability(i);
+}
+
+double SxElemDB::getC6D2 (const SxString &chemName) const
+{
+    return C6D2(getAtomicNumber(chemName));
+}
+
+double SxElemDB::getC6D2 (int i) const
+{
+    return C6D2(i);
+}
+
+double SxElemDB::getC6TS (const SxString &chemName) const
+{
+    return C6TS(getAtomicNumber(chemName));
+}
+
+double SxElemDB::getC6TS (int i) const
+{
+    return C6TS(i);
+}
+
+double SxElemDB::getVdwRadiusD2 (const SxString &chemName) const
+{
+    return vdwRadiusD2(getAtomicNumber(chemName));
+}
+
+double SxElemDB::getVdwRadiusD2 (int i) const
+{
+    return vdwRadiusD2(i);
+}
+
+double SxElemDB::getVdwRadiusTS (const SxString &chemName) const
+{
+    return vdwRadiusTS(getAtomicNumber(chemName));
+}
+
+double SxElemDB::getVdwRadiusTS (int i) const
+{
+    return vdwRadiusTS(i);
 }
 
 double SxElemDB::getAtomicWeight (const SxString &chemName) const 

@@ -77,6 +77,14 @@ spinConstraint       { type="group"; optional;
 }
 
 PAWHamiltonian        { type="group"; nItems=1; optional;
+   vdwCorrection      { type="group"; optional;
+         method { type="enum";
+                     val = "D2,TS,D3,D3+TS,TSI,D3+TSI"; }
+         combinationRule { type="enum"; optional;
+                     val = "GB,Tang"; }
+         damping {type="enum"; optional;
+                     val = "Fermi, BJ"; }
+   }
    nEmptyStates      { type="int"; min=0; optional; }
    vExt              { type="group"; optional; 
       file { type="string"; }
@@ -84,6 +92,7 @@ PAWHamiltonian        { type="group"; nItems=1; optional;
    nExcessElectrons  { type="real"; min=-1000; max=1000; optional; }
    ekt               { type="real"; min=0; }
    MethfesselPaxton  { type="int"; min=0; optional; }
+   FermiDirac        { type="int"; min=0; max=1; optional; }
    xc                { type="int"; min=0; max=33; }
    xcMesh            { type="group"; optional;
       eCut              { type="real"; min=5; xor="eCut,mesh,meshAccuracy";}
@@ -99,6 +108,7 @@ PAWHamiltonian        { type="group"; nItems=1; optional;
    fixedDipoleZ      {type="real"; optional;}
    zField            {type="real"; optional;}
    rSoft             {type="real"; optional; min=0;}
+   writeHirshfeldCharges {type="flag"; optional;}
    HubbardU { type="group"; optional;
       verbose { type="flag"; optional; }
       site { type="group"; optional;

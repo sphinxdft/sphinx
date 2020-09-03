@@ -25,7 +25,7 @@ class SxSortedList : public SxList<T>
       /** \brief Make a sorted list out of an unsorted one */
       SxSortedList (const SxList<T> &);
       SxSortedList (const SxSortedList<T> &);
-      SxSortedList (SxSortedList<T> &&);
+      SxSortedList (SxSortedList<T> &&) noexcept;
       SxSortedList (const std::initializer_list<T> &);
       ~SxSortedList ();
 
@@ -95,7 +95,8 @@ SxSortedList<T>::SxSortedList (const SxSortedList<T> &in) : SxList<T> (in)
 { }
 
 template<class T>
-SxSortedList<T>::SxSortedList (SxSortedList<T> &&in) : SxList<T> (std::move(in))
+SxSortedList<T>::SxSortedList (SxSortedList<T> &&in) noexcept
+   : SxList<T> (std::move(in))
 { }
 
 template<class T>

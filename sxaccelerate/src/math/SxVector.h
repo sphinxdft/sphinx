@@ -58,6 +58,7 @@ class SxAuxVec
       inline SxAuxVec &operator= (const SxAuxVec &)  {
          return *this;
       }
+      SxAuxVec (const SxAuxVec&) = default;
 
       /// \brief Empty equality operator
       inline bool operator== (const SxAuxVec &)  {

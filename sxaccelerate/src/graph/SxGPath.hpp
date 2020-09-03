@@ -10,10 +10,17 @@
 //
 // ---------------------------------------------------------------------------
 
-SxGPath::SxGPath () { }
-SxGPath::SxGPath (const SxPtr<SxGraph<SxGProps> > &gPtr_,
-                  const SxGPath::Selection &sel_)
+template<class N,class E,template<class,bool> class GS>
+SxGPath<N,E,GS>::SxGPath ()
 {
+   // empty
+}
+
+template<class N,class E,template<class,bool> class GS>
+SxGPath<N,E,GS>::SxGPath (const SxPtr<SxGraph<N,E,GS> > &gPtr_,
+                          const SxGPath::Selection &sel_)
+{
+   SX_TRACE ();
    SX_CHECK (gPtr_.getPtr ());
    SX_CHECK (sel_.getPtr ());
 
@@ -21,15 +28,23 @@ SxGPath::SxGPath (const SxPtr<SxGraph<SxGProps> > &gPtr_,
    sel  = sel_;
 }
 
-SxGPath::~SxGPath () { }
-
-ssize_t SxGPath::getSize () const
+template<class N,class E,template<class,bool> class GS>
+SxGPath<N,E,GS>::~SxGPath ()
 {
+   // empty
+}
+
+template<class N,class E,template<class,bool> class GS>
+ssize_t SxGPath<N,E,GS>::getSize () const
+{
+   SX_TRACE ();
    return sel->getSize ();
 }
 
-SxGProps &SxGPath::operator() (ssize_t idx)
+template<class N,class E,template<class,bool> class GS>
+N &SxGPath<N,E,GS>::operator() (ssize_t idx)
 {
+   SX_TRACE ();
    ssize_t nodeIdx = -1;
    SX_CHECK (idx < sel->getSize (), idx, sel->getSize ());
    nodeIdx = (*sel)( idx );
@@ -38,22 +53,26 @@ SxGProps &SxGPath::operator() (ssize_t idx)
    return *it;
 }
 
+template<class N,class E,template<class,bool> class GS>
 template<class Fn>
-void SxGPath::foreach (Fn fn)
+void SxGPath<N,E,GS>::foreach (Fn fn)
 {
+   SX_TRACE ();
    SX_CHECK (gPtr.getPtr ());
-   SxGraph<SxGProps>::Iterator it = gPtr->begin (sel);
-   for (; it != gPtr->end (); ++it) {
+   typename SxGraph<N,E,GS>::Iterator it = gPtr->begin (sel);
+   for (; it != gPtr->end (); ++it)  {
       fn (it);
    }
 }
 
+template<class N,class E,template<class,bool> class GS>
 template<class Fn>
-void SxGPath::foreach (Fn fn) const
+void SxGPath<N,E,GS>::foreach (Fn fn) const
 {
+   SX_TRACE ();
    SX_CHECK (gPtr.getPtr ());
-   SxGraph<SxGProps>::ConstIterator it = gPtr->begin (sel);
-   for (; it != gPtr->end (); ++it) {
+   typename SxGraph<N,E,GS>::ConstIterator it = gPtr->begin (sel);
+   for (; it != gPtr->end (); ++it)  {
       fn (it);
    }
 }

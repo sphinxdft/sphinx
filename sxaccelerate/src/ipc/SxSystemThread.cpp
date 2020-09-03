@@ -26,6 +26,10 @@ SxSystemThread::SxSystemThread ()
 {
    SX_TRACE ();
    // empty
+#  ifdef WIN32
+      userData     = NULL;
+      threadHandle = NULL;
+#  endif
 }
 
 SxSystemThread::~SxSystemThread ()
@@ -65,9 +69,10 @@ void SxSystemThread::start (Priority priority)
          int schedPolicy;
          int error = pthread_attr_getschedpolicy (&threadAttribs, &schedPolicy);
          SX_CHECK (!error);
+         SX_UNUSED (error);
          schedPolicy = SCHED_RR;
          pthread_attr_setschedpolicy (&threadAttribs, SCHED_RR);
-   
+
          // --- get allowed priority range
          int minPriority = sched_get_priority_min (schedPolicy);
          int maxPriority = sched_get_priority_max (schedPolicy);

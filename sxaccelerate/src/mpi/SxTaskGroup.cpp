@@ -101,16 +101,6 @@ bool SxTaskGroup::hasAutoLvlName()
       return false;
 }
 
-namespace {
-   void errorTruncatedHierarchy ()
-   {
-      cout << "Fatal problem: lowest MPI level does not exhaust MPI tasks"
-           << endl;
-      cout << "This may lead to wrong results" << endl;
-      cout << "Check the parallel hierarchy" << endl;
-   }
-}
-
 /* virtual */ bool SxTaskGroup::myWork(int ik)
 {
    if (hasChildren())

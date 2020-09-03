@@ -592,8 +592,8 @@ static void yynoreturn yy_fatal_error ( const char* msg , yyscan_t yyscanner );
 	yyg->yy_hold_char = *yy_cp; \
 	*yy_cp = '\0'; \
 	yyg->yy_c_buf_p = yy_cp;
-#define YY_NUM_RULES 32
-#define YY_END_OF_BUFFER 33
+#define YY_NUM_RULES 35
+#define YY_END_OF_BUFFER 36
 /* This struct is not used in this scanner,
    but its presence is necessary. */
 struct yy_trans_info
@@ -601,165 +601,187 @@ struct yy_trans_info
 	flex_int32_t yy_verify;
 	flex_int32_t yy_nxt;
 	};
-static const flex_int16_t yy_accept[99] =
+static const flex_int16_t yy_accept[120] =
     {   0,
-       24,   24,    0,    0,    0,    0,    0,    0,   33,   31,
-        1,    2,   24,   25,   23,   31,   17,   31,   16,   22,
-       31,   20,   21,   31,   31,   31,   18,   19,    1,   24,
-       31,   31,    4,    6,    6,   26,   29,   28,   30,   30,
-       30,   30,   30,   13,   14,   31,    1,   24,    2,   17,
-       16,   17,    7,    8,    0,    0,    0,    0,    1,   24,
-        0,    0,    0,    4,    0,    5,    0,   26,    0,    0,
-        0,   27,    0,    0,   13,   14,   14,   15,   12,    8,
-        0,    0,    0,    0,    0,    0,    0,   11,    0,    9,
-        0,   10,    0,    0,    0,    0,    3,    0
+        0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
+       36,   34,    1,    2,   28,   27,   34,   21,   34,   20,
+       26,   34,   24,   25,   34,   34,   34,   22,   23,    1,
+       34,   34,    4,    6,    6,   29,   32,   32,   31,   33,
+       33,   33,   33,   33,   18,   19,   18,   10,    9,   10,
+       10,    1,    2,   21,   20,   21,    0,   11,   12,    0,
+        0,    0,    0,    1,    0,    0,    0,    4,    0,    5,
+        0,   29,    0,    0,    0,   30,    0,    0,   18,   17,
+       16,    9,    0,    0,    0,    0,   21,    0,    0,   12,
+        0,    0,    0,    0,    0,    0,    0,    8,    0,    0,
 
+       15,    0,   13,    0,    0,   14,    0,    0,    0,    0,
+        0,    0,    0,    0,    0,    7,    0,    3,    0
     } ;
 
 static const YY_CHAR yy_ec[256] =
     {   0,
         1,    1,    1,    1,    1,    1,    1,    1,    2,    3,
+        1,    1,    4,    1,    1,    1,    1,    1,    1,    1,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
-        1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
-        1,    4,    1,    5,    6,    1,    1,    1,    1,    1,
-        1,    7,    1,    8,    9,   10,   11,   12,   12,   12,
-       12,   12,   12,   12,   12,   12,   12,   13,   14,   15,
-        1,   16,    1,    1,    1,    1,    1,    1,    1,    1,
-        1,    1,    1,    1,    1,   17,    1,   18,    1,    1,
-        1,    1,    1,    1,   19,    1,    1,    1,    1,    1,
-       20,   21,   22,    1,    1,    1,   23,    1,   24,   25,
+        1,    5,    1,    6,    7,    1,    1,    1,    1,    1,
+        1,    8,    9,   10,   11,   12,   13,   14,   14,   14,
+       14,   14,   14,   14,   14,   14,   14,   15,   16,   17,
+        1,   18,    1,    1,    1,    1,    1,   19,   20,    1,
+        1,    1,    1,    1,    1,   21,    1,   22,    1,    1,
+        1,    1,   23,    1,   24,    1,    1,    1,    1,    1,
+       25,   26,   27,    1,    1,    1,   28,    1,   29,   30,
 
-       26,   27,    1,    1,   28,    1,    1,   29,    1,   30,
-        1,    1,    1,   31,   32,   33,   34,    1,    1,    1,
-        1,    1,   35,    1,   36,    1,    1,   37,   37,   37,
-       37,   37,   37,   37,   37,   37,   37,   37,   37,   37,
-       37,   37,   37,   37,   37,   37,   37,   37,   37,   37,
-       37,   37,   37,   37,   37,   37,   37,   37,   37,   37,
-       37,   37,   37,   37,   37,   37,   37,   37,   37,   37,
-       37,   37,   37,   37,   37,   37,   37,   37,   37,   37,
-       37,   37,   37,   37,   37,   37,   37,   37,   37,   37,
-       37,   38,   38,   39,   39,   39,   39,   39,   39,   39,
+       31,   32,    1,    1,   33,    1,    1,   34,    1,   35,
+       36,    1,    1,   37,   38,   39,   40,    1,    1,   41,
+        1,    1,   42,   43,   44,    1,    1,   45,   45,   45,
+       45,   45,   45,   45,   45,   45,   45,   45,   45,   45,
+       45,   45,   45,   45,   45,   45,   45,   45,   45,   45,
+       45,   45,   45,   45,   45,   45,   45,   45,   45,   45,
+       45,   45,   45,   45,   45,   45,   45,   45,   45,   45,
+       45,   45,   45,   45,   45,   45,   45,   45,   45,   45,
+       45,   45,   45,   45,   45,   45,   45,   45,   45,   45,
+       45,   46,   46,   47,   47,   47,   47,   47,   47,   47,
 
-       39,   39,   39,   39,   39,   39,   39,   39,   39,   39,
-       39,   39,   39,   39,   39,   39,   39,   39,   39,   39,
-       39,   39,   39,   40,   40,   40,   40,   40,   40,   40,
-       40,   40,   40,   40,   40,   40,   40,   40,   40,   41,
-       41,   41,   41,   41,   38,   38,   38,   38,   38,   38,
-       38,   38,   38,   38,   38
+       47,   47,   47,   47,   47,   47,   47,   47,   47,   47,
+       47,   47,   47,   47,   47,   47,   47,   47,   47,   47,
+       47,   47,   47,   48,   48,   48,   48,   48,   48,   48,
+       48,   48,   48,   48,   48,   48,   48,   48,   48,   49,
+       49,   49,   49,   49,   46,   46,   46,   46,   46,   46,
+       46,   46,   46,   46,   46
     } ;
 
-static const YY_CHAR yy_meta[42] =
+static const YY_CHAR yy_meta[50] =
     {   0,
-        1,    1,    2,    1,    3,    1,    4,    1,    1,    1,
-        4,    1,    1,    5,    1,    5,    1,    1,    1,    1,
-        6,    1,    1,    1,    1,    1,    1,    1,    1,    1,
-        1,    1,    1,    1,    1,    1,    6,    6,    1,    1,
-        1
+        1,    2,    3,    2,    1,    4,    1,    5,    1,    1,
+        1,    1,    1,    1,    1,    6,    1,    6,    1,    1,
+        1,    1,    1,    1,    1,    2,    1,    1,    1,    1,
+        1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
+        1,    1,    1,    1,    2,    2,    1,    1,    1
     } ;
 
-static const flex_int16_t yy_base[108] =
+static const flex_int16_t yy_base[130] =
     {   0,
-        0,   40,   40,   44,   66,  105,   41,   44,  221,  222,
-       55,  217,   59,  222,  222,   52,  207,   59,   55,  222,
-      199,  222,  222,  194,  182,  184,  222,  222,   70,   71,
-       72,  184,    0,   77,  222,   43,  222,  222,    0,  222,
-      176,  175,  170,    0,   78,  190,   84,   88,  186,  173,
-       83,  172,  222,    0,  164,  150,  149,  123,  107,  110,
-       90,  126,  131,    0,  117,  222,  120,   88,  117,  116,
-      115,  222,  114,  113,    0,   90,  125,  222,  222,    0,
-      132,  105,  104,  104,   96,  137,   80,  222,   89,  222,
-       68,  222,   69,   27,   46,  143,  222,  222,  158,  164,
+        0,   43,   13,   18,   86,  134,   10,   20,   37,   56,
+      224,  291,   15,    4,  291,  291,   49,   52,   30,   79,
+      291,  199,  291,  291,  194,  181,  183,  291,  291,   72,
+       19,  184,    0,   99,  291,   49,  291,  291,  291,    0,
+      291,  173,  172,  171,    0,  202,  206,  291,  291,  210,
+      101,   62,  104,   99,  127,  130,  109,  122,    0,  190,
+      176,  175,  168,  141,  118,  172,  177,    0,  151,  291,
+      160,  137,  160,  158,  133,  291,  132,  119,    0,  291,
+      291,  291,  109,  146,  115,  155,  143,  166,  114,    0,
+      128,   90,   87,   85,   60,  185,   41,  291,   70,   61,
 
-      170,  176,  182,  187,  193,  199,  205
+      291,   42,  291,   31,   33,  291,   32,   22,    6,  170,
+       25,  189,  193,  187,  197,  291,    6,  291,  291,  231,
+      237,  243,  249,  255,  261,  266,  272,  278,  284
     } ;
 
-static const flex_int16_t yy_def[108] =
+static const flex_int16_t yy_def[130] =
     {   0,
-       98,    1,   99,   99,  100,  100,  101,  101,   98,   98,
-       98,   98,   98,   98,   98,   98,   98,   98,   98,   98,
-       98,   98,   98,   98,   98,   98,   98,   98,   98,   98,
-       98,   98,  102,   98,   98,  103,   98,   98,  104,   98,
-       98,   98,   98,  105,  106,   98,   98,   98,   98,   98,
-       98,   98,   98,  107,   98,   98,   98,   98,   98,   98,
-       98,   98,   98,  102,   98,   98,   98,  103,   98,   98,
-       98,   98,   98,   98,  105,  106,  106,   98,   98,  107,
-       98,   98,   98,   98,   98,   98,   98,   98,   98,   98,
-       98,   98,   98,   98,   98,   98,   98,    0,   98,   98,
+      120,  120,  121,  121,  122,  122,  123,  123,  124,  124,
+      119,  119,  119,  119,  119,  119,  119,  119,  119,  119,
+      119,  119,  119,  119,  119,  119,  119,  119,  119,  119,
+      119,  119,  125,  119,  119,  126,  119,  119,  119,  127,
+      119,  119,  119,  119,  128,  119,  128,  119,  119,  119,
+      119,  119,  119,  119,  119,  119,  119,  119,  129,  119,
+      119,  119,  119,  119,  119,  119,  119,  125,  119,  119,
+      119,  126,  119,  119,  119,  119,  119,  119,  128,  119,
+      119,  119,  119,  119,  119,  119,  119,  119,  119,  129,
+      119,  119,  119,  119,  119,  119,  119,  119,  119,  119,
 
-       98,   98,   98,   98,   98,   98,   98
+      119,  119,  119,  119,  119,  119,  119,  119,  119,  119,
+      119,  119,  119,  119,  119,  119,  119,  119,    0,  119,
+      119,  119,  119,  119,  119,  119,  119,  119,  119
     } ;
 
-static const flex_int16_t yy_nxt[264] =
+static const flex_int16_t yy_nxt[341] =
     {   0,
-       10,   11,   12,   13,   14,   10,   10,   15,   16,   17,
-       18,   19,   20,   10,   10,   10,   10,   21,   10,   22,
-       10,   23,   10,   10,   10,   10,   24,   10,   10,   25,
-       10,   10,   26,   10,   27,   28,   10,   10,   10,   10,
-       10,   29,   10,   30,   34,   31,   10,   45,   34,   96,
-       45,   46,   95,   35,   46,   34,   47,   35,   48,   34,
-       48,   50,   48,   51,   50,   53,   51,   32,   37,   54,
-       38,   59,   60,   60,   60,   61,   61,   61,   65,   66,
-       65,   69,   70,   71,   77,   47,   39,   48,   78,   48,
-       67,   48,   50,   94,   51,   61,   98,   62,   62,   62,
+      119,   13,   14,   14,   13,   15,   53,   53,  116,   16,
+       17,   18,   19,   20,   21,   12,   52,   46,   34,   52,
+       12,   22,   47,   34,   23,   65,   24,   46,   35,  114,
+       34,   25,   47,   35,   26,   34,  111,   58,   27,   49,
+       50,   28,   59,   29,   30,   14,   14,   30,   15,   31,
+      110,   66,   16,   17,   18,   19,   20,   21,   49,   50,
+       54,  109,   55,   52,   22,   56,   52,   23,  108,   24,
+      107,   57,  106,   64,   25,   32,   64,   26,   65,  105,
+       51,   27,   57,   87,   28,   72,   29,   37,   38,   37,
+       54,   39,   55,  104,   57,   73,   74,   75,   57,   51,
 
-       98,   93,   40,   40,   41,   42,   43,   37,   59,   38,
-       60,   60,   61,   60,   92,   61,   68,   62,   65,   66,
-       65,   86,   66,   86,   91,   39,   69,   70,   71,   90,
-       67,   77,   88,   67,   62,   78,   89,   62,   86,   66,
-       86,   40,   40,   41,   42,   43,   96,   97,   88,   87,
-       68,   74,   73,   68,   85,   63,   84,   97,   33,   33,
-       33,   33,   33,   33,   36,   36,   36,   36,   36,   36,
-       44,   44,   44,   44,   44,   44,   64,   83,   82,   64,
-       81,   64,   68,   52,   52,   68,   68,   72,   49,   72,
-       72,   72,   72,   75,   75,   75,   79,   75,   75,   76,
+       69,   70,   83,   69,   66,   83,   53,   53,   84,   57,
+       83,   40,   56,   83,   71,  103,   84,   85,   57,   86,
+      101,   57,   87,   88,   65,   99,   88,  102,   87,   57,
+       41,   41,   42,   43,   44,   37,   38,   37,   54,   39,
+       55,   57,   64,   56,   89,   64,   57,   65,  101,   57,
+       66,   85,   69,   70,  100,   69,   87,   57,   98,   40,
+       57,   96,   70,   97,   96,   99,   71,   88,   87,   57,
+       88,  112,   57,   66,  112,   71,   72,   78,   41,   41,
+       42,   43,   44,   73,   74,   75,   96,   70,   89,   96,
+      112,  114,  118,  112,  115,  116,  117,  115,  115,  116,
 
-       76,   76,   76,   76,   76,   80,   74,   80,   80,   80,
-       80,   73,   68,   63,   58,   57,   56,   55,   52,   49,
-       98,    9,   98,   98,   98,   98,   98,   98,   98,   98,
-       98,   98,   98,   98,   98,   98,   98,   98,   98,   98,
-       98,   98,   98,   98,   98,   98,   98,   98,   98,   98,
-       98,   98,   98,   98,   98,   98,   98,   98,   98,   98,
-       98,   98,   98
+      117,  115,   77,  118,   72,   95,   67,   94,   93,   92,
+       91,  113,   82,   81,   80,   78,   77,   72,   67,   63,
+       62,   61,   60,  119,  119,  119,  119,  119,  119,  119,
+      113,   12,   12,   12,   12,   12,   12,   33,   33,   33,
+       33,   33,   33,   36,   36,   36,   36,   36,   36,   45,
+       45,   45,   45,   45,   45,   48,   48,   48,   48,   48,
+       48,   68,   68,  119,  119,   68,   72,  119,  119,  119,
+       72,   72,   76,   76,  119,   76,   76,   76,   79,   79,
+       79,   79,  119,   79,   90,   90,  119,   90,   90,   90,
+       11,  119,  119,  119,  119,  119,  119,  119,  119,  119,
+
+      119,  119,  119,  119,  119,  119,  119,  119,  119,  119,
+      119,  119,  119,  119,  119,  119,  119,  119,  119,  119,
+      119,  119,  119,  119,  119,  119,  119,  119,  119,  119,
+      119,  119,  119,  119,  119,  119,  119,  119,  119,  119
     } ;
 
-static const flex_int16_t yy_chk[264] =
+static const flex_int16_t yy_chk[341] =
     {   0,
-        1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
-        1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
-        1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
-        1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
-        1,    2,    3,    2,    3,    2,    4,    7,    4,   95,
-        8,    7,   94,    3,    8,    3,   11,    4,   11,    4,
-       13,   16,   13,   16,   19,   18,   19,    2,    5,   18,
-        5,   29,   30,   29,   30,   29,   30,   31,   34,   34,
-       34,   36,   36,   36,   45,   47,    5,   47,   45,   48,
-       34,   48,   51,   93,   51,   61,   76,   29,   30,   31,
+        0,    1,    1,    1,    1,    1,   14,   14,  117,    1,
+        1,    1,    1,    1,    1,    3,   13,    7,    3,   13,
+        4,    1,    7,    4,    1,   31,    1,    8,    3,  111,
+        3,    1,    8,    4,    1,    4,  109,   19,    1,    9,
+        9,    1,   19,    1,    2,    2,    2,    2,    2,    2,
+      108,   31,    2,    2,    2,    2,    2,    2,   10,   10,
+       17,  107,   17,   52,    2,   18,   52,    2,  105,    2,
+      104,   18,  102,   30,    2,    2,   30,    2,   30,  100,
+        9,    2,   18,   99,    2,   97,    2,    5,    5,    5,
+       20,    5,   20,   95,   18,   36,   36,   36,   20,   10,
 
-       76,   91,    5,    5,    5,    5,    5,    6,   59,    6,
-       59,   60,   59,   60,   89,   60,   87,   61,   65,   65,
-       65,   67,   67,   67,   85,    6,   68,   68,   68,   84,
-       65,   77,   83,   67,   59,   77,   82,   60,   86,   86,
-       86,    6,    6,    6,    6,    6,   96,   96,   81,   74,
-       73,   71,   70,   69,   63,   62,   58,   96,   99,   99,
-       99,   99,   99,   99,  100,  100,  100,  100,  100,  100,
-      101,  101,  101,  101,  101,  101,  102,   57,   56,  102,
-       55,  102,  103,   52,   50,  103,  103,  104,   49,  104,
-      104,  104,  104,  105,  105,  105,   46,  105,  105,  106,
+       34,   34,   51,   34,   30,   51,   53,   53,   51,   20,
+       83,    5,   54,   83,   34,   94,   83,   57,   54,   57,
+       93,   20,   57,   58,   65,   85,   58,   92,   85,   54,
+        5,    5,    5,    5,    5,    6,    6,    6,   55,    6,
+       55,   54,   64,   56,   58,   64,   55,   64,   91,   56,
+       65,   57,   69,   69,   89,   69,   87,   55,   84,    6,
+       56,   71,   71,   78,   71,   86,   69,   88,   86,   55,
+       88,  110,   56,   64,  110,   71,   77,   75,    6,    6,
+        6,    6,    6,   72,   72,   72,   96,   96,   88,   96,
+      112,  114,  114,  112,  113,  113,  113,  113,  115,  115,
 
-      106,  106,  106,  106,  106,  107,   43,  107,  107,  107,
-      107,   42,   41,   32,   26,   25,   24,   21,   17,   12,
-        9,   98,   98,   98,   98,   98,   98,   98,   98,   98,
-       98,   98,   98,   98,   98,   98,   98,   98,   98,   98,
-       98,   98,   98,   98,   98,   98,   98,   98,   98,   98,
-       98,   98,   98,   98,   98,   98,   98,   98,   98,   98,
-       98,   98,   98
+      115,  115,   74,  114,   73,   67,   66,   63,   62,   61,
+       60,  110,   50,   47,   46,   44,   43,   42,   32,   27,
+       26,   25,   22,   11,    0,    0,    0,    0,    0,    0,
+      112,  120,  120,  120,  120,  120,  120,  121,  121,  121,
+      121,  121,  121,  122,  122,  122,  122,  122,  122,  123,
+      123,  123,  123,  123,  123,  124,  124,  124,  124,  124,
+      124,  125,  125,    0,    0,  125,  126,    0,    0,    0,
+      126,  126,  127,  127,    0,  127,  127,  127,  128,  128,
+      128,  128,    0,  128,  129,  129,    0,  129,  129,  129,
+      119,  119,  119,  119,  119,  119,  119,  119,  119,  119,
+
+      119,  119,  119,  119,  119,  119,  119,  119,  119,  119,
+      119,  119,  119,  119,  119,  119,  119,  119,  119,  119,
+      119,  119,  119,  119,  119,  119,  119,  119,  119,  119,
+      119,  119,  119,  119,  119,  119,  119,  119,  119,  119
     } ;
 
 /* Table of booleans, true if rule could match eol. */
-static const flex_int32_t yy_rule_can_match_eol[33] =
+static const flex_int32_t yy_rule_can_match_eol[36] =
     {   0,
-0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0,     };
+0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0,     };
 
 /* The intent behind this definition is that it'll catch
  * any uses of REJECT which flex missed.
@@ -768,7 +790,7 @@ static const flex_int32_t yy_rule_can_match_eol[33] =
 #define yymore() yymore_used_but_not_detected
 #define YY_MORE_ADJ 0
 #define YY_RESTORE_YY_MORE_OFFSET
-#line 1 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.lpp"
+#line 1 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.lpp"
 /* ---------------------------------------------------------------------------
 //
 //           The general purpose cross platform C/C++ framework
@@ -780,20 +802,21 @@ static const flex_int32_t yy_rule_can_match_eol[33] =
 //           Authors:    see src/AUTHORS
 //
 // ------------------------------------------------------------------------ */
-#line 22 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.lpp"
+#line 22 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.lpp"
 #define SXPARSER_TYPE SxJSONParser
 #define lexerPtr (static_cast<SxJSONParser *> (yyextra))
 #include <SxParserBase.h>
 #include <SxJSONParser.h>
 #include <SxJSONParser.tab.hpp>
-#line 790 "SxJSONParser.lex.cpp"
+#line 812 "SxJSONParser.lex.cpp"
 
-#line 792 "SxJSONParser.lex.cpp"
+#line 814 "SxJSONParser.lex.cpp"
 
 #define INITIAL 0
 #define IncludeState 1
 #define StringState 2
 #define CommentState 3
+#define GroupDocState 4
 
 #ifndef YY_NO_UNISTD_H
 /* Special case for "unistd.h", since it is non-ANSI. We include it way
@@ -1084,10 +1107,10 @@ YY_DECL
 		}
 
 	{
-#line 54 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.lpp"
+#line 55 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.lpp"
 
 
-#line 1091 "SxJSONParser.lex.cpp"
+#line 1114 "SxJSONParser.lex.cpp"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -1115,13 +1138,13 @@ yy_match:
 			while ( yy_chk[yy_base[yy_current_state] + yy_c] != yy_current_state )
 				{
 				yy_current_state = (int) yy_def[yy_current_state];
-				if ( yy_current_state >= 99 )
+				if ( yy_current_state >= 120 )
 					yy_c = yy_meta[yy_c];
 				}
 			yy_current_state = yy_nxt[yy_base[yy_current_state] + yy_c];
 			++yy_cp;
 			}
-		while ( yy_base[yy_current_state] != 222 );
+		while ( yy_base[yy_current_state] != 291 );
 
 yy_find_action:
 		yy_act = yy_accept[yy_current_state];
@@ -1159,19 +1182,19 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 56 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.lpp"
+#line 57 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.lpp"
 { }
 	YY_BREAK
 case 2:
 /* rule 2 can match eol */
 YY_RULE_SETUP
-#line 57 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.lpp"
+#line 58 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.lpp"
 { }
 	YY_BREAK
 
 case 3:
 YY_RULE_SETUP
-#line 60 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.lpp"
+#line 61 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.lpp"
 {
    SX_DBG_LEX ("Include");
    SXPARSER_PUSH_STATE (IncludeState);
@@ -1179,7 +1202,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 64 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.lpp"
+#line 65 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.lpp"
 {
    SX_DBG_LEX ("include#open");
    SXPARSER_APPEND_STATE (yytext);
@@ -1190,7 +1213,7 @@ YY_RULE_SETUP
 case 5:
 /* rule 5 can match eol */
 YY_RULE_SETUP
-#line 70 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.lpp"
+#line 71 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.lpp"
 {
    SxString pattern = SxString::join (SXPARSER_COLLECT_STATE(), "");
    SX_DBG_LEX ("include#done:" << pattern);
@@ -1200,15 +1223,58 @@ YY_RULE_SETUP
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 76 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.lpp"
+#line 77 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.lpp"
 {
    SXPARSER_ERROR (SxString("Unexpected token ") + yytext );
 }
 	YY_BREAK
 
 case 7:
+/* rule 7 can match eol */
 YY_RULE_SETUP
-#line 82 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.lpp"
+#line 82 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.lpp"
+{
+   SX_DBG_LEX ("SxDoc Block: BEGIN");
+   SXPARSER_SKIP_WHITESPACE ();
+   SXPARSER_PUSH_STATE (GroupDocState);
+   SXPARSER_SEND (TK_GRPDOC_BEGIN);
+}
+	YY_BREAK
+case 8:
+YY_RULE_SETUP
+#line 89 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.lpp"
+{
+   SX_DBG_LEX ("<SxDoc> end");
+   SXPARSER_APPEND_STATE ("");
+   SxString token = SxString::join (SXPARSER_COLLECT_STATE(), "");
+   SXPARSER_POP_STATE ();
+   yylval->strPtr = new SxString (token);
+   SXPARSER_SEND (TK_GRPDOC_END);
+}
+	YY_BREAK
+case 9:
+/* rule 9 can match eol */
+YY_RULE_SETUP
+#line 98 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.lpp"
+{
+   SX_DBG_LEX ("<SxDoc>#1");
+   SxString s = SxString::unicodeFromUtf8 (yytext);
+   SXPARSER_APPEND_STATE (s);
+}
+	YY_BREAK
+case 10:
+YY_RULE_SETUP
+#line 104 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.lpp"
+{
+   SX_DBG_LEX ("<SxDoc>#2");
+   SxString s = SxString::unicodeFromUtf8 (yytext);
+   SXPARSER_APPEND_STATE (s);
+}
+	YY_BREAK
+
+case 11:
+YY_RULE_SETUP
+#line 113 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.lpp"
 {
    SX_DBG_LEX ("<*> C Comment: BEGIN");
    SXPARSER_SKIP_WHITESPACE ();
@@ -1216,15 +1282,15 @@ YY_RULE_SETUP
 }
 	YY_BREAK
 
-case 8:
+case 12:
 YY_RULE_SETUP
-#line 89 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.lpp"
+#line 120 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.lpp"
 { }
 	YY_BREAK
 
-case 9:
+case 13:
 YY_RULE_SETUP
-#line 92 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.lpp"
+#line 123 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.lpp"
 {
    SX_DBG_LEX ("true");
    SXPARSER_SKIP_WHITESPACE ();
@@ -1233,9 +1299,9 @@ YY_RULE_SETUP
 }
 	YY_BREAK
 
-case 10:
+case 14:
 YY_RULE_SETUP
-#line 100 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.lpp"
+#line 131 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.lpp"
 {
    SX_DBG_LEX ("false");
    SXPARSER_SKIP_WHITESPACE ();
@@ -1244,194 +1310,189 @@ YY_RULE_SETUP
 }
 	YY_BREAK
 
-case 11:
+case 15:
 YY_RULE_SETUP
-#line 108 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.lpp"
+#line 139 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.lpp"
 {
    SX_DBG_LEX ("NULL");
    SXPARSER_SKIP_WHITESPACE ();
    SXPARSER_SEND (TK_NULL);
 }
 	YY_BREAK
-case 12:
+case 16:
 YY_RULE_SETUP
-#line 114 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.lpp"
+#line 145 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.lpp"
 {
    SX_DBG_LEX ("<Comment> C Comment: BEGIN");
    SXPARSER_SKIP_WHITESPACE ();
    SXPARSER_REPUSH_STATE ();
 }
 	YY_BREAK
-case 13:
-/* rule 13 can match eol */
+case 17:
 YY_RULE_SETUP
-#line 120 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.lpp"
-{ SX_DBG_LEX ("<Comment>#1"); }
-	YY_BREAK
-case 14:
-/* rule 14 can match eol */
-YY_RULE_SETUP
-#line 121 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.lpp"
-{ SX_DBG_LEX ("<Comment>#2"); }
-	YY_BREAK
-case 15:
-YY_RULE_SETUP
-#line 122 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.lpp"
+#line 150 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.lpp"
 {
    SX_DBG_LEX ("<Comment> C Comment: END");
    SXPARSER_POP_STATE ();
 }
 	YY_BREAK
+case 18:
+/* rule 18 can match eol */
+YY_RULE_SETUP
+#line 154 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.lpp"
+{ SX_DBG_LEX ("<Comment>#1"); }
+	YY_BREAK
+case 19:
+YY_RULE_SETUP
+#line 155 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.lpp"
+{ SX_DBG_LEX ("<Comment>#2"); }
+	YY_BREAK
 case YY_STATE_EOF(CommentState):
-#line 126 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.lpp"
+#line 157 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.lpp"
 {
-   SxString msg = SXTAG_LEX() + ": Unbalanced block: Comment /*...*/ is not closed.";
+   SxString msg = (SXTAG_LEX()) + ": Unbalanced block: Comment /*...*/ is not closed.";
    SXPARSER_ERROR (msg);
    yyterminate ();
 }
 	YY_BREAK
 
-case 16:
+case 20:
 YY_RULE_SETUP
-#line 133 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.lpp"
+#line 164 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.lpp"
 {
-   yylval->intVal = atoi (yytext);
+   yylval->intVal = atoll (yytext);
    SX_DBG_LEX ("Integer: " << yylval->intVal)
    SXPARSER_SEND (TK_INTEGER);
 }
 	YY_BREAK
-case 17:
-YY_RULE_SETUP
-#line 139 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.lpp"
-{
-   yylval->floatVal = atof(yytext);
-   SX_DBG_LEX ("Float: " << yylval->floatVal);
-   SXPARSER_SEND (TK_FLOAT);
-}
-	YY_BREAK
-case 18:
-YY_RULE_SETUP
-#line 145 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.lpp"
-{
-   SX_DBG_LEX ("brace:");
-   SXPARSER_SKIP_WHITESPACE ();
-   SXPARSER_SEND ('{');
-}
-	YY_BREAK
-case 19:
-YY_RULE_SETUP
-#line 151 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.lpp"
-{
-   SX_DBG_LEX ("brace:");
-   SXPARSER_SKIP_WHITESPACE ();
-   SXPARSER_SEND ('}');
-}
-	YY_BREAK
-case 20:
-YY_RULE_SETUP
-#line 157 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.lpp"
-{
-   SX_DBG_LEX ("brace:");
-   SXPARSER_SKIP_WHITESPACE ();
-   SXPARSER_SEND ('[');
-}
-	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 163 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.lpp"
+#line 170 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.lpp"
 {
-   SX_DBG_LEX ("brace:");
-   SXPARSER_SKIP_WHITESPACE ();
-   SXPARSER_SEND (']');
+   yylval->realVal = atof(yytext);
+   SX_DBG_LEX ("Real: " << yylval->realVal);
+   SXPARSER_SEND (TK_REAL);
 }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 169 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.lpp"
+#line 176 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.lpp"
+{
+   SX_DBG_LEX ("brace:{");
+   SXPARSER_SKIP_WHITESPACE ();
+   SXPARSER_SEND ('{');
+}
+	YY_BREAK
+case 23:
+YY_RULE_SETUP
+#line 182 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.lpp"
+{
+   SX_DBG_LEX ("brace:}");
+   SXPARSER_SKIP_WHITESPACE ();
+   SXPARSER_SEND ('}');
+}
+	YY_BREAK
+case 24:
+YY_RULE_SETUP
+#line 188 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.lpp"
+{
+   SX_DBG_LEX ("brace:[");
+   SXPARSER_SKIP_WHITESPACE ();
+   SXPARSER_SEND ('[');
+}
+	YY_BREAK
+case 25:
+YY_RULE_SETUP
+#line 194 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.lpp"
+{
+   SX_DBG_LEX ("brace:]");
+   SXPARSER_SKIP_WHITESPACE ();
+   SXPARSER_SEND (']');
+}
+	YY_BREAK
+case 26:
+YY_RULE_SETUP
+#line 200 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.lpp"
 {
    SX_DBG_LEX (":");
    SXPARSER_SKIP_WHITESPACE ();
    SXPARSER_SEND (':');
 }
 	YY_BREAK
-case 23:
+case 27:
 YY_RULE_SETUP
-#line 175 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.lpp"
+#line 206 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.lpp"
 {
    SX_DBG_LEX (",");
    SXPARSER_SKIP_WHITESPACE ();
    SXPARSER_SEND (',');
 }
 	YY_BREAK
-case 24:
-YY_RULE_SETUP
-#line 181 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.lpp"
-{ }
-	YY_BREAK
 
-case 25:
+case 28:
 YY_RULE_SETUP
-#line 184 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.lpp"
+#line 213 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.lpp"
 {
    SX_DBG_LEX ("StringBegin");
    SXPARSER_SKIP_WHITESPACE ();
    SXPARSER_PUSH_STATE (StringState);
 }
 	YY_BREAK
-case 26:
+case 29:
 YY_RULE_SETUP
-#line 190 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.lpp"
+#line 219 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.lpp"
 {
    SX_DBG_LEX ("U8_String");
    SxString s = SxString::unicodeFromUtf8 (yytext);
    SXPARSER_APPEND_STATE (s);
 }
 	YY_BREAK
-case 27:
+case 30:
 YY_RULE_SETUP
-#line 196 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.lpp"
+#line 225 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.lpp"
 {
    SX_DBG_LEX ("<String>.#2");
    SXPARSER_APPEND_STATE (yytext);
 }
 	YY_BREAK
-case 28:
+case 31:
 YY_RULE_SETUP
-#line 201 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.lpp"
+#line 230 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.lpp"
 {
    SX_DBG_LEX ("<String>.#3");
    // -- append empty string because closing quote is found
    SXPARSER_APPEND_STATE ("");
    SxString token = SxString::join (SXPARSER_COLLECT_STATE(), "");
    SXPARSER_POP_STATE ();
+   token = SxParserAst::unescapeStr(token);
    yylval->strPtr = new SxString (token);
    SXPARSER_SEND (TK_STRING);
 }
 	YY_BREAK
-case 29:
-/* rule 29 can match eol */
+case 32:
+/* rule 32 can match eol */
 YY_RULE_SETUP
-#line 210 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.lpp"
+#line 241 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.lpp"
 {
    SX_DBG_LEX ("<String>.#4");
    SXPARSER_POP_STATE ();
-   SxString msg = "Unterminated string";
-   SXPARSER_ERROR (msg);
+   SxString msg = "Unescaped special character: ";
+   SXPARSER_ERROR (msg + yytext);
 }
 	YY_BREAK
-case 30:
+case 33:
 YY_RULE_SETUP
-#line 217 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.lpp"
+#line 248 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.lpp"
 {
    SXPARSER_POP_STATE ();
    SXPARSER_ERROR (SxString("Invalid UTF-8 character: ") + yytext);
 }
 	YY_BREAK
 
-case 31:
-/* rule 31 can match eol */
+case 34:
+/* rule 34 can match eol */
 YY_RULE_SETUP
-#line 223 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.lpp"
+#line 255 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.lpp"
 {
    if (yyextra->getLexState () != -1) {
       SXPARSER_POP_STATE ();
@@ -1439,15 +1500,16 @@ YY_RULE_SETUP
    SXPARSER_ERROR (SxString("Unexpected character ") + yytext);
 }
 	YY_BREAK
-case 32:
+case 35:
 YY_RULE_SETUP
-#line 230 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.lpp"
+#line 262 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.lpp"
 ECHO;
 	YY_BREAK
-#line 1448 "SxJSONParser.lex.cpp"
+#line 1509 "SxJSONParser.lex.cpp"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(IncludeState):
 case YY_STATE_EOF(StringState):
+case YY_STATE_EOF(GroupDocState):
 	yyterminate();
 
 	case YY_END_OF_BUFFER:
@@ -1746,7 +1808,7 @@ static int yy_get_next_buffer (yyscan_t yyscanner)
 		while ( yy_chk[yy_base[yy_current_state] + yy_c] != yy_current_state )
 			{
 			yy_current_state = (int) yy_def[yy_current_state];
-			if ( yy_current_state >= 99 )
+			if ( yy_current_state >= 120 )
 				yy_c = yy_meta[yy_c];
 			}
 		yy_current_state = yy_nxt[yy_base[yy_current_state] + yy_c];
@@ -1775,11 +1837,11 @@ static int yy_get_next_buffer (yyscan_t yyscanner)
 	while ( yy_chk[yy_base[yy_current_state] + yy_c] != yy_current_state )
 		{
 		yy_current_state = (int) yy_def[yy_current_state];
-		if ( yy_current_state >= 99 )
+		if ( yy_current_state >= 120 )
 			yy_c = yy_meta[yy_c];
 		}
 	yy_current_state = yy_nxt[yy_base[yy_current_state] + yy_c];
-	yy_is_jam = (yy_current_state == 98);
+	yy_is_jam = (yy_current_state == 119);
 
 	(void)yyg;
 	return yy_is_jam ? 0 : yy_current_state;
@@ -2693,7 +2755,7 @@ void yyfree (void * ptr , yyscan_t yyscanner)
 
 #define YYTABLES_NAME "yytables"
 
-#line 230 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.lpp"
+#line 262 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.lpp"
 
 SXPARSER_FOOTER
 

@@ -35,6 +35,8 @@ References:
 #include <SxDipoleCorrZ.h>
 #include <SxPAWExchange.h>
 #include <SxHubbardU.h>
+#include <SxVDW.h>
+
 
 /**\brief PAW Hamiltonian
 
@@ -87,6 +89,8 @@ class SX_EXPORT_DFT SxPAWHamiltonian : public SxHamiltonian
        */
       virtual void backToDefault (const SxSymbolTable *table);
 
+      /// Change structure (and update VDW, if used)
+      virtual void changeTau (const SxAtomicStructure &str);
       /** \brief Setup internal variables relevant for HubbardU
           @param gk The |G+k> basis
           @param nSpin number of spin channels
@@ -191,6 +195,21 @@ class SX_EXPORT_DFT SxPAWHamiltonian : public SxHamiltonian
       double eDoubleCounting;
       /// Core energy
       double eCore;
+      /// vdW energy
+      double eVDW;
+
+      /// whether or not to use VDW corrections
+      bool applyVDWCorrection;
+      /// van-der-Waals corrections
+      SxVDW vdwCorrection;
+      /// Reference density for Hirshfeld volumes: shape in G space (:is)
+      SxArray<SxDiracVec<Double> > refRho;
+      /// Reference density * r^3 for Hirshfeld volumes: shape in G space (:is)
+      SxArray<SxDiracVec<Double> > refRhoR3;
+      /// Free atom volumes
+      SxArray<double> r3Free;
+
+      bool writeHirshfeldCharges = false;
 
       /// pseudoized potential (Ref. 1, Eq. 34)
       SxArray<SxMeshR> vPS;

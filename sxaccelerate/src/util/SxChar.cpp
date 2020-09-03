@@ -25,12 +25,13 @@
 #include <stdlib.h>
 
 SxConstChar::SxConstChar (const char *start_, const char *limit_,
-   bool isUnicode_)
+   bool isUnicode_) : start(NULL), limit(NULL), nChars(0), isDirty(false), isUnicode(false)
 {
    initialize (start_, limit_, isUnicode_);
 }
 
 SxConstChar::SxConstChar (const char *start_, ssize_t nBytes, bool isUnicode_)
+   : start(NULL), limit(NULL), nChars(0), isDirty(false), isUnicode(false)
 {
    initialize (start_, start_ + nBytes, isUnicode_);
 }
@@ -434,6 +435,7 @@ void SxConstChar::makeGap (char *str, ssize_t fromByteIdx, ssize_t nInsBytes,
 // ---------------------------------------------------------------------------
 
 SxConstChar::Iterator::Iterator (const SxConstChar *obj)
+   : charObj(NULL), charIdx(-1), byteIdx(-1)
 {
    SX_CHECK (obj);
    charObj = obj;

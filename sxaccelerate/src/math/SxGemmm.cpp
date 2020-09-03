@@ -43,10 +43,17 @@ void sxpgemm3m(ssize_t, ssize_t, ssize_t, ssize_t,
    cout << "The sxgemmm codes needs special compiler flags, which are only provided for gcc at present." << endl;
    SX_EXIT;
 }
+// hinder reordering of reads/writes across the fence by the compiler
+#include <atomic>
+#define SX_COMPILER_MEMORY_FENCE std::atomic_signal_fence(std::memory_order_acq_rel)
+
 #else
 #pragma GCC optimize "3"
 #include <immintrin.h>
 // note: if USE_AVX=1, we require TA=TB=SxComplex16, TC=double
+
+// hinder reordering of reads/writes across the fence by the compiler
+#define SX_COMPILER_MEMORY_FENCE asm volatile("" ::: "memory")
 
 namespace {
 // --- result type mapper
@@ -535,10 +542,10 @@ void wb_addOut(v2df *writebuf, int nc, SxComplex16 * __restrict__ resEnd, int rl
    SxComplex16 * __restrict__ res = resEnd - nc;
    if (nc & 1)  {
       for (int ia = 0; ia < ba; ++ia)
-	 wb_addOut1_odd<ba> (writebuf + ia, nc, res + rldbc * ia);
+         wb_addOut1_odd<ba> (writebuf + ia, nc, res + rldbc * ia);
    } else {
       for (int ia = 0; ia < ba; ++ia)
-	 wb_addOut1_even<ba> (writebuf + ia, nc, res + rldbc * ia);
+         wb_addOut1_even<ba> (writebuf + ia, nc, res + rldbc * ia);
    }
 }
 
@@ -736,10 +743,10 @@ inline void getAbQuadnew(const SxComplex16 *__restrict__ Ab,
    v4df Bi = _mm256_loadu_pd((const double*)(Bb + 2));
    v4df Ar = _mm256_loadu_pd((const double*)Ab);
    v4df Ai = _mm256_loadu_pd((const double*)(Ab + 2));
+   SX_COMPILER_MEMORY_FENCE;
    ABr = Ar * Br - Ai * Bi;
    ABi = Ar * Bi + Ai * Br;
 }
-
 
 inline
 void gemmm_b_kernel_avx1_1_16 (int Nc,
@@ -763,23 +770,27 @@ void gemmm_b_kernel_avx1_1_16 (int Nc,
 
    for (int ic = 0; ic < Nc; ic++)  {
       v4df c = _mm256_loadu_pd(C + ldc * ic);
+      SX_COMPILER_MEMORY_FENCE;
       v4df resr = ab0r * c;
       v4df resi = ab0i * c;
       c = _mm256_loadu_pd(C + 4 + ldc * ic);
+      SX_COMPILER_MEMORY_FENCE;
       resr += ab4r * c;
       resi += ab4i * c;
       c = _mm256_loadu_pd(C + 8 + ldc * ic);
+      SX_COMPILER_MEMORY_FENCE;
       resr += ab8r * c;
       resi += ab8i * c;
       c = _mm256_loadu_pd(C + 12 + ldc * ic);
+      SX_COMPILER_MEMORY_FENCE;
       resr += ab12r * c;
       resi += ab12i * c;
 
       // horizontal sum, store
+      v2df old = _mm_loadu_pd((double*)(res + ic));
       v4df halfSum = _mm256_hadd_pd(resr, resi);
       v2df resUp  = _mm256_extractf128_pd(halfSum,1);
       v2df resLow = _mm256_castpd256_pd128(halfSum);
-      v2df old = _mm_loadu_pd((double*)(res + ic));
       _mm_storeu_pd((double*)(res + ic), old + resUp + resLow);
    }
 }
@@ -1389,6 +1400,7 @@ gemm3m_avx_CX_3_1_8 (int Nc,
    using namespace std;
 
    v4df C1122 = Cdup[0];
+   SX_COMPILER_MEMORY_FENCE; // force GCC 9 to use register for C1122
    v4df X_a0 = loadcdup((const double*)X            );
    v4df X_a1 = loadcdup((const double *)(X + 1 * xldbc));
    v4df X_a2 = loadcdup((const double *)(X + 2 * xldbc));
@@ -1396,20 +1408,21 @@ gemm3m_avx_CX_3_1_8 (int Nc,
    v4df CX12_a1 = C1122 * X_a1;
    v4df CX12_a2 = C1122 * X_a2;
 
-   //asm volatile("" ::: "memory");
    v4df C3344 = Cdup[1];
+   SX_COMPILER_MEMORY_FENCE; // force GCC 9 to use register for C3344
 
    v4df CX34_a0 = C3344 * X_a0;
    v4df CX34_a1 = C3344 * X_a1;
    v4df CX34_a2 = C3344 * X_a2;
 
    v4df C5566 = Cdup[2];
+   SX_COMPILER_MEMORY_FENCE; // force GCC 9 to use register for C5566
    v4df CX56_a0 = C5566 * X_a0;
    v4df CX56_a1 = C5566 * X_a1;
    v4df CX56_a2 = C5566 * X_a2;
 
-   //asm volatile("" ::: "memory");
    v4df C7788 = Cdup[3];
+   SX_COMPILER_MEMORY_FENCE; // force GCC 9 to use register for C7788
    v4df CX78_a0 = C7788 * X_a0;
    v4df CX78_a1 = C7788 * X_a1;
    v4df CX78_a2 = C7788 * X_a2;
@@ -1417,6 +1430,7 @@ gemm3m_avx_CX_3_1_8 (int Nc,
    for (int c = 1; c < Nc; c++, Cdup+=4, X++)  {
 
       C1122 = Cdup[0];
+      SX_COMPILER_MEMORY_FENCE; // see above
       X_a0 = loadcdup((const double*)X            );
       X_a1 = loadcdup((const double *)(X + 1 * xldbc));
       X_a2 = loadcdup((const double *)(X + 2 * xldbc));
@@ -1425,17 +1439,20 @@ gemm3m_avx_CX_3_1_8 (int Nc,
       CX12_a2 += C1122 * X_a2;
 
       C3344 = Cdup[1];
+      SX_COMPILER_MEMORY_FENCE; // see above
 
       CX34_a0 += C3344 * X_a0;
       CX34_a1 += C3344 * X_a1;
       CX34_a2 += C3344 * X_a2;
 
       C5566 = Cdup[2];
+      SX_COMPILER_MEMORY_FENCE; // see above
       CX56_a0 += C5566 * X_a0;
       CX56_a1 += C5566 * X_a1;
       CX56_a2 += C5566 * X_a2;
 
       C7788 = Cdup[3];
+      SX_COMPILER_MEMORY_FENCE; // see above
       CX78_a0 += C7788 * X_a0;
       CX78_a1 += C7788 * X_a1;
       CX78_a2 += C7788 * X_a2;
@@ -1473,7 +1490,7 @@ gemm3m_avx_CX_1_1_8 (int Nc,
    v4df C5566 = Cdup[2];
    v4df CX56_a0 = C5566 * X_a0;
 
-   //asm volatile("" ::: "memory");
+   //SX_COMPILER_MEMORY_FENCE;
    v4df C7788 = Cdup[3];
    v4df CX78_a0 = C7788 * X_a0;
    Cdup+=4; X++;
@@ -1518,34 +1535,36 @@ inline void gemm3m_avx_CXmulBd_3_1_4 (int Nb,
       v4df CX_a0 = CX[0];
       v4df CX_a1 = CX[1];
       v4df CX_a2 = CX[2];
+      SX_COMPILER_MEMORY_FENCE; // tell GCC 9 to keep data in registers
 
       res_a0 += CX_a0 * Brere;
       res_a1 += CX_a1 * Brere;
       res_a2 += CX_a2 * Brere;
+      v4df CX_a0_imre = _mm256_permute_pd(CX_a0,5);
+      v4df CX_a1_imre = _mm256_permute_pd(CX_a1,5);
+      v4df CX_a2_imre = _mm256_permute_pd(CX_a2,5);
 
       v4df Brere_d34 = Bd[2];
       v4df CX_a0_d34 = CX[3];
       v4df CX_a1_d34 = CX[4];
       v4df CX_a2_d34 = CX[5];
+      SX_COMPILER_MEMORY_FENCE; // tell GCC 9 to keep data in registers
 
       res_a0_d34 += CX_a0_d34 * Brere_d34;
       res_a1_d34 += CX_a1_d34 * Brere_d34;
       res_a2_d34 += CX_a2_d34 * Brere_d34;
 
       v4df BnImim = Bd[1];
-      v4df CX_a0_imre, CX_a1_imre, CX_a2_imre;
-      CX_a0_imre = _mm256_permute_pd(CX_a0,5);
-      CX_a1_imre = _mm256_permute_pd(CX_a1,5);
-      CX_a2_imre = _mm256_permute_pd(CX_a2,5);
+      SX_COMPILER_MEMORY_FENCE; // tell GCC 9 to keep data in registers
       res_a0 += CX_a0_imre * BnImim;
       res_a1 += CX_a1_imre * BnImim;
       res_a2 += CX_a2_imre * BnImim;
+      v4df CX_a0_imre_d34 = _mm256_permute_pd(CX_a0_d34,5);
+      v4df CX_a1_imre_d34 = _mm256_permute_pd(CX_a1_d34,5);
+      v4df CX_a2_imre_d34 = _mm256_permute_pd(CX_a2_d34,5);
 
       v4df BnImim_d34 = Bd[3];
-      v4df CX_a0_imre_d34, CX_a1_imre_d34, CX_a2_imre_d34;
-      CX_a0_imre_d34 = _mm256_permute_pd(CX_a0_d34,5);
-      CX_a1_imre_d34 = _mm256_permute_pd(CX_a1_d34,5);
-      CX_a2_imre_d34 = _mm256_permute_pd(CX_a2_d34,5);
+      SX_COMPILER_MEMORY_FENCE; // tell GCC 9 to keep data in registers
       res_a0_d34 += CX_a0_imre_d34 * BnImim_d34;
       res_a1_d34 += CX_a1_imre_d34 * BnImim_d34;
       res_a2_d34 += CX_a2_imre_d34 * BnImim_d34;
@@ -1757,12 +1776,12 @@ void pgemm3m_avx(int Na, int Nb, int Nc, int Nd,
          for (int b3 = 0; b3 < Nb3; b3+=bb3)  {
             for (int d = 0; d < bd2 && d2 + d < Ndb; d+=bd)  {
                for (int b = 0; b < bb3 && b3 + b < Nb3; b+=3)  {
-		  /*
-		  if (Nab == 0)  {
-		     gemm3mPrepareBdup(B + d2 + d + ldb * (b3 + b), ldb, Bdup + 4 * (b3 + b) + Nb * d, 3, 4);
-		     gemm3mPrepareBdup(B + d2 + d + 4 + ldb * (b3 + b), ldb, Bdup + 4 * (b3 + b) + Nb * (d + 4), 3, 4);
-		  }
-		  */
+                  /*
+                  if (Nab == 0)  {
+                     gemm3mPrepareBdup(B + d2 + d + ldb * (b3 + b), ldb, Bdup + 4 * (b3 + b) + Nb * d, 3, 4);
+                     gemm3mPrepareBdup(B + d2 + d + 4 + ldb * (b3 + b), ldb, Bdup + 4 * (b3 + b) + Nb * (d + 4), 3, 4);
+                  }
+                  */
                   gemm3m_avx_CX_3_1_8(Nc, C1324 + d/2 * Nc,
                         X + xldc * (b3 + b) + xldbc * a, xldc,
                         CX + 4 * b);
@@ -1931,10 +1950,10 @@ void gemmm_driver (int Na, int Nb, int Nc, int Nd,
                    SxComplex16 *__restrict__ res,
              int rldc, int rldbc)
 {
-   SX_CHECK_VARS (int(KernelA::bd) == int(KernelB::bd),
-	          KernelA::bd, KernelB::bd);
-   SX_CHECK_VARS (int(KernelA::bd) == int(CleanupKernel::bd),
-	          KernelA::bd, CleanupKernel::bd);
+   SX_CHECK (int(KernelA::bd) == int(KernelB::bd),
+             KernelA::bd, KernelB::bd);
+   SX_CHECK (int(KernelA::bd) == int(CleanupKernel::bd),
+             KernelA::bd, CleanupKernel::bd);
 
    for (int ia = 0; ia < Na; ++ia)  {
       for (int ib = 0; ib < Nb; ++ib)  {
@@ -1966,65 +1985,65 @@ void gemmm_driver (int Na, int Nb, int Nc, int Nd,
                KernelA::prepareA (A + id + jd + (ia + ja)*lda, lda,
                            Ab + jd*ba + ja * bd2);
          for (int ib = 0; ib < Nbb; ib += bb)  {
-	    for (int jd = 0; jd < bd2; jd += bd)  {
-	       // copy block if bb>1
-	       Block<SxComplex16,bb,bd> Bb(B + id + jd + ib*ldb, ldb);
-	       for (int ja = 0; ja < ba2 && ia + ja < Nab; ja += ba)  {
-		  KernelA::run(Nc, Ab + ba * jd + bd2 * ja, Bb,
+            for (int jd = 0; jd < bd2; jd += bd)  {
+               // copy block if bb>1
+               Block<SxComplex16,bb,bd> Bb(B + id + jd + ib*ldb, ldb);
+               for (int ja = 0; ja < ba2 && ia + ja < Nab; ja += ba)  {
+                  KernelA::run(Nc, Ab + ba * jd + bd2 * ja, Bb,
                                C + id + jd, ldc,
                                res + rldc * ib + rldbc * (ia + ja),
                                rldc, rldbc);
                }
             }
          }
-	 // cleanup b for Kernel A
+         // cleanup b for Kernel A
          for (int ib = Nbb; ib < Nb; ib++)  {
-	    for (int jd = 0; jd < bd2; jd += bd)  {
-	       for (int ja = 0; ja < ba2 && ia + ja < Nab; ja += ba)  {
-		  KernelA::cleanupB(Nc, Ab + ba * jd + bd2 * ja,
-			            B + id + jd + ib*ldb,
+            for (int jd = 0; jd < bd2; jd += bd)  {
+               for (int ja = 0; ja < ba2 && ia + ja < Nab; ja += ba)  {
+                  KernelA::cleanupB(Nc, Ab + ba * jd + bd2 * ja,
+                                    B + id + jd + ib*ldb,
                                     C + id + jd, ldc,
                                     res + rldc * ib + rldbc * (ia + ja),
                                     rldc, rldbc);
                }
             }
-	 }
+         }
       }
-      // use B kernel for partial A cleanup (small ba, large bb) 
+      // use B kernel for partial A cleanup (small ba, large bb)
       if (Nab < Nab_B) {
-	 SxComplex16 Ab[KernelA::ba * bd2];
-	 int Na_B = Nab_B - Nab;
-	 for (int ia = Nab; ia < Nab_B; ia += KernelB::ba)  {
-	    for (int jd = 0; jd < bd2; jd += bd)
-	       KernelB::prepareA (A + id + jd + ia*lda, lda,
-		                  Ab + jd*KernelB::ba + (ia-Nab)*bd2);
-	 }
-      	 for (int ib = 0; ib < Nbb_B; ib += KernelB::bb)  {
+         SxComplex16 Ab[KernelA::ba * bd2];
+         int Na_B = Nab_B - Nab;
+         for (int ia = Nab; ia < Nab_B; ia += KernelB::ba)  {
+            for (int jd = 0; jd < bd2; jd += bd)
+               KernelB::prepareA (A + id + jd + ia*lda, lda,
+                                  Ab + jd*KernelB::ba + (ia-Nab)*bd2);
+         }
+         for (int ib = 0; ib < Nbb_B; ib += KernelB::bb)  {
             TB Bb[KernelB::bb * bd2];
             for (int jd = 0; jd < bd2; jd += bd)
                KernelB::prepareB(B + id + jd + ib*ldb, ldb, Bb + jd*KernelB::bb);
-	    for (int jd = 0; jd < bd2; jd += bd)  {
-	       for (int ja = 0; ja < Na_B; ja += KernelB::ba)  {
-		  KernelB::run(Nc, Ab + KernelB::ba * jd + bd2 * ja, Bb + jd*KernelB::bb,
+            for (int jd = 0; jd < bd2; jd += bd)  {
+               for (int ja = 0; ja < Na_B; ja += KernelB::ba)  {
+                  KernelB::run(Nc, Ab + KernelB::ba * jd + bd2 * ja, Bb + jd*KernelB::bb,
                                C + id + jd, ldc,
                                res + rldc * ib + rldbc * (Nab + ja),
                                rldc, rldbc);
                }
             }
          }
-	 if (Nbb_B < Nb)  {
-	    // --- cleanup b for Kernel B using CleanupKernel
-	    for (int ja = 0; ja < Nab_B-Nab; ++ja)
-	       for (int jd = 0; jd < bd2; jd += bd)
-		  CleanupKernel::prepareA(A + id + jd + (Nab + ja)*lda, lda,
+         if (Nbb_B < Nb)  {
+            // --- cleanup b for Kernel B using CleanupKernel
+            for (int ja = 0; ja < Nab_B-Nab; ++ja)
+               for (int jd = 0; jd < bd2; jd += bd)
+                  CleanupKernel::prepareA(A + id + jd + (Nab + ja)*lda, lda,
                                           Ab + jd + bd2 * ja);
-	    for (int ib = Nbb_B; ib < Nbb; ib++)  {
-	       TB Bb[bd2];
-	       for (int jd = 0; jd < bd2; jd += bd)
-		  CleanupKernel::prepareB(B + id + jd + ib*ldb, ldb, Bb + jd*bb);
-	       for (int ia = Nab; ia < Nab_B; ia++)  {
-		  for (int jd = 0; jd < bd2; jd += bd)  {
-		     CleanupKernel::run(Nc, Ab + jd + (ia - Nab) * bd2, Bb + jd * KernelB::bb,
+            for (int ib = Nbb_B; ib < Nbb; ib++)  {
+               TB Bb[bd2];
+               for (int jd = 0; jd < bd2; jd += bd)
+                  CleanupKernel::prepareB(B + id + jd + ib*ldb, ldb, Bb + jd*bb);
+               for (int ia = Nab; ia < Nab_B; ia++)  {
+                  for (int jd = 0; jd < bd2; jd += bd)  {
+                     CleanupKernel::run(Nc, Ab + jd + (ia - Nab) * bd2, Bb + jd * KernelB::bb,
                                         C + id + jd, ldc,
                                         res + rldc * ib + rldbc * ia);
                }
@@ -2044,7 +2063,7 @@ void gemmm_driver (int Na, int Nb, int Nc, int Nd,
                CleanupKernel::prepareB(B + id + jd + ib*ldb, ldb, Bb + jd*bb);
             for (int ia = Nab_B; ia < Na; ia++)  {
                for (int jd = 0; jd < bd2; jd += bd)  {
-		  CleanupKernel::run(Nc, Ab + jd + (ia - Nab_B) * bd2, Bb + jd * KernelB::bb,
+                  CleanupKernel::run(Nc, Ab + jd + (ia - Nab_B) * bd2, Bb + jd * KernelB::bb,
                                   C + id + jd, ldc,
                                   res + rldc * ib + rldbc * ia);
                }

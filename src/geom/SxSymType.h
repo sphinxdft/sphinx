@@ -87,6 +87,8 @@ SxSymType M (SxSymType::Mirror, 1, SxVector3<Double> (0,1,0));
           the identification member. It is recomputed. Therefore the copy
           constructor calls SxSymType::updateIdentifier.  */
       SxSymType (const SxSymType &);
+      /// Assignment operator
+      SxSymType& operator= (const SxSymType&) = default;
 
       /** \brief Comparison operator
 

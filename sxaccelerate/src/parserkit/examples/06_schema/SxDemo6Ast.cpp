@@ -40,7 +40,8 @@ SxDemo6AstNode::SxDemo6AstNode (ssize_t id_, const Type &type_)
    SX_TRACE ();
 }
 
-SxDemo6AstNode::SxDemo6AstNode (ssize_t id_, const Type &type_, const SxVariant &data_)
+SxDemo6AstNode::SxDemo6AstNode (ssize_t id_, const Type &type_,
+                                const SxVariant &data_)
    : id(id_), type(type_), data(data_)
 {
    SX_TRACE ();

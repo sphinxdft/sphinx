@@ -645,14 +645,21 @@ SxAtomicStructure SxHamSolver::getForces (const SxAtomicStructure &x,
          if (Hirshfeld)  {
             SxArray<PsiG> atomRhoG (structure.getNSpecies ());
             SX_LOOP(is)  {
-               atomRhoG(is) = hamPAW.potPtr->getAtomRhoG(G, (int)is);
+               // get pseudo-atomic density + big blob inside PAW radius
+               // big blob = compensation charge shape * number of core electrons
+               double Q = hamPAW.potPtr->nuclearCharge(is)
+                        - hamPAW.potPtr->valenceCharge(is);
+               double rc2 = sqr(hamPAW.potPtr->rc(is));
+               Q /= sqrt(structure.cell.volume); // FFT normalization
+               atomRhoG(is) = hamPAW.potPtr->getAtomRhoG(G, (int)is)
+                            + Q * exp(-0.25 * rc2 * G.g2);
             }
             hamPAW.pawRho.pwRho.displaceHirshfeld (x, atomRhoG);
          }
 
          moveWaves (x);
          structure.copy (x);
-         hamPAW.structure = structure;
+         hamPAW.changeTau (structure);
          G.changeTau (structure);
          wavesPtr->getGkBasis().changeTau (structure);
 
@@ -998,7 +1005,13 @@ void SxHamSolver::initialGuess (const SxSymbolTable *cmd, bool calc)
    // --- initialize waves
    fermi = SxFermi (nElectrons, nStates, nSpin, *gkPtr);
    SYMBOLPARSE(SxHamiltonian::getHamiltonianGroup(topLvl))  {
-      fermi.orderMethfesselPaxton = SYMBOLGET("MethfesselPaxton") || -1;
+      fermi.smearingOrder = SYMBOLGET("MethfesselPaxton") || -1;
+      if (fermi.smearingOrder == -1)  {
+         fermi.smearType = SxFermi::FermiDirac;
+         fermi.smearingOrder = SYMBOLGET("FermiDirac") || 0;
+      } else {
+         fermi.smearType = SxFermi::MethfesselPaxton;
+      }
    }
    if (wavesGroup && wavesGroup->contains ("file"))  {
       SxString file = wavesGroup->get("file")->toString();
@@ -1263,10 +1276,9 @@ void SxHamSolver::tightBinding (const SxSymbolTable *cmd, bool calc)
    SxPtr<SxGkBasis> gkPtr = waves.getGkBasisPtr();
    SX_CHECK(fermi.getNk() == fermi.kpPtr->nk, fermi.getNk(), fermi.kpPtr->nk);
    SxAtomicOrbitals TBOrbitals;
-   SxPtr<SxMuPW> muPtr;
    if(TBInFile != "")  {
       try {
-         cout << "Taking TBOrbitals from " << TBInFile << endl; 
+         cout << "Taking TBOrbitals from " << TBInFile << endl;
          SxBinIO io(TBInFile, SxBinIO::BINARY_READ_ONLY);
          TBOrbitals = SxAtomicOrbitals(io);
          io.close ();
@@ -1274,17 +1286,28 @@ void SxHamSolver::tightBinding (const SxSymbolTable *cmd, bool calc)
          e.print();
          SX_EXIT;
       }
-      muPtr = muPtr.create (TBOrbitals, gkPtr);
    } else {
       cout << "Taking TBOrbitals from Potential." << endl;
       rPtr = SxConstPtr<SxRadBasis>::create(psPot.rad, psPot.logDr);
-      TBOrbitals = SxAtomicOrbitals(psPot.pseudoPsi, rPtr);
-      muPtr = muPtr.create (TBOrbitals, psPot.pseudoFocc, gkPtr);
+      SxArray<SxArray<SxDiracVec<Double> > > usedPhiPS(structure.getNSpecies());
+      SX_LOOP(is)  {
+         SxList<int> usedProjectors;
+         SX_LOOP(l)
+            if (psPot.pseudoFocc(is)(l))
+               usedProjectors << int(l);
+         usedPhiPS(is).resize (usedProjectors.getSize ());
+         SX_LOOP(io)  {
+            usedPhiPS(is)(io) = psPot.pseudoPsi(is)(usedProjectors(io));
+         }
+      }
+
+      TBOrbitals = SxAtomicOrbitals(usedPhiPS, rPtr);
+      TBOrbitals.print ();
    }
-   SxMuPW &mu = *muPtr; // sum_r<G+k|r><r|mu>
+   SxAOBasis initBasis (*gkPtr, TBOrbitals);
 
    // --- check number of required orbitals to initialize the Bloch states
-   int nOrb      = mu.getNStates ();
+   int nOrb      = initBasis.getNOrb ();
    {
       SX_MPI_SOURCE(TopLevel, TaskGroupMaster);
       SX_MPI_TARGET(TopLevel, TaskGroupAll);
@@ -1306,7 +1329,7 @@ void SxHamSolver::tightBinding (const SxSymbolTable *cmd, bool calc)
       sxprintf ("|          If you need a complete LCAO basis just\n");
       sxprintf ("|             - reduce number of empty states, or\n");
       sxprintf ("|             - use more localized orbitals\n");
-      waves.randomize ();
+      //waves.randomize ();
    }
    cout << SX_SEPARATOR;
 
@@ -1333,20 +1356,18 @@ void SxHamSolver::tightBinding (const SxSymbolTable *cmd, bool calc)
       statContrib    = nonPotContrib;
    }
    hamPW.contrib = potContrib;
-   fermi.resize (nOrb);
-   hamPW.set (mu, fermi);
-   fermi.resize (nPWStates);
+   hamPW.compute (fermi, true, true);
    hamPW.contrib = origContrib;
 
    double foccMix;
-   PsiG muI, muJ, H_muI, Hstat_muI;
+   PsiG muI, muJ;
    int nk       = waves.getNk();
    SX_CHECK(nSpin == waves.getNSpin (), nSpin, waves.getNSpin ());
-   SxMatrix<TPrecCoeffG> H(nOrb,nOrb), S, L;
-   SxSymMatrix<TPrecCoeffG> Hsym(nOrb);
-   SxSymMatrix<TPrecCoeffG>::Eigensystem eig;
+   SxDiracMat<TPrecCoeffG> H(nOrb,nOrb), S, L;
+   SxDiracSymMat<TPrecCoeffG> Hsym(nOrb);
+   SxDiracSymMat<TPrecCoeffG>::Eigensystem eig;
    
-   SxArray<SxMatrix<TPrecCoeffG> > Lk(nk), Hkstat(nk);
+   SxArray<SxDiracMat<TPrecCoeffG> > Lk(nk), Hkstat(nk);
 
    bool computeStatic, computeL;
    double deltaE = 1.0, newEnergy = 1000;
@@ -1354,44 +1375,43 @@ void SxHamSolver::tightBinding (const SxSymbolTable *cmd, bool calc)
    for (int it = 0; it < maxSteps; it++)  {
       SX_CLOCK (Timer::LcaoStep);
       mixer.addRhoIn (hamPW.rho);
-      FILE *SEigFilePtr;
-      SxString SEigFile = "OverlapValuesOverK.dat";
-      if ( (SEigFilePtr = fopen(SEigFile.ascii(), "w")) == NULL)  {
-         cout << "Cannot open " << SEigFile.ascii() << endl;
-         SX_EXIT;
-      }
+      //FILE *SEigFilePtr;
+      //SxString SEigFile = "OverlapValuesOverK.dat";
+      //if ( (SEigFilePtr = fopen(SEigFile.ascii(), "w")) == NULL)  {
+      //   cout << "Cannot open " << SEigFile.ascii() << endl;
+      //   SX_EXIT;
+      //}
       for (int ik = 0; ik < nk; ik++)  {
          if (!SxLoopMPI::myWork(ik)) continue;
          for (int iSpin = 0; iSpin < nSpin; iSpin++)  {
             computeStatic = (it == 0 && iSpin == 0);
             computeL      = (it == 0 && iSpin == 0);
 
-            if (computeStatic) 
-               Hkstat(ik) = SxMatrix<TPrecCoeffG> (nOrb, nOrb);
-            if (computeL) S.reformat (nOrb, nOrb);
-            
+            if (computeStatic) Hkstat(ik).reformat (nOrb, nOrb);
+            if (computeL)      S.reformat (nOrb, nOrb);
+
             if (hamPW.rsProjector && computeStatic)  {
                // --- compute nl-part via fast EES-G
 
                computeStatic = false;
 
-               const SxArray<PsiG> &muRef = mu.muPhi(ik);
                Hkstat(ik).set (0.);
 
-               int nMu = int(muRef.getSize ());
-               SxArray<SxVector<TPrecCoeffG> > pPhiMu(nMu);
-               SxArray<SxConstPtr<SxAtomInfo> > info(nMu);
                Coord kVec = Gk.getK (ik);
                SxAtomicStructure atPhi, atMu;
+               SxArray<SxArray<SxVector<TPrecCoeffG> > >
+                  pPhiMu(structure.getNSpecies ());
                for (int iPhi = 0; iPhi < hamPW.phiNl(ik).getSize (); ++iPhi) {
                   atPhi = SxSpeciesRef(hamPW.phiNl(ik)(iPhi)
                                        .handle->auxData.is  ) | structure;
 
                   // --- set up <phi @ ka|mu @ ia>
-                  for (int iMu = 0; iMu < nMu; ++iMu)  {
-                     atMu = SxSpeciesRef(muRef(iMu).handle->auxData.is)
-                            | structure;
-                     
+                  for (int is = 0; is < structure.getNSpecies (); ++is)  {
+                     if (initBasis.refOrbMap(is).getSize () == 0) continue;
+                     ssize_t nMuRef = initBasis.refOrbMap(is).getSize ();
+                     pPhiMu(is).resize (nMuRef);
+                     atMu = SxSpeciesRef(is) | structure;
+
                      // --- set up relative distances
                      SxAtomicStructure distPhiMu;
                      for (int ia = 0; ia < atMu.getNAtoms (); ++ia)  {
@@ -1403,107 +1423,92 @@ void SxHamSolver::tightBinding (const SxSymbolTable *cmd, bool calc)
                      distPhiMu.endCreation ();
                      SX_CHECK (distPhiMu.getNSpecies() == atMu.getNAtoms(),
                                distPhiMu.getNSpecies(), atMu.getNAtoms ());
-                     // store info
-                     info(iMu) = distPhiMu.atomInfo;
-                     
-                     // get projection
-                     pPhiMu(iMu) = hamPW.rsProjector->project 
-                                   (hamPW.phiNl(ik)(iPhi),
-                                    muRef(iMu), 
-                                    distPhiMu);
 
-                     // --- add mu phase exp(-ikr_mu) for consistency
-                     //     with mu(i,iSpin,ik)
-                     SxVector<TPrecCoeffG>::Iterator pIt = pPhiMu(iMu).begin ();
-                     SxComplex16 phase;
-                     for (int ia = 0; ia < atMu.getNAtoms (); ++ia)  {
-                        phase = SxEESGProj::getPhase (-(kVec ^ atMu(ia)));
-                        for (int ka = 0; ka < atPhi.getNAtoms (); ++ka)
-                           *pIt++ *= phase;
+                     SX_LOOP(iMuRef)  {
+                        // get projection
+                        pPhiMu(is)(iMuRef)
+    = hamPW.rsProjector->project (hamPW.phiNl(ik)(iPhi),
+                                  initBasis.refOrbitals(ik)(is).colRef(iMuRef),
+                                  distPhiMu);
+
+                        // --- add mu phase exp(-ikr_mu) for consistency
+                        //     with mu(i,iSpin,ik)
+                        SxVector<TPrecCoeffG>::Iterator pIt
+                           = pPhiMu(is)(iMuRef).begin ();
+                        for (int ia = 0; ia < atMu.getNAtoms (); ++ia)  {
+                           SxComplex16 phase
+                              = SxEESGProj::getPhase (-(kVec ^ atMu(ia)));
+                           for (int ka = 0; ka < atPhi.getNAtoms (); ++ka)
+                              *pIt++ *= phase;
+                        }
                      }
                      // phi phase exp(ikr_phi) cancels out
                   }
 
                   // --- add phi contribution to Hamiltonian
                   for (int iOrb = 0; iOrb < nOrb; ++iOrb)  {
-                     int iMu = mu.getRefIdx (iOrb);
-                     SX_CHECK (iMu != -1);
-                     int ia = mu.psiOrb(iOrb).iAtom;
+                     int iMuRef = initBasis.orbitalMap(iOrb).io;
+                     SX_CHECK (iMuRef != -1);
+                     int is = initBasis.orbitalMap(iOrb).is;
+                     int ia = initBasis.orbitalMap(iOrb).ia;
+                     const SxVector<TPrecCoeffG> &pI = pPhiMu(is)(iMuRef);
                      for (int jOrb = 0; jOrb < nOrb; ++jOrb)  {
-                        int jMu = mu.getRefIdx(jOrb);
-                        SX_CHECK (jMu != -1);
-                        int ja = mu.psiOrb(jOrb).iAtom;
+                        int jMuRef = initBasis.orbitalMap(jOrb).io;
+                        SX_CHECK (jMuRef != -1);
+                        int js = initBasis.orbitalMap(jOrb).is;
+                        int ja = initBasis.orbitalMap(jOrb).ia;
+                        const SxVector<TPrecCoeffG> &pJ = pPhiMu(js)(jMuRef);
                         for (int ka = 0; ka < atPhi.getNAtoms (); ++ka)  {
-                           int pIdxI = info(iMu)->offset(ia) + ka;
-                           int pIdxJ = info(jMu)->offset(ja) + ka;
+                           int pIdxI = ia * atPhi.getNAtoms () + ka;
+                           int pIdxJ = ja * atPhi.getNAtoms () + ka;
 
                    // sum_ka <mu @ ia|phi @ ka> E^{-1}(phi) <phi @ ka| mu @ ja>
-                           Hkstat(ik)(iOrb, jOrb) += pPhiMu(iMu)(pIdxI).conj ()
-                                                   * pPhiMu(jMu)(pIdxJ) 
+                           Hkstat(ik)(iOrb, jOrb) += pI(pIdxI).conj ()
+                                                   * pJ(pIdxJ)
                                                    / hamPW.eKB(iPhi);
                         }
                      }
                   }
                }
             }
-            
-            for (int i = 0; i < nOrb; i++)  {
-               muI = mu(i,iSpin,ik);                 //  |mu_i>
 
-               // --- H|i>
+            int blockSize = 64;
+            for (int i = 0, ib = 0; i < nOrb; i++, ib++)  {
+               // collect AOs in muI (up to blockSize many)
+               if (ib == 0)  {
+                  int nb  = min(blockSize, nOrb - i);
+                  muI.reformat (Gk(ik).ng, nb);
+               }
+               muI.colRef(ib) <<= initBasis.getAOinG (ik,i); //  |mu_i>
+               if (ib + 1 < muI.nCols ()) continue;
+
+               // --- set muI basis and metadata
+               muI.setBasis (Gk(ik));
+               muI.handle->auxData.iSpin = iSpin;
+               muI.handle->auxData.ik = ik;
+
+               // --- H|i> and <j|H|i>
                if (computeStatic)  {
                   hamPW.contrib = statContrib;
-                  Hstat_muI = hamPW * muI;           // H_stat|mu_i>
+                  PsiG Hstat_muI = hamPW * muI;           // H_stat|mu_i>
+                  // static matrix element
+                  Hkstat(ik).setBlock(initBasis | Hstat_muI, 0,i-ib);
                }
-                  
+
                hamPW.contrib = nonstatContrib;
-               H_muI = hamPW * muI;                  // H_nonstat|mu_i>
+               PsiG H_muI = hamPW * muI;                  // H_nonstat|mu_i>
 
-               // --- compute <j|H|i>
-               
-               if (hamPW.rsProjector)  {
-                  // --- using fast EES-G techniques to project H|i> onto |j>
-                  const SxArray<PsiG> &muRef = mu.muPhi(ik);
-                  Coord kVec = Gk.getK (ik);
-                  SxArray<SxVector<TPrecCoeffG> > pMuJ(muRef.getSize ());
+               // --- non-static matrix element
+               H.setBlock(initBasis | H_muI,0,i-ib);
 
-                  // collect projections
-                  for (int iMu = 0; iMu < muRef.getSize (); ++iMu)
-                     pMuJ(iMu) = hamPW.rsProjector->project(muRef(iMu), H_muI,
-                           SxSpeciesRef(muRef(iMu).handle->auxData.is) | structure);
-                  // --- put them into the right place within H
-                  for (int j = i; j < nOrb; ++j)  {
-                     H(j, i) = Hkstat(ik)(j,i) 
-                                + pMuJ(mu.getRefIdx(j))(mu.psiOrb(j).iAtom) 
-                                // missing muJ phase
-                                * SxEESGProj::getPhase(kVec ^ structure.getAtom(
-                                         mu.psiOrb(j).iSpecies,
-                                         mu.psiOrb(j).iAtom));
-                     H(i, j) = H(j, i).conj ();
-                  }
-                     
-               } else {
-                  for (int j = i; j < nOrb; j++)  {
-                     muJ = mu(j,iSpin,ik);               //   |mu_j>
-                     // --- static matrix element
-                     if (computeStatic)  {
-                        Hkstat(ik)(j, i) = (muJ ^ Hstat_muI).chop ();
-                        Hkstat(ik)(i, j) = Hkstat(ik)(j, i).conj ();
-                     }
-                     
-                     // --- full matrix element
-                     H(j, i) = Hkstat(ik)(j,i) + (muJ ^ H_muI).chop ();
-                     H(i, j) = H(j, i).conj ();
+               // --- overlap matrix element
+               if (computeL)
+                  S.setBlock(initBasis | muI,0,i-ib);
 
-                     // --- overlap matrix element
-                     if (computeL && !hamPW.rsProjector)  {
-                        S(j,i) = (muJ ^ muI).chop ();
-                        S(i,j) = S(j,i).conj ();
-                     }
-                  }
-               }
+               ib = -1; // becomes 0 in next iteration
             }
-            if (computeL && !hamPW.rsProjector)   {
+            H +=  Hkstat(ik);
+            if (computeL)   {
                // print out TightBinding Hamiltonian and Overlap
                /*
                cout << SX_SEPARATOR;
@@ -1513,18 +1518,21 @@ void SxHamSolver::tightBinding (const SxSymbolTable *cmd, bool calc)
                S.print(true);
                cout << SX_SEPARATOR;
                */
+               /*
                fprintf(SEigFilePtr, "%i\t",ik);
-               SxMatrix<Complex16>::Eigensystem Seig;
+               SxDiracMat<Complex16>::Eigensystem Seig;
                Seig = S.eigensystem ();
                for (int i = 0; i < nOrb; i++) {
                   fprintf(SEigFilePtr, "%f\t",Seig.vals(i).re);
                }
                fprintf(SEigFilePtr, "\n");
+               */
             }
             // restore original contrib
             hamPW.contrib = origContrib;
 
             if (computeL)  {
+               /*
                if (hamPW.rsProjector)  {
                   // --- compute overlap matrix via EES-G
                   const SxArray<PsiG> &muRef = mu.muPhi(ik);
@@ -1580,22 +1588,23 @@ void SxHamSolver::tightBinding (const SxSymbolTable *cmd, bool calc)
                      }
                   }
                }
+               */
                // --- compute Cholesky decomposition
-               SxMatrix<Complex16> SInv = S.inverse ();
-               S = SxMatrix<Complex16> ();
+               SxDiracMat<Complex16> SInv = S.inverse ();
+               S = SxDiracMat<Complex16> ();
                Lk(ik) = L = SInv.choleskyDecomposition ().adjoint ();
-               
+
                // --- test L
                SxComplex16 llMat = ((L.adjoint()^L) - SInv ).normSqr ();
                if (fabs(llMat.re) > 1e-10 || fabs(llMat.im) > 1e-10)  {
-                  sxprintf ("| Warning: L^t*L - S^-1 = (%e,%e) (should be 0)\n", 
+                  sxprintf ("| Warning: L^t*L - S^-1 = (%e,%e) (should be 0)\n",
                           llMat.re, llMat.im);
                }
             }
 
             // --- solve eigenproblem
             L = Lk(ik);
-            H = (L ^ H ^ L.adjoint());  
+            H = (L ^ H ^ L.adjoint());
             if (!H.isHermitian())  sxprintf ("| TB: H is not hermitian\n");
             for (int i = 0; i < nOrb; i++)
                for (int j = i; j < nOrb; j++)
@@ -1607,20 +1616,48 @@ void SxHamSolver::tightBinding (const SxSymbolTable *cmd, bool calc)
             // --- change to tight-binding basis
             for (int i = 0; i < nFromTB; i++)  {
                fermi.eps(i,iSpin,ik) = eig.vals(i);
-               waves(i,iSpin,ik).set (0.);
+               //waves(i,iSpin,ik).set (0.);
             }
+
+            // --- change to tight-binding basis
+            {
+               // get first nFromTB many eigenstates
+               SxDiracVec<TPrecCoeffG> cAO = eig.vecs(SxIdx(0,nOrb*nFromTB-1));
+               cAO.reshape (nOrb, nFromTB);
+               cAO.setBasis (initBasis);
+               if (nPWStates == nFromTB)
+                  waves(iSpin,ik) = Gk(ik) | cAO;
+               else
+                  waves(iSpin,ik).setBlock (Gk(ik) | cAO, 0,0);
+
+               if (nPWStates > nFromTB)  {
+                  // --- randomize states that are not available from LCAO
+                  PsiG randomStates
+                     = waves.getBlock (nFromTB, nPWStates-nFromTB, iSpin, ik);
+                  // randomize
+                  randomStates.randomize ();
+                  // set orthogonal to TB states
+                  waves.setOrthogonal (&randomStates, nFromTB, iSpin, ik,
+                                       SxPW::DONT_NORMALIZE);
+                  // and orthonormalize random states
+                  SxPWOverlap ().orthonormalize (&randomStates);
+               }
+            }
+            /*
             // --- higher States are large in energy
             for (int j = 0; j < nOrb; j++)  {
-               if (!hamPW.psPot.realSpace (mu.psiOrb(j).iSpecies))  {
+               //if (!hamPW.psPot.realSpace (mu.psiOrb(j).iSpecies))  {
                   // --- reciprocal-space summation
-                  muJ = mu(j,iSpin,ik);
+                  muJ = initBasis.getAOinG (ik, j);
                   for (int i = 0; i < nFromTB; i++)  {
                      //waves(i,iSpin,ik) += muJ * eig.vecs(j,i);
                      waves(i,iSpin,ik).plus_assign_ax(eig.vecs(j,i), muJ);
                   }
-               }
+               //}
             }
+            */
             // --- add real-space orbitals via EES-G
+            /*
             if (hamPW.rsProjector)  {
                const SxArray<PsiG> &muRef = mu.muPhi(ik);
                int nMu = int(muRef.getSize ());
@@ -1662,11 +1699,12 @@ void SxHamSolver::tightBinding (const SxSymbolTable *cmd, bool calc)
                   }
                }
             }
+            */
          }
          if (it + 1 >= maxSteps)  {
             // --- free memory
-            Lk(ik)     = SxMatrix<Complex16> ();
-            Hkstat(ik) = SxMatrix<Complex16> ();
+            Lk(ik)     = SxDiracMat<Complex16> ();
+            Hkstat(ik) = SxDiracMat<Complex16> ();
          }
       }
       fermi.eps.synMPI ();
@@ -3829,8 +3867,9 @@ void SxHamSolver::scfDiagonalization (const SxSymbolTable *cmd, bool calc)
       eTot = hamPtr->getEnergy (); // Kohn-Sham functional
       double eHarris = (keepRho ? fermi.getEBand (SxFermi::UseFocc) : eBand)
                      + doubleCounting;
-      if (!useKSenergy)
+      if (!useKSenergy) {
          eTot = eHarris;
+      }
       
       energy = (keepRho) ? eBand : eTot;
       sxprintf ("eTot(%d)=%15.12f, eBand=%15.12f,  |R|=%15.12f\n", 
@@ -5921,12 +5960,14 @@ void SxHamSolver::printEnergyDatLine(int it, double eTot, double freeEnergy,
                                      double eBand, double entropy)
 {
    SX_MPI_MASTER_ONLY {
+      double T0mix = fermi.zeroTfactorU ();
+      double E0 = T0mix * eTot + (1.-T0mix) * freeEnergy;
       SxFileIO::appendToFile
       ( SxString(it)                                + "\t" // iteration
       + SxString(GETTIME(Timer::ElMinim), "%12.8f") + "\t" // time
       + SxString(eTot, "%15.12f")                   + "\t" // energy
       + SxString(freeEnergy, "%15.12f")             + "\t" // free energy
-      + SxString(0.5 * (eTot + freeEnergy), "%15.12f") + "\t" // T->0 energy
+      + SxString(E0, "%15.12f")                     + "\t" // T->0 energy
       + SxString(eBand, "%15.12f")                  + "\t" // band energy
       + SxString(entropy, "%15.12f")                + "\n" // entropy
       , "energy.dat");

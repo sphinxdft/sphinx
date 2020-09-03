@@ -14,6 +14,7 @@
 #define _SX_N_H_
 
 #include <SxGQExpr.h>
+#include <SxExportGraph.h>
 
 /** \brief Graph Query Node Symbol Class
 
@@ -38,7 +39,7 @@ N("prop3").any();
 \endcode
  */
 namespace sx {
-class N
+class SX_EXPORT_GRAPH N
 {
    public:
       N ();
@@ -53,20 +54,28 @@ class N
       operator SxPtr<SxGQExprBase>() const;
 
       template<class T>
-      N &eq(const T &propVal);
+      N &eq(const T &propVal)
+      {
+         op  = SxGQExprBase::ExprType::Equal;
+         val = SxVariant(propVal);
+         return *this;
+      }
 
       template<class T>
-      N &neq(const T &propVal);
+      N &neq(const T &propVal)
+      {
+         op  = SxGQExprBase::ExprType::NotEqual;
+         val = SxVariant(propVal);
+         return *this;
+      }
 
    protected:
       SxString propName;
       SxVariant val;
       SxString captureName;
-      SxGQExprBase::OpType op;
+      SxGQExprBase::ExprType op;
       bool captureEnabled;
 };
-
-#include <SxN.hpp>
 
 }
 #endif /*_SX_N_H_*/

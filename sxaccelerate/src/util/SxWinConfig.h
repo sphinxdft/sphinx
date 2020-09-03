@@ -15,13 +15,14 @@
 #define _SX_WIN_CONDIG_H_
 
 #ifdef MSVC
-#  pragma warning(disable:4065)
-#  pragma warning(disable:4244)
+// disable warnings for macro redefinitions
+#  pragma warning(disable:4005)
+// disable warnings regarding missing dll interfaces
 #  pragma warning(disable:4251)
-#  pragma warning(disable:4290)
-#  pragma warning(disable:4305)
-#  pragma warning(disable:4355)
+// Disable warnings for unsafe functions and variables
 #  pragma warning(disable:4996)
+// Disable warnings for unamed objects with custom construction destruction
+#  pragma warning(disable:26444)
 #endif /* MSVC */
 
 #  ifdef min
@@ -47,14 +48,15 @@
 #endif
 #endif /* MSVC */
 
-#  define SXDATE     "Unknown date"
-#  define SVNTAG     "Unknown SVN tag"
-#  define WHOAMI     "Unknown Windows user"
-#  define CXX        "MSC"
-#  define CXXVERSION "Unknown version"
-#  define CXXFLAGS   "Unknown flags"
-#  define LDFLAGS    "Unknown LDFLAGS"
-#  define MEMTRACER  "Undefined"
+#  define SXDATE       "Unknown date"
+#  define SVNTAG       "Unknown SVN tag"
+#  define WHOAMI       "Unknown Windows user"
+#  define CXX          "MSC"
+#  define CXXVERSION   "Unknown version"
+#  define CXXFLAGS     "Unknown flags"
+#  define LDFLAGS      "Unknown LDFLAGS"
+#  define MEMTRACER    "Undefined"
+#  define THREADTRACER "Undefined"
 #  define USE_SX_LOG 1
 
 // --- include SxUnixConfig.h in MinGW compilation

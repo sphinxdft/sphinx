@@ -6,11 +6,12 @@
 
 include_HEADERS = SxJSON.h \
                   SxJSONParser.h \
-                  SxSymbolIterator.h
+                  SxSymbol.h
 
 lib_LTLIBRARIES       = libsxjson.la
 libsxjson_la_SOURCES  = $(AUX_SRC)
-libsxjson_la_SOURCES += SxJSONParser.cpp
+libsxjson_la_SOURCES += SxJSONParser.cpp \
+   SxSymbol.cpp
 
 libsxjson_la_LIBADD   = $(SXIMPORTLIBS)
 libsxjson_la_LIBADD  += 

@@ -637,8 +637,8 @@ class SX_EXPORT_DFT SxHamSolver : public SxPotential
 
       //@}
       /// Print energies to energy.dat
-      static void printEnergyDatLine(int it, double eTot, double freeEnergy,
-                                     double eBand, double entropy);
+      void printEnergyDatLine(int it, double eTot, double freeEnergy,
+                              double eBand, double entropy);
    public:
 
       SxPtr<SxHamiltonian> hamPtr;

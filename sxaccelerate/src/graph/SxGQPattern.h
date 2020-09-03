@@ -37,7 +37,21 @@ class SxGQExprBase;
      pattern matching.
  */
 
-class SxGQPattern
+// --- functions to evaluate any expression type
+namespace SxGQInternal
+{
+   template<class N,class E,template<class,bool> class GS>
+   bool match (const SxPtr<SxGQExprBase> &expr,
+               const typename SxGraph<N,E,GS>::ConstIterator &it,
+               const SxPtr<SxUniqueList<ssize_t> > &sel);
+
+   template<class N,class E,template<class,bool> class GS>
+   bool matchAll (const SxPtr<SxGQExprBase> &expr,
+                  const typename SxGraph<N,E,GS>::ConstIterator &it,
+                  const SxPtr<SxList<SxPtr<SxUniqueList<ssize_t> > > > &sels);
+}
+
+class SX_EXPORT_GRAPH SxGQPattern
 {
    typedef SxPtr<SxUniqueList<ssize_t> > Selection;
    typedef SxPtr<SxList<Selection> >     SelSet;
@@ -59,14 +73,16 @@ class SxGQPattern
       ssize_t getId () const;
       void setExpr (const SxPtr<SxGQExprBase> &expr_);
 
-      // eval function finds a single match that satisfy the
+      // match function finds a single match that satisfy the
       // given expression according to specified operator
-      bool eval (const SxGraph<SxGProps>::ConstIterator &it,
-                 const Selection &sel) const;
+      template<class N,class E,template<class,bool> class GS>
+      bool match (const typename SxGraph<N,E,GS>::ConstIterator &it,
+                  const Selection &sel) const;
 
       // matchAll function finds all possible matches that satisfy the
       // given expression according to specified operator
-      bool matchAll (const SxGraph<SxGProps>::ConstIterator &it,
+      template<class N,class E,template<class,bool> class GS>
+      bool matchAll (const typename SxGraph<N,E,GS>::ConstIterator &it,
                      const SelSet &sels) const;
 
    protected:
@@ -75,5 +91,24 @@ class SxGQPattern
       RelationType relType;
 };
 
-size_t sxHash (const SxGQPattern &in);
-#endif /* _SX_ASG_NODE_H_ */
+template<class N,class E,template<class,bool> class GS>
+bool SxGQPattern::match (const typename SxGraph<N,E,GS>::ConstIterator &it,
+                         const Selection &sel) const
+{
+   SX_TRACE ();
+   SX_CHECK (expr.getPtr ());
+   return SxGQInternal::match<N,E,GS> (expr, it, sel);
+}
+
+template<class N,class E,template<class,bool> class GS>
+bool SxGQPattern::matchAll (const typename SxGraph<N,E,GS>::ConstIterator &it,
+                            const SelSet &sels) const
+{
+   SX_TRACE ();
+   SX_CHECK (expr.getPtr ());
+   return SxGQInternal::matchAll<N,E,GS> (expr, it, sels);
+}
+
+
+SX_EXPORT_GRAPH size_t sxHash (const SxGQPattern &in);
+#endif /* _SX_GQ_PATTERN_H_ */

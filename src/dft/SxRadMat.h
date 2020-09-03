@@ -37,6 +37,10 @@ class SX_EXPORT_DFT SxRadMat : public SxBlockDensityMatrix
       friend class SxPAWRho;
       friend class SxPreconditioner;
    public:
+      /// Empty constructor
+      SxRadMat () = default;
+      /// Copy constructor
+      SxRadMat (const SxRadMat &) = default;
 
       /// Assignment operator
       void operator= (const SxRadMat &in)

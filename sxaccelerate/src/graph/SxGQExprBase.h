@@ -26,20 +26,19 @@
      SxGQExprBase class represents the
      base class for all types of expressions.
  */
-class SxGQExprBase
+class SX_EXPORT_GRAPH  SxGQExprBase
 {
    public:
-      enum OpType { None, Equal, NotEqual, Relation, Sibling, AND, OR, Any };
+      enum ExprType { None, Equal, NotEqual, Relation, Sibling, AND, OR, Any };
+
+      ExprType exprType;
 
       typedef SxPtr<SxUniqueList<ssize_t> > Selection;
       typedef SxPtr<SxList<Selection> >  SelSet;
-      SxGQExprBase(){}
-      virtual ~SxGQExprBase(){}
 
-      virtual bool matchAll (const SxGraph<SxGProps>::ConstIterator &,
-                             const SelSet &) const = 0;
-      virtual bool eval (const SxGraph<SxGProps>::ConstIterator &,
-                         const Selection &) const = 0;
+      SxGQExprBase() { }
+      SxGQExprBase(ExprType t) : exprType(t) { }
+      virtual ~SxGQExprBase() { }
 
       virtual SxPtr<SxList<SxPtr<SxGQExprBase> > > firsts () const = 0;
       virtual SxPtr<SxList<SxPtr<SxGQExprBase> > > lasts  () const = 0;
@@ -49,13 +48,12 @@ class SxGQExprBase
       virtual void setLast  (const SxPtr<SxGQExprBase> &) = 0;
       virtual void setLasts (const SxPtr<SxList<SxPtr<SxGQExprBase> > > &) = 0;
 
-      virtual bool     isOp ()       const = 0;
-      virtual OpType   getOp ()      const = 0;
-      virtual OpType   getRightOp () const = 0;
+      virtual bool       isOp ()       const = 0;
+      virtual ExprType   getRightOp () const = 0;
 
       virtual size_t getHash () const = 0;
 
-      virtual void makeGraph (SxGraph<SxGQPattern> *g) const = 0;
+      virtual void makeGraph (SxGraph<SxGQPattern> *gPtr) const = 0;
       virtual SxGQPattern getGraphNode () const = 0;
 
       friend std::ostream &operator<< (std::ostream &s, const SxGQExprBase &item)

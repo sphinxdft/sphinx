@@ -68,7 +68,7 @@
 
 
 /* Copy the first part of user declarations.  */
-#line 9 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/01_hello/SxDemo1Parser.ypp" /* yacc.c:339  */
+#line 9 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/01_hello/SxDemo1Parser.ypp" /* yacc.c:339  */
 
 #  define YYDEBUG 1
 #  include <SxString.h>
@@ -124,7 +124,7 @@ extern int SxDemo1Parser_debug;
 
 union YYSTYPE
 {
-#line 20 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/01_hello/SxDemo1Parser.ypp" /* yacc.c:355  */
+#line 20 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/01_hello/SxDemo1Parser.ypp" /* yacc.c:355  */
 
    ssize_t   nodeId;
    SxString *strPtr;
@@ -702,19 +702,19 @@ yy_symbol_value_print (FILE *yyoutput, int yytype, YYSTYPE const * const yyvalue
   switch (yytype)
     {
           case 3: /* TK_STRING  */
-#line 34 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/01_hello/SxDemo1Parser.ypp" /* yacc.c:684  */
+#line 34 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/01_hello/SxDemo1Parser.ypp" /* yacc.c:684  */
       { fprintf (yyoutput, "TK_STRING, val='%s'", ((*yyvaluep).strPtr)->getElems ()); }
 #line 708 "SxDemo1Parser.tab.cpp" /* yacc.c:684  */
         break;
 
     case 5: /* main  */
-#line 35 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/01_hello/SxDemo1Parser.ypp" /* yacc.c:684  */
+#line 35 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/01_hello/SxDemo1Parser.ypp" /* yacc.c:684  */
       { fprintf (yyoutput, "main"); }
 #line 714 "SxDemo1Parser.tab.cpp" /* yacc.c:684  */
         break;
 
     case 6: /* input  */
-#line 36 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/01_hello/SxDemo1Parser.ypp" /* yacc.c:684  */
+#line 36 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/01_hello/SxDemo1Parser.ypp" /* yacc.c:684  */
       { fprintf (yyoutput, "input"); }
 #line 720 "SxDemo1Parser.tab.cpp" /* yacc.c:684  */
         break;
@@ -1064,7 +1064,7 @@ yydestruct (const char *yymsg, int yytype, YYSTYPE *yyvaluep, YYLTYPE *yylocatio
   switch (yytype)
     {
           case 3: /* TK_STRING  */
-#line 28 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/01_hello/SxDemo1Parser.ypp" /* yacc.c:1257  */
+#line 28 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/01_hello/SxDemo1Parser.ypp" /* yacc.c:1257  */
       { delete ((*yyvaluep).strPtr); }
 #line 1070 "SxDemo1Parser.tab.cpp" /* yacc.c:1257  */
         break;
@@ -1358,7 +1358,7 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 39 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/01_hello/SxDemo1Parser.ypp" /* yacc.c:1646  */
+#line 39 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/01_hello/SxDemo1Parser.ypp" /* yacc.c:1646  */
     {
                   SX_DBG_YACC ("input#1: " << (yyvsp[0].nodeId));
                }
@@ -1366,7 +1366,7 @@ yyreduce:
     break;
 
   case 3:
-#line 44 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/01_hello/SxDemo1Parser.ypp" /* yacc.c:1646  */
+#line 44 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/01_hello/SxDemo1Parser.ypp" /* yacc.c:1646  */
     {
                   SX_DBG_YACC ("TK_STRING#1: " << *(yyvsp[0].strPtr));
                   delete (yyvsp[0].strPtr); // free the memory as soon as SxString* is not needed

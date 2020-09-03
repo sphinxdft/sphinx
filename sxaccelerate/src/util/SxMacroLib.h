@@ -91,11 +91,16 @@ template<class ...Args> void SX_UNUSED(Args&& ... args)
 #define _SxVMacroOvl1(name,nArgs) _SxVMacroOvl2(name,nArgs)
 #define _SxVMacroOvl(name,nArgs)  _SxVMacroOvl1(name,nArgs)
 
+
 #define SX_VMACRO(name,...)                                                   \
           do  {                                                               \
              _SxVMacroGlue(_SxVMacroOvl(name,_SxVMacroCountArgs(__VA_ARGS__)),\
                            (__VA_ARGS__));                                    \
           } while (0)
+
+#define SX_VMACRO_DECL(name,...)                                              \
+   _SxVMacroGlue(_SxVMacroOvl(name,_SxVMacroCountArgs(__VA_ARGS__)),          \
+                 (__VA_ARGS__))                                               \
 
 #define SX_VMACRO_FUNC(name,...)                                              \
           _SxVMacroGlue(_SxVMacroOvl(name,_SxVMacroCountArgs(__VA_ARGS__)),   \
@@ -146,6 +151,18 @@ template<class ...Args> void SX_UNUSED(Args&& ... args)
 #  else
 #    define ATTR_NO_RETURN
 #  endif
+#endif
+
+// --- macros to make a string with macro expansion inside it
+#   define SX_STRINGIFY1(text) #text
+#   define SX_STRINGIFY(text_with_macros) SX_STRINGIFY1(text_with_macros)
+
+// macro to produce a compiler warning from within a macro (with quotes!)
+// use as SX_COMPILER_WARNING("blabla")
+#ifdef __GNUC__
+#   define SX_COMPILER_WARNING(msg) _Pragma(SX_STRINGIFY(GCC warning msg))
+#else
+#   define SX_COMPILER_WARNING(msg)
 #endif
 
 

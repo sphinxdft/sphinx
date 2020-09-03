@@ -1,3 +1,12 @@
+Version 2.7 (2020-08-31)
+- Methfessel-Paxton smearing (and Fermi-Dirac order 1)
+- van-der-Waals: Grimme D2 (and experimental D3 and Tkatchenko-Scheffler)
+- faster LCAO initialization for norm-conserving PPs
+- sxdefectalign2d: print slope or potential step
+- generic netlib (CBLAS+LAPACKE) interface for BLAS/LAPACK libs
+- corner-case optimization of AO projections (+ fixes for GCC9 on Skylake architecture)
+- AVX code should compile with Intel compiler
+
 Version 2.6 (2019-05-22)
 - Hubbard-U on atomic quamols (via HubbardMO)
 - atomic density transfer with Hirshfeld decomposition

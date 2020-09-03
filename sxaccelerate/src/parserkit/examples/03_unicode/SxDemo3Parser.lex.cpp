@@ -592,8 +592,8 @@ static void yynoreturn yy_fatal_error ( const char* msg , yyscan_t yyscanner );
 	yyg->yy_hold_char = *yy_cp; \
 	*yy_cp = '\0'; \
 	yyg->yy_c_buf_p = yy_cp;
-#define YY_NUM_RULES 17
-#define YY_END_OF_BUFFER 18
+#define YY_NUM_RULES 16
+#define YY_END_OF_BUFFER 17
 /* This struct is not used in this scanner,
    but its presence is necessary. */
 struct yy_trans_info
@@ -601,105 +601,107 @@ struct yy_trans_info
 	flex_int32_t yy_verify;
 	flex_int32_t yy_nxt;
 	};
-static const flex_int16_t yy_accept[43] =
+static const flex_int16_t yy_accept[46] =
     {   0,
-        0,    0,    0,    0,    0,    0,   18,   16,    1,    2,
-        1,   10,   16,    5,   11,   14,   13,   15,   15,   15,
-       15,   15,    7,    8,   16,    3,    4,   11,    0,    0,
-        0,   12,    0,    0,    7,    8,    8,    9,    6,    4,
-        0,    0
+        0,    0,    0,    0,    0,    0,   17,   15,    1,   15,
+        9,   15,    4,   10,   13,   13,   13,   12,   14,   14,
+       14,   14,   14,    6,    6,    7,   15,    1,    2,    3,
+       10,    0,    0,    0,   11,    0,    0,    6,    7,    7,
+        8,    5,    3,    0,    0
     } ;
 
 static const YY_CHAR yy_ec[256] =
     {   0,
         1,    1,    1,    1,    1,    1,    1,    1,    2,    3,
+        1,    1,    4,    1,    1,    1,    1,    1,    1,    1,
+        1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
+        1,    5,    1,    6,    1,    1,    1,    1,    1,    1,
+        1,    7,    1,    1,    1,    1,    8,    1,    1,    1,
+        1,    1,    1,    1,    1,    1,    1,    9,    1,    1,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
-        1,    4,    1,    5,    1,    1,    1,    1,    1,    1,
-        1,    6,    1,    1,    1,    1,    7,    1,    1,    1,
-        1,    1,    1,    1,    1,    1,    1,    8,    1,    1,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
-        1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
-        1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
-        1,    9,    1,    1,    1,    1,    1,    1,    1,    1,
+        1,   10,    1,    1,    1,    1,    1,    1,    1,    1,
 
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
-        1,    1,    1,    1,    1,    1,    1,   10,   10,   10,
-       10,   10,   10,   10,   10,   10,   10,   10,   10,   10,
-       10,   10,   10,   10,   10,   10,   10,   10,   10,   10,
-       10,   10,   10,   10,   10,   10,   10,   10,   10,   10,
-       10,   10,   10,   10,   10,   10,   10,   10,   10,   10,
-       10,   10,   10,   10,   10,   10,   10,   10,   10,   10,
-       10,   10,   10,   10,   10,   10,   10,   10,   10,   10,
-       10,   11,   11,   12,   12,   12,   12,   12,   12,   12,
+        1,    1,    1,    1,    1,    1,    1,   11,   11,   11,
+       11,   11,   11,   11,   11,   11,   11,   11,   11,   11,
+       11,   11,   11,   11,   11,   11,   11,   11,   11,   11,
+       11,   11,   11,   11,   11,   11,   11,   11,   11,   11,
+       11,   11,   11,   11,   11,   11,   11,   11,   11,   11,
+       11,   11,   11,   11,   11,   11,   11,   11,   11,   11,
+       11,   11,   11,   11,   11,   11,   11,   11,   11,   11,
+       11,   12,   12,   13,   13,   13,   13,   13,   13,   13,
 
-       12,   12,   12,   12,   12,   12,   12,   12,   12,   12,
-       12,   12,   12,   12,   12,   12,   12,   12,   12,   12,
-       12,   12,   12,   13,   13,   13,   13,   13,   13,   13,
-       13,   13,   13,   13,   13,   13,   13,   13,   13,   14,
-       14,   14,   14,   14,   11,   11,   11,   11,   11,   11,
-       11,   11,   11,   11,   11
+       13,   13,   13,   13,   13,   13,   13,   13,   13,   13,
+       13,   13,   13,   13,   13,   13,   13,   13,   13,   13,
+       13,   13,   13,   14,   14,   14,   14,   14,   14,   14,
+       14,   14,   14,   14,   14,   14,   14,   14,   14,   15,
+       15,   15,   15,   15,   12,   12,   12,   12,   12,   12,
+       12,   12,   12,   12,   12
     } ;
 
-static const YY_CHAR yy_meta[15] =
+static const YY_CHAR yy_meta[16] =
     {   0,
-        1,    1,    2,    1,    3,    4,    4,    1,    3,    3,
-        3,    1,    1,    1
+        1,    2,    3,    2,    1,    2,    4,    4,    1,    2,
+        2,    2,    1,    1,    1
     } ;
 
-static const flex_int16_t yy_base[49] =
+static const flex_int16_t yy_base[52] =
     {   0,
-        0,    0,   14,    0,   23,   25,   76,   77,   77,   77,
-       77,   77,   27,   77,   23,   77,   77,    0,   77,   65,
-       64,   63,    0,   32,   66,   77,    0,   28,   61,   60,
-       57,   77,   46,   43,    0,   37,   39,   77,   77,    0,
-       42,   77,   46,   50,   54,   58,   61,   65
+        0,    0,   15,    0,   27,   32,   84,   85,   36,   85,
+       85,   25,   85,   29,   85,   85,   85,   85,    0,   85,
+       72,   71,   70,    0,    0,   38,   73,   45,   85,    0,
+       38,   68,   66,   55,   85,   51,   50,    0,   41,   47,
+       85,   85,    0,   26,   85,   55,   59,   63,   67,   70,
+       74
     } ;
 
-static const flex_int16_t yy_def[49] =
+static const flex_int16_t yy_def[52] =
     {   0,
-       42,    1,   42,    3,   43,   43,   42,   42,   42,   42,
-       42,   42,   42,   42,   44,   42,   42,   45,   42,   42,
-       42,   42,   46,   47,   42,   42,   48,   44,   42,   42,
-       42,   42,   42,   42,   46,   47,   47,   42,   42,   48,
-       42,    0,   42,   42,   42,   42,   42,   42
+       45,    1,   45,    3,   46,   46,   45,   45,   45,   45,
+       45,   45,   45,   47,   45,   45,   45,   45,   48,   45,
+       45,   45,   45,   49,   49,   50,   45,   45,   45,   51,
+       47,   45,   45,   45,   45,   45,   45,   49,   50,   50,
+       45,   45,   51,   45,    0,   45,   45,   45,   45,   45,
+       45
     } ;
 
-static const flex_int16_t yy_nxt[92] =
+static const flex_int16_t yy_nxt[101] =
     {   0,
-        8,    9,   10,   11,   12,    8,   13,   14,    8,    8,
-        8,    8,    8,    8,   15,   15,   16,   15,   17,   15,
-       15,   15,   18,   19,   19,   20,   21,   22,   24,   25,
-       24,   25,   26,   27,   29,   30,   31,   37,   38,   29,
-       30,   31,   42,   42,   37,   38,   23,   23,   23,   23,
-       28,   28,   41,   28,   32,   28,   32,   32,   35,   35,
-       35,   36,   36,   36,   36,   40,   34,   40,   40,   33,
-       28,   39,   34,   33,   28,   42,    7,   42,   42,   42,
-       42,   42,   42,   42,   42,   42,   42,   42,   42,   42,
-       42
+        8,    9,    8,   10,    9,   11,    8,   12,   13,    8,
+        8,    8,    8,    8,    8,   14,   15,   16,   17,   14,
+       18,   14,   14,   14,   19,   20,   20,   21,   22,   23,
+       25,   29,   30,   26,   27,   25,   31,   28,   26,   27,
+       28,   32,   33,   34,   40,   41,   28,   45,   45,   28,
+       32,   33,   34,   40,   41,   24,   24,   24,   24,   31,
+       44,   31,   31,   35,   35,   37,   35,   38,   38,   38,
+       39,   39,   39,   39,   43,   43,   36,   43,   31,   42,
+       37,   36,   31,   45,    7,   45,   45,   45,   45,   45,
+       45,   45,   45,   45,   45,   45,   45,   45,   45,   45
 
     } ;
 
-static const flex_int16_t yy_chk[92] =
+static const flex_int16_t yy_chk[101] =
     {   0,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
-        1,    1,    1,    1,    3,    3,    3,    3,    3,    3,
-        3,    3,    3,    3,    3,    3,    3,    3,    5,    5,
-        6,    6,   13,   13,   15,   15,   15,   24,   24,   28,
-       28,   28,   36,   36,   37,   37,   43,   43,   43,   43,
-       44,   41,   34,   44,   45,   33,   45,   45,   46,   46,
-       46,   47,   47,   47,   47,   48,   31,   48,   48,   30,
-       29,   25,   22,   21,   20,    7,   42,   42,   42,   42,
-       42,   42,   42,   42,   42,   42,   42,   42,   42,   42,
-       42
+        1,    1,    1,    1,    1,    3,    3,    3,    3,    3,
+        3,    3,    3,    3,    3,    3,    3,    3,    3,    3,
+        5,   12,   12,    5,    5,    6,   44,    9,    6,    6,
+        9,   14,   14,   14,   26,   26,   28,   39,   39,   28,
+       31,   31,   31,   40,   40,   46,   46,   46,   46,   47,
+       37,   36,   47,   48,   48,   34,   48,   49,   49,   49,
+       50,   50,   50,   50,   51,   51,   33,   51,   32,   27,
+       23,   22,   21,    7,   45,   45,   45,   45,   45,   45,
+       45,   45,   45,   45,   45,   45,   45,   45,   45,   45
 
     } ;
 
 /* Table of booleans, true if rule could match eol. */
-static const flex_int32_t yy_rule_can_match_eol[18] =
+static const flex_int32_t yy_rule_can_match_eol[17] =
     {   0,
-0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0,     };
+0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0,     };
 
 /* The intent behind this definition is that it'll catch
  * any uses of REJECT which flex missed.
@@ -708,7 +710,7 @@ static const flex_int32_t yy_rule_can_match_eol[18] =
 #define yymore() yymore_used_but_not_detected
 #define YY_MORE_ADJ 0
 #define YY_RESTORE_YY_MORE_OFFSET
-#line 1 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/03_unicode/SxDemo3Parser.lpp"
+#line 1 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/03_unicode/SxDemo3Parser.lpp"
 /* ---------------------------------------------------------------------------
 //
 //           The general purpose cross platform C/C++ framework
@@ -720,15 +722,15 @@ static const flex_int32_t yy_rule_can_match_eol[18] =
 //           Authors:    see src/AUTHORS
 //
 // ------------------------------------------------------------------------ */
-#line 22 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/03_unicode/SxDemo3Parser.lpp"
+#line 22 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/03_unicode/SxDemo3Parser.lpp"
 #define SXPARSER_TYPE SxDemo3Parser
 #define lexerPtr (static_cast<SxDemo3Parser *> (yyextra))
 #include <SxParserBase.h>
 #include <SxDemo3Parser.h>
 #include <SxDemo3Parser.tab.hpp>
-#line 730 "SxDemo3Parser.lex.cpp"
-
 #line 732 "SxDemo3Parser.lex.cpp"
+
+#line 734 "SxDemo3Parser.lex.cpp"
 
 #define INITIAL 0
 #define StringState 1
@@ -1020,11 +1022,11 @@ YY_DECL
 		}
 
 	{
-#line 48 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/03_unicode/SxDemo3Parser.lpp"
+#line 48 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/03_unicode/SxDemo3Parser.lpp"
 
 
 
-#line 1028 "SxDemo3Parser.lex.cpp"
+#line 1030 "SxDemo3Parser.lex.cpp"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -1051,13 +1053,13 @@ yy_match:
 			while ( yy_chk[yy_base[yy_current_state] + yy_c] != yy_current_state )
 				{
 				yy_current_state = (int) yy_def[yy_current_state];
-				if ( yy_current_state >= 43 )
+				if ( yy_current_state >= 46 )
 					yy_c = yy_meta[yy_c];
 				}
 			yy_current_state = yy_nxt[yy_base[yy_current_state] + yy_c];
 			++yy_cp;
 			}
-		while ( yy_base[yy_current_state] != 77 );
+		while ( yy_base[yy_current_state] != 85 );
 
 yy_find_action:
 		yy_act = yy_accept[yy_current_state];
@@ -1095,19 +1097,13 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 51 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/03_unicode/SxDemo3Parser.lpp"
-{ }
-	YY_BREAK
-case 2:
-/* rule 2 can match eol */
-YY_RULE_SETUP
-#line 52 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/03_unicode/SxDemo3Parser.lpp"
+#line 51 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/03_unicode/SxDemo3Parser.lpp"
 { }
 	YY_BREAK
 
-case 3:
+case 2:
 YY_RULE_SETUP
-#line 55 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/03_unicode/SxDemo3Parser.lpp"
+#line 54 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/03_unicode/SxDemo3Parser.lpp"
 {
    SX_DBG_LEX ("<*> C Comment: BEGIN");
    SXPARSER_SKIP_WHITESPACE ();
@@ -1115,15 +1111,15 @@ YY_RULE_SETUP
 }
 	YY_BREAK
 
-case 4:
+case 3:
 YY_RULE_SETUP
-#line 62 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/03_unicode/SxDemo3Parser.lpp"
+#line 61 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/03_unicode/SxDemo3Parser.lpp"
 { }
 	YY_BREAK
 
-case 5:
+case 4:
 YY_RULE_SETUP
-#line 65 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/03_unicode/SxDemo3Parser.lpp"
+#line 64 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/03_unicode/SxDemo3Parser.lpp"
 {
    SX_DBG_LEX (":");
    SXPARSER_SKIP_WHITESPACE ();
@@ -1131,37 +1127,37 @@ YY_RULE_SETUP
    SXPARSER_SEND (TK_COLON);
 }
 	YY_BREAK
-case 6:
+case 5:
 YY_RULE_SETUP
-#line 72 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/03_unicode/SxDemo3Parser.lpp"
+#line 71 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/03_unicode/SxDemo3Parser.lpp"
 {
    SX_DBG_LEX ("<Comment> C Comment: BEGIN");
    SXPARSER_SKIP_WHITESPACE ();
    SXPARSER_REPUSH_STATE ();
 }
 	YY_BREAK
+case 6:
+/* rule 6 can match eol */
+YY_RULE_SETUP
+#line 77 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/03_unicode/SxDemo3Parser.lpp"
+{ SX_DBG_LEX ("<Comment>#1"); }
+	YY_BREAK
 case 7:
 /* rule 7 can match eol */
 YY_RULE_SETUP
-#line 78 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/03_unicode/SxDemo3Parser.lpp"
-{ SX_DBG_LEX ("<Comment>#1"); }
-	YY_BREAK
-case 8:
-/* rule 8 can match eol */
-YY_RULE_SETUP
-#line 79 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/03_unicode/SxDemo3Parser.lpp"
+#line 78 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/03_unicode/SxDemo3Parser.lpp"
 { SX_DBG_LEX ("<Comment>#2"); }
 	YY_BREAK
-case 9:
+case 8:
 YY_RULE_SETUP
-#line 80 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/03_unicode/SxDemo3Parser.lpp"
+#line 79 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/03_unicode/SxDemo3Parser.lpp"
 {
    SX_DBG_LEX ("<Comment> C Comment: END");
    SXPARSER_POP_STATE ();
 }
 	YY_BREAK
 case YY_STATE_EOF(CommentState):
-#line 84 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/03_unicode/SxDemo3Parser.lpp"
+#line 83 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/03_unicode/SxDemo3Parser.lpp"
 {
    SxString msg = SXTAG_LEX() + ": Unbalanced block: Comment /*...*/ is not closed.";
 
@@ -1170,35 +1166,35 @@ case YY_STATE_EOF(CommentState):
 }
 	YY_BREAK
 
-case 10:
+case 9:
 YY_RULE_SETUP
-#line 93 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/03_unicode/SxDemo3Parser.lpp"
+#line 92 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/03_unicode/SxDemo3Parser.lpp"
 {
    SX_DBG_LEX ("StringBegin");
    SXPARSER_SKIP_WHITESPACE ();
    SXPARSER_PUSH_STATE (StringState);
 }
 	YY_BREAK
-case 11:
+case 10:
 YY_RULE_SETUP
-#line 99 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/03_unicode/SxDemo3Parser.lpp"
+#line 98 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/03_unicode/SxDemo3Parser.lpp"
 {
    SX_DBG_LEX ("U8_String");
    SxString s = SxString::unicodeFromUtf8 (yytext);
    SXPARSER_APPEND_STATE (s);
 }
 	YY_BREAK
-case 12:
+case 11:
 YY_RULE_SETUP
-#line 105 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/03_unicode/SxDemo3Parser.lpp"
+#line 104 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/03_unicode/SxDemo3Parser.lpp"
 {
    SX_DBG_LEX ("<String>.#2");
    SXPARSER_APPEND_STATE (yytext);
 }
 	YY_BREAK
-case 13:
+case 12:
 YY_RULE_SETUP
-#line 110 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/03_unicode/SxDemo3Parser.lpp"
+#line 109 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/03_unicode/SxDemo3Parser.lpp"
 {
    SX_DBG_LEX ("<String>.#3");
    SXPARSER_APPEND_STATE ("");
@@ -1208,29 +1204,29 @@ YY_RULE_SETUP
    SXPARSER_SEND (TK_STRING);
 }
 	YY_BREAK
-case 14:
-/* rule 14 can match eol */
+case 13:
+/* rule 13 can match eol */
 YY_RULE_SETUP
-#line 118 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/03_unicode/SxDemo3Parser.lpp"
+#line 118 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/03_unicode/SxDemo3Parser.lpp"
 {
    SX_DBG_LEX ("<String>.#4");
    SXPARSER_POP_STATE ();
-   SxString msg = "Unterminated string";
-   SXPARSER_ERROR (msg);
+   SxString msg = "Unescaped special character: ";
+   SXPARSER_ERROR (msg + yytext);
 }
 	YY_BREAK
-case 15:
+case 14:
 YY_RULE_SETUP
-#line 125 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/03_unicode/SxDemo3Parser.lpp"
+#line 125 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/03_unicode/SxDemo3Parser.lpp"
 {
    SXPARSER_ERROR (SxString("Invalid UTF-8 character: ") + yytext);
 }
 	YY_BREAK
 
-case 16:
-/* rule 16 can match eol */
+case 15:
+/* rule 15 can match eol */
 YY_RULE_SETUP
-#line 130 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/03_unicode/SxDemo3Parser.lpp"
+#line 130 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/03_unicode/SxDemo3Parser.lpp"
 {
    if (yyextra->getLexState () != -1) {
       SXPARSER_POP_STATE ();
@@ -1238,12 +1234,12 @@ YY_RULE_SETUP
    SXPARSER_ERROR (SxString("Unexpected character ") + yytext);
 }
 	YY_BREAK
-case 17:
+case 16:
 YY_RULE_SETUP
-#line 136 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/03_unicode/SxDemo3Parser.lpp"
+#line 136 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/03_unicode/SxDemo3Parser.lpp"
 ECHO;
 	YY_BREAK
-#line 1247 "SxDemo3Parser.lex.cpp"
+#line 1243 "SxDemo3Parser.lex.cpp"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(StringState):
 	yyterminate();
@@ -1543,7 +1539,7 @@ static int yy_get_next_buffer (yyscan_t yyscanner)
 		while ( yy_chk[yy_base[yy_current_state] + yy_c] != yy_current_state )
 			{
 			yy_current_state = (int) yy_def[yy_current_state];
-			if ( yy_current_state >= 43 )
+			if ( yy_current_state >= 46 )
 				yy_c = yy_meta[yy_c];
 			}
 		yy_current_state = yy_nxt[yy_base[yy_current_state] + yy_c];
@@ -1572,11 +1568,11 @@ static int yy_get_next_buffer (yyscan_t yyscanner)
 	while ( yy_chk[yy_base[yy_current_state] + yy_c] != yy_current_state )
 		{
 		yy_current_state = (int) yy_def[yy_current_state];
-		if ( yy_current_state >= 43 )
+		if ( yy_current_state >= 46 )
 			yy_c = yy_meta[yy_c];
 		}
 	yy_current_state = yy_nxt[yy_base[yy_current_state] + yy_c];
-	yy_is_jam = (yy_current_state == 42);
+	yy_is_jam = (yy_current_state == 45);
 
 	(void)yyg;
 	return yy_is_jam ? 0 : yy_current_state;
@@ -2489,7 +2485,7 @@ void yyfree (void * ptr , yyscan_t yyscanner)
 
 #define YYTABLES_NAME "yytables"
 
-#line 136 "/home/freysoldt/devel/sphinx/sxaccelerate/src/parserkit/examples/03_unicode/SxDemo3Parser.lpp"
+#line 136 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/parserkit/examples/03_unicode/SxDemo3Parser.lpp"
 
 SXPARSER_FOOTER
 

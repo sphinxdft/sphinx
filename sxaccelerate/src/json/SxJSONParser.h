@@ -16,6 +16,7 @@
 #include <SxJSON.h>
 #include <SxParserBase.h>
 #include <SxParserAst.h>
+#include <SxSymbol.h>
 
 /** \brief ...
 
@@ -33,12 +34,14 @@ class SX_EXPORT_JSON SxJSONParser : public SxParserBase,
 
       // --- yacc stack interface
       void push (ssize_t);
-      SxGProps *push (const SxVariantType::DataType &);
+      SxGProps *push (const ElemType &);
       SxGProps *pop ();
       SxGProps *peek ();
       SxGProps *getParent ();
 
       SxGProps *getRoot ();
+
+      SxParserKit::SxSymbol getRootSymbol () const;
 
       // --- defined in SXPARSER_FOOTER
       virtual void initScanner (bool);

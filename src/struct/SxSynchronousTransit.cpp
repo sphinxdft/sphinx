@@ -64,7 +64,7 @@ bool SxSynchronousTransit::isRegistered (const SxSymbolTable *cmd)
 
 double SxSynchronousTransit::getEPot ()
 {
-      return potential -> getPotentialEnergy ();
+      return potential -> getEnergy ();
 }
 
 void SxSynchronousTransit::print (const SxSymbolTable *cmd)
@@ -210,7 +210,7 @@ SxHessianOps SxSynchronousTransit::getRefinedDynamical
       else 
         line += SxString(correction.im, "%14.4f") 
               + SxString ("*I");
-        line += SxString(errorbar, "%14.4f");
+      line += SxString(errorbar, "%14.4f");
       fprintf (fp, "%s\n", line.ascii ());
       fflush(fp);
 

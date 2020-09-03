@@ -13,6 +13,7 @@
 #ifndef _SX_GRAPH_H_
 #define _SX_GRAPH_H_
 
+#include <SxExportGraph.h>
 #include <SxUniqueList.h>
 #include <SxArrayList.h>
 #include <SxHashedArray.h>
@@ -28,62 +29,90 @@
 #include <SxSignals.h>
 
 
+
 namespace sx
 {
-   enum GraphEvent { BeforeEdgeInEvent  = 0x01,
-                     BeforeEdgeOutEvent = 0x02,
-                     AfterEdgeInEvent   = 0x04,
-                     AfterEdgeOutEvent  = 0x08 };
+   enum SX_EXPORT_GRAPH GraphEvent { BeforeEdgeInEvent  = 0x01,
+                                     BeforeEdgeOutEvent = 0x02,
+                                     AfterEdgeInEvent   = 0x04,
+                                     AfterEdgeOutEvent  = 0x08 };
 }
 
 template<class T>
 class SxGraphNode
 {
    public:
+
       T element;
-      SxArray<SxPair<ssize_t, ssize_t> > in;
-      SxArray<SxPair<ssize_t, ssize_t> > out;
+
       ssize_t prev;
       ssize_t next;
 
-      SxGraphNode () : in((ssize_t)0,(ssize_t)16),out((ssize_t)0,(ssize_t)16),
-                       prev(-1),next(-1) { }
+      SxGraphNode () : prev(-1),next(-1),inE((ssize_t)0,(ssize_t)16),
+                       outE((ssize_t)0,(ssize_t)16) { }
+
+      inline SxArray<SxPair<ssize_t, ssize_t> > &in ()  { return outE; }
+      inline SxArray<SxPair<ssize_t, ssize_t> > &out () { return inE;  }
+
+      inline const SxArray<SxPair<ssize_t, ssize_t> > &in ()  const
+      {
+         return outE;
+      }
+
+      inline const SxArray<SxPair<ssize_t, ssize_t> > &out () const
+      {
+         return inE;
+      }
+   protected:
+      SxArray<SxPair<ssize_t, ssize_t> > inE;
+      SxArray<SxPair<ssize_t, ssize_t> > outE;
 };
 
 template<class T>
 class SxGraphEdge
 {
    public:
+
       T element;
-      ssize_t in;
-      ssize_t out;
       ssize_t prev;
       ssize_t next;
       SxGraphEdge (T val = T(), ssize_t in_ = -1, ssize_t out_ = -1,
                    ssize_t prev_ = -1, ssize_t next_ = -1)
-                  : element (val), in (in_), out (out_),
-                    prev(prev_), next(next_) { }
+                  : element (val), prev(prev_), next(next_),
+                    inIdx (in_), outIdx (out_) { }
 
       ssize_t getOther (ssize_t v) {
-         if (in == v)        return out;
-         else if (out == v)  return in;
-         else                SX_EXIT; // invalid vertex
+         if (inIdx == v)        return outIdx;
+         else if (outIdx == v)  return inIdx;
+         else                   SX_EXIT; // invalid vertex
       }
+
+      inline ssize_t &in  () { return inIdx;  }
+      inline ssize_t &out () { return outIdx; }
+
+      inline const ssize_t &in  () const { return inIdx;  }
+      inline const ssize_t &out () const { return outIdx; }
+
+   protected:
+      ssize_t inIdx;
+      ssize_t outIdx;
 };
 
 
-// Provides a default data type for edges.
-// Contains auto incremented numeric value
+// Provides a empty data type for edges.
+// Contains auto incremented idx
 // which results in unique hash value for each object.
-class SxDefaultType {
-
-   ssize_t val;
+class SX_EXPORT_GRAPH  SxBlankEdge
+{
    public:
-      SxDefaultType (): val(getVal()) {}
-      ~SxDefaultType (){};
-      operator ssize_t() const{ return val; }
-      bool operator== (const SxDefaultType &in) { return val == in.val; }
-      inline static ssize_t getVal() { static ssize_t vv(0); return vv++; }
+      SxBlankEdge () : idx(getIdx()) { }
+      ~SxBlankEdge () { };
+      operator ssize_t() const{ return idx; }
+      bool operator== (const SxBlankEdge &in) { return idx == in.idx; }
+      inline static ssize_t getIdx() { static ssize_t idx_(0); return idx_++; }
+
+   protected:
+      ssize_t idx;
 };
 
 
@@ -103,7 +132,7 @@ class SxGraphItState
                       const Selection &sel);
       SxGraphItState (const SxGraphItState &in,
                       sx::ItCopyMode cMode_ = sx::CopyAll);
-      SxGraphItState (SxGraphItState &&in, sx::ItCopyMode cMode_ = sx::CopyAll);
+      SxGraphItState (SxGraphItState &&in, sx::ItCopyMode cMode_ = sx::CopyAll) noexcept;
       // non-const to const cast
       template<class CV,class CN,class CC,class CI>
          SxGraphItState (const SxGraphItState<CV,CN,CC,CI> &in_)
@@ -206,7 +235,7 @@ class SxGraphIterators
             Iterator (const Iterator &in, sx::ItCopyMode cMode_ = sx::CopyAll)
                : State<T,Node,Container,Iterator> (in, cMode_)
                  { }
-            Iterator (Iterator &&in, sx::ItCopyMode cMode_ = sx::CopyAll)
+            Iterator (Iterator &&in, sx::ItCopyMode cMode_ = sx::CopyAll) noexcept
                : State<T,Node,Container,Iterator>
                  (std::move(in), cMode_) { }
 
@@ -251,20 +280,40 @@ class SxGraphIterators
 };
 
 
-template<class T, template<class> class V>
+
+
+template<class T,bool isNS>
 class SxGraphStorage
 {
-   template<class GT,class E,template<class> class NT,template<class> class ET,
+   template<class N,class E,
+            template<class,bool> class GS,
             template<class,class,class> class ItPair> friend class SxGraph;
    template<class CV,class CN,class CC,class CI> friend class SxGraphItState;
 
+
    protected:
+      template<class N,bool Cond>
+      class IsNodeStorage;
 
-      using ElemType = V<T>;
+      template<class N>
+      class IsNodeStorage<N,true>
+      {
+         public:
+            typedef SxGraphNode<N> Elem;
+      };
 
-      //SxMap<ssize_t, ElemType> elems;
-      SxHashedArray<ElemType>  elems;
-      SxArray<ssize_t>         hashTable;
+      template<class N>
+      class IsNodeStorage<N,false>
+      {
+         public:
+            typedef SxGraphEdge<N> Elem;
+      };
+
+
+      typedef typename IsNodeStorage<T,isNS>::Elem  Elem;
+
+      SxHashedArray<Elem> elems;
+      SxArray<ssize_t>    hashTable;
 
       ssize_t firstElement;
       ssize_t lastElement;
@@ -276,50 +325,57 @@ class SxGraphStorage
       ssize_t hashUsed;
       ssize_t hashBound;
 
-   public:
 
-      SX_GRAPH_STORAGE(T,V);
-
-      SxGraphStorage ();
-      SxGraphStorage (const SxGraphStorage<T,V> &);
-      SxGraphStorage (SxGraphStorage<T,V> &&);
-      SxGraphStorage<T,V> &operator= (const SxGraphStorage<T,V> &);
-      SxGraphStorage<T,V> &operator= (SxGraphStorage<T,V> &&);
-      ~SxGraphStorage ();
-
+      // --- not to be called directly
       ssize_t     addElem (const T &);
       ssize_t     addElem (T &&);
       void        removeElem (ssize_t idx);
 
       bool    containsElem (ssize_t idx) const;
-      size_t  getNBytes () const;
+      ssize_t getNElems () const;
+      size_t  getSizeBytes () const;
       void    removeElems ();
 
-            V<T> &getElem (ssize_t idx);
-      const V<T> &getElem (ssize_t idx) const;
+            Elem &getElem (ssize_t idx);
+      const Elem &getElem (ssize_t idx) const;
       ssize_t     getIdx (const T &);
+      ssize_t     getFirstIdx () const;
+      ssize_t     getNextIdx  (ssize_t currIdx) const;
+      ssize_t     getPrevIdx  (ssize_t currIdx) const;
 
       // --- hash table
       ssize_t hashFindPos (const T &) const;
       bool    hashContains (const T &, ssize_t *);
       void    hashResize (ssize_t newSize_);
+
+   public:
+      SX_GRAPH_STORAGE(T,Elem);
+
+      SxGraphStorage ();
+      SxGraphStorage (const SxGraphStorage<T,isNS> &);
+      SxGraphStorage (SxGraphStorage<T,isNS> &&);
+      SxGraphStorage<T,isNS> &operator= (const SxGraphStorage<T,isNS> &);
+      SxGraphStorage<T,isNS> &operator= (SxGraphStorage<T,isNS> &&);
+      ~SxGraphStorage ();
+
 };
 
-template<class T,class E = SxDefaultType,template<class> class NT = SxGraphNode,
-         template<class> class ET = SxGraphEdge,
+
+template<class N,class E=SxBlankEdge,
+         template<class,bool> class GS=SxGraphStorage,
          template<class,class,class> class ItPair=SxGraphIterators>
-class SxGraph : public SxThis<SxGraph<T,E,NT,ET,ItPair> >
+class SxGraph : public SxThis<SxGraph<N,E,GS,ItPair> >
 {
    public:
       template<class CV,class CN,class CC,class CI> friend class SxGraphItState;
 
-      using Node = NT<T>;
-      using Edge = ET<E>;
 
       // --- Iterator
-      using Container     = SxGraph<T,E,NT,ET,ItPair>;
-      using Iterator      = typename ItPair<T,Node,Container>::Iterator;
-      using ConstIterator = typename ItPair<T,Node,Container>::ConstIterator;
+      using NT            = typename GS<N,true>::Elem;
+      using ET            = typename GS<E,false>::Elem;
+      using Container     = SxGraph<N,E,GS,ItPair>;
+      using Iterator      = typename ItPair<N,NT,Container>::Iterator;
+      using ConstIterator = typename ItPair<N,NT,Container>::ConstIterator;
 
 
 
@@ -332,7 +388,7 @@ class SxGraph : public SxThis<SxGraph<T,E,NT,ET,ItPair> >
                                  const char *>;
 
       // --- SxSelection:
-      typedef T                     TElem;
+      typedef N                     TElem;
       typedef ssize_t               SelIdx;
       typedef SxUniqueList<SelIdx>  SelStorage;
       typedef Container             SelContainer;
@@ -340,38 +396,38 @@ class SxGraph : public SxThis<SxGraph<T,E,NT,ET,ItPair> >
       SX_CONTAINER (Container)
 
       SxGraph ();
-      SxGraph (SxPtr<SxGraphStorage<T, NT> >, SxPtr<SxGraphStorage<E, ET> >);
-      SxGraph (const SxGraph<T,E,NT,ET,ItPair> &);
-      SxGraph (SxGraph<T,E,NT,ET,ItPair> &&);
-      ~SxGraph ();
+      SxGraph (const SxGraph<N,E,GS,ItPair> &);
+      SxGraph (SxGraph<N,E,GS,ItPair> &&);
+      virtual ~SxGraph ();
 
-      SxGraph<T,E,NT,ET,ItPair> &operator=(const SxGraph<T,E,NT,ET,ItPair> &);
-      SxGraph<T,E,NT,ET,ItPair> &operator=(SxGraph<T,E,NT,ET,ItPair> &&);
+      SxGraph<N,E,GS,ItPair> &operator=(const SxGraph<N,E,GS,ItPair> &);
+      SxGraph<N,E,GS,ItPair> &operator=(SxGraph<N,E,GS,ItPair> &&) noexcept;
 
       // -- Insertion
-      ConstIterator createNode (const T &);
-      ConstIterator createNode (T &&);
-      void createEdge (const T &from, const T &to, const E &elem=E());
-      void createEdge (ConstIterator &, ConstIterator &, const E &elem=E());
+      virtual ConstIterator createNode (const N &);
+      virtual ConstIterator createNode (N &&);
+      virtual void createEdge (const N &from, const N &to, const E &elem=E());
+      virtual void createEdge (ConstIterator &, ConstIterator &, const E &elem=E());
 
       // -- Deletion
-      void removeElement (const T &);
-      void removeEdge (const T &, const T &);
+      virtual void removeNode (ssize_t nodeIdx);
+      virtual void removeEdge (const N &, const N &);
+      void removeElement (const N &);
       void removeSelection (const Selection &selection);
       void removeAll ();
 
       // -- Search
-      bool containsNode (const T &) const;
-      ssize_t findPos (const T &) const;
+      bool containsNode (const N &) const;
+      ssize_t findPos (const N &) const;
 
-      ssize_t findPath      (const T         &from,
-                             const T         &to,
+      ssize_t findPath      (const N         &from,
+                             const N         &to,
                              ssize_t         maxPathLen=0,
                              const Selection &selection=Selection()) const;
 
       SxList<ConstIterator>
-         getPath (const T         &from,
-                  const T         &to,
+         getPath (const N         &from,
+                  const N         &to,
                   ssize_t         maxPathLen=0,
                   const Selection &selection=Selection()) const;
 
@@ -382,15 +438,15 @@ class SxGraph : public SxThis<SxGraph<T,E,NT,ET,ItPair> >
                   const Selection     &selection=Selection()) const;
 
 
-      SxList<T> topsort (const Selection &selection=Selection()) const;
+      SxList<N> topsort (const Selection &selection=Selection()) const;
 
-      SxArray<SxArray<T> > getCycles (const Selection &selection=Selection()) const;
+      SxArray<SxArray<N> > getCycles (const Selection &selection=Selection()) const;
       SxList<SxList<ssize_t> > getCyclesIdx(const Selection &selection=Selection()) const;
 
 
       // -- Size
-      inline ssize_t getSize () const { return nodes->nElems; }
-      inline ssize_t getNEdges () const { return edges->nElems; }
+      inline ssize_t getSize () const { return nodes->getSize (); }
+      inline ssize_t getNEdges () const { return edges->getSize (); }
       size_t getNBytes () const;
 
       // Iteratorfunctions
@@ -399,30 +455,30 @@ class SxGraph : public SxThis<SxGraph<T,E,NT,ET,ItPair> >
 
       Iterator      begin (const Selection &selection=Selection());
       ConstIterator begin (const Selection &selection=Selection()) const;
-      Iterator      begin (sx::Direction dir_, const T      &from,
+      Iterator      begin (sx::Direction dir_, const N      &from,
                            const Selection &selection=Selection());
-      ConstIterator begin (sx::Direction dir_, const T      &from,
+      ConstIterator begin (sx::Direction dir_, const N      &from,
                            const Selection &selection=Selection()) const;
-      Iterator      begin (const T &from,
+      Iterator      begin (const N &from,
                           const Selection &selection=Selection());
-      ConstIterator begin (const T &from,
+      ConstIterator begin (const N &from,
                            const Selection &selection=Selection()) const;
-      Iterator beginIn   (const T &from,
+      Iterator beginIn   (const N &from,
                           const Selection &selection=Selection());
-      Iterator beginBoth (const T &from,
+      Iterator beginBoth (const N &from,
                           const Selection &selection=Selection());
       Iterator end ();
 
-      ConstIterator beginIn   (const T         &from,
+      ConstIterator beginIn   (const N         &from,
                                const Selection &selection=Selection()) const;
-      ConstIterator beginBoth (const T         &from,
+      ConstIterator beginBoth (const N         &from,
                                const Selection &selection=Selection()) const;
       ConstIterator end () const;
 
-      Iterator fromLast ()  {SX_EXIT;}
+      Iterator      fromLast ()  {SX_EXIT;}
       ConstIterator fromLast () const {SX_EXIT;}
 
-      Iterator toFirst ()  {SX_EXIT;}
+      Iterator      toFirst ()  {SX_EXIT;}
       ConstIterator toFirst () const {SX_EXIT;}
 
 
@@ -435,9 +491,10 @@ class SxGraph : public SxThis<SxGraph<T,E,NT,ET,ItPair> >
       // --- event handling
       EdgeEvent &getSignal (const Iterator &,sx::GraphEvent);
 
-      void print (Iterator, std::ostream &, const SxString &options="") const;
-      void print (ConstIterator, std::ostream &, const SxString &options="") const;
-      void printDebug () const;
+      void print (Iterator, std::ostream &,
+                  const SxString &options="") const;
+      void print (ConstIterator, std::ostream &,
+                  const SxString &options="") const;
 
       void print () const;
 
@@ -459,11 +516,10 @@ class SxGraph : public SxThis<SxGraph<T,E,NT,ET,ItPair> >
                     SxList<ssize_t>                &stack,
                     SxArray<bool>                  &visited,
                     SxArray<bool>                  &blocked,
-                    SxArray<SxArray<ssize_t> > &B,
+                    SxArray<SxArray<ssize_t> >     &B,
                     SxList<SxList<ssize_t> >       *circuits) const;
       void unblock (ssize_t, SxArray<bool> &, SxArray<SxArray<ssize_t> >&) const;
 
-      void removeNode (ssize_t nodeIdx);
 
       bool hasOutEdge (ssize_t, ssize_t) const;
       ssize_t findEdgeOut (ssize_t, ssize_t) const;
@@ -481,8 +537,9 @@ class SxGraph : public SxThis<SxGraph<T,E,NT,ET,ItPair> >
       SxMap<ssize_t,EdgeEvent> sigAfterEdgeIn;
       SxMap<ssize_t,EdgeEvent> sigAfterEdgeOut;
 
-      SxPtr<SxGraphStorage<T, NT> > nodes;
-      SxPtr<SxGraphStorage<E, ET> > edges;
+
+      SxPtr<GS<N,true> > nodes;
+      SxPtr<GS<E,false> > edges;
 
       void handleEdgeEvent (unsigned int e, ssize_t from, ssize_t to);
 

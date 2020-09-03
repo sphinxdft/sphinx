@@ -69,6 +69,10 @@
 #         include <clapack.h>
        }
 #  endif /* USE_ACCELERATE_FRAMEWORK */
+#elif defined (USE_NETLIB)
+   extern "C"  {
+#         include <cblas.h>
+   }
 #else
 #   error "No numeric library specified"
 #endif
@@ -114,7 +118,13 @@ void destroySFHIngXMath ()
 //------------------------------------------------------------------------------
 // in-place matrix multiplication
 //------------------------------------------------------------------------------
-void inPlaceRot (float *mat,  const float *rotMat, 
+template<class T>
+static inline T sxAbsSqr (const T x) { return x*x; }
+template<class T>
+static inline T sxAbsSqr (const SxComplex<T> &x) { return x.absSqr (); }
+
+// --- The next 448 lines were generated from math/snippets/SxMathLib.cpp snippet inPlaceRot
+void inPlaceRot (float *mat,  const float *rotMat,
                  int nRows, int nCols)
 {
    if (nRows <= 0 || nCols <=0) return;
@@ -122,10 +132,14 @@ void inPlaceRot (float *mat,  const float *rotMat,
    SX_CHECK (   mat    >= rotMat + nCols * nCols
              || rotMat >= mat    + nRows * nCols,
              (mat-rotMat), nRows * nCols);
+#ifdef USE_INTEL_MKL
+   int blockSize = 128;
+#else
    int blockSize = 1024;
-#if defined USE_ATLAS || defined USE_ACML || defined USE_INTEL_MKL
+#endif
    const int minSize = 2 * blockSize;
-   if (nRows < minSize || sizeof(float) * nRows * nCols < 102400)
+#if defined USE_ATLAS || defined USE_ACML || defined USE_INTEL_MKL || defined USE_NETLIB
+   if (nRows < minSize || sizeof(float) * nRows * nCols < 1024000)
 #endif
    {
       float *workspace = new float[nRows * nCols];
@@ -134,14 +148,32 @@ void inPlaceRot (float *mat,  const float *rotMat,
       delete [] workspace;
       return;
    }
-   
-   SX_EXIT; // needs to be tested against implementation above
-   
-   const float one = 1.0, zero = 0.;
-#if ! defined USE_ATLAS
+   const float one(1.), zero(0.);
+#if !(defined USE_ATLAS || defined USE_NETLIB)
    char noTrans = 'N';
 #endif
-// sketch for omp: #  pragma omp parallel
+#ifdef USE_INTEL_MKL
+   if (sxAbsSqr(rotMat[nCols-1]) < 1e-24 * sxAbsSqr (rotMat[0]))  {
+      // check for upper triangular matrix
+      bool upT = true;
+      for (int ic = 0; ic < nCols -1; ic++)  {
+         double upNorm = norm2(rotMat + ic * nCols, ic + 1);
+         double lowNorm = norm2(rotMat + ic * nCols + ic + 1, nCols - ic -1);
+         if (lowNorm >= 1e-24 * upNorm) { upT = false; break; }
+      }
+      if (upT)  {
+         char side = 'R', uplo = 'U', diag = 'N';
+         strmm (&side, &uplo, &noTrans, &diag, &nRows, &nCols,
+                (float *)const_cast<float*>(&one),
+                (float *)const_cast<float*>(rotMat), &nCols,
+                (float *)const_cast<float*>(mat), &nRows);
+         return;
+      }
+   }
+#endif
+#ifdef USE_OPENMP
+#  pragma omp parallel
+#endif
    {
       float *workspace;
       // catching the bad_alloc is essential for omp parallelism, because exceptions from omp
@@ -154,7 +186,9 @@ void inPlaceRot (float *mat,  const float *rotMat,
          SX_EXIT;
       }
       int r, c, myBlockSize = blockSize;
-// sketch for omp: #     pragma omp for
+#ifdef USE_OPENMP
+#     pragma omp for
+#endif
       for (r = 0; r < nRows; r += blockSize)  {
          if (r + blockSize > nRows)  {
             // reduce block size for last block
@@ -165,24 +199,31 @@ void inPlaceRot (float *mat,  const float *rotMat,
 //     * how do we prevent parallelism inside zgemm???
 //     * does it hurt if zgemm makes more threads??
 //     * maybe if omp is used inside zgemm, omp can deal with it...
-#ifdef USE_ATLAS
+#if defined USE_ATLAS || defined USE_NETLIB
          cblas_sgemm (CblasColMajor, CblasNoTrans, CblasNoTrans,
-                      myBlockSize, nCols, nCols, one, mat + r, nRows,
-                      rotMat, nCols, zero, workspace, myBlockSize);
+                      myBlockSize, nCols, nCols,
+                      (float)one, mat + r, nRows,
+                      rotMat, nCols, (float)zero, workspace, myBlockSize);
 #elif defined USE_GOTO // khr: GotoBLAS, experimental!
          cblas_sgemm (CblasColMajor, CblasNoTrans, CblasNoTrans,
-                      myBlockSize, nCols, nCols, one, mat + r, nRows,
-                      const_cast<float*>(rotMat), nCols, zero, workspace,
-                      myBlockSize);
+                      myBlockSize, nCols, nCols,
+                      (float)one, (float*)(mat + r), nRows,
+                      (float*)rotMat, nCols, (float)zero,
+                      (float*)workspace, myBlockSize);
 #elif defined USE_ACML
-         sgemm (noTrans,noTrans, myBlockSize, nCols, nCols, 
-                one, (mat + r), nRows, const_cast<float*>(rotMat), nCols,
-                zero, workspace, myBlockSize);
+         sgemm (noTrans,noTrans, myBlockSize, nCols, nCols,
+                (float*)const_cast<float*>(&one),
+                (float*)(mat + r), nRows,
+                (float*)const_cast<float*>(rotMat), nCols,
+                (float*)const_cast<float*>(&zero),
+                (float*)workspace, myBlockSize);
 #elif defined USE_INTEL_MKL
-         sgemm (&noTrans, &noTrans, 
-                &myBlockSize, &nCols, &nCols,
-                &one, (mat + r), &nRows,
-                rotMat, &nCols, &zero, workspace, &myBlockSize);
+         sgemm (&noTrans, &noTrans, &myBlockSize, &nCols, &nCols,
+                (float *)const_cast<float*>(&one),
+                (float *)const_cast<float*>(mat + r), &nRows,
+                (float *)const_cast<float*>(rotMat), &nCols,
+                (float *)const_cast<float*>(&zero),
+                (float *)workspace, &myBlockSize);
 #else
          SX_EXIT;
 #endif
@@ -195,17 +236,22 @@ void inPlaceRot (float *mat,  const float *rotMat,
    }
 }
 
-void inPlaceRot (double *mat,  const double *rotMat, int nRows, int nCols)
+void inPlaceRot (double *mat,  const double *rotMat,
+                 int nRows, int nCols)
 {
    if (nRows <= 0 || nCols <=0) return;
    // make sure that mat and rotMat do not overlap
    SX_CHECK (   mat    >= rotMat + nCols * nCols
              || rotMat >= mat    + nRows * nCols,
              (mat-rotMat), nRows * nCols);
+#ifdef USE_INTEL_MKL
+   int blockSize = 128;
+#else
    int blockSize = 1024;
-#if defined USE_ATLAS || defined USE_ACML || defined USE_INTEL_MKL
+#endif
    const int minSize = 2 * blockSize;
-   if (nRows < minSize || sizeof(double) * nRows * nCols < 102400)
+#if defined USE_ATLAS || defined USE_ACML || defined USE_INTEL_MKL || defined USE_NETLIB
+   if (nRows < minSize || sizeof(double) * nRows * nCols < 1024000)
 #endif
    {
       double *workspace = new double[nRows * nCols];
@@ -214,14 +260,32 @@ void inPlaceRot (double *mat,  const double *rotMat, int nRows, int nCols)
       delete [] workspace;
       return;
    }
-   
-   SX_EXIT; // needs to be tested against implementation above
-
-   const double one = 1., zero = 0.;
-#if ! defined USE_ATLAS
+   const double one(1.), zero(0.);
+#if !(defined USE_ATLAS || defined USE_NETLIB)
    char noTrans = 'N';
 #endif
-// sketch for omp: #  pragma omp parallel
+#ifdef USE_INTEL_MKL
+   if (sxAbsSqr(rotMat[nCols-1]) < 1e-24 * sxAbsSqr (rotMat[0]))  {
+      // check for upper triangular matrix
+      bool upT = true;
+      for (int ic = 0; ic < nCols -1; ic++)  {
+         double upNorm = norm2(rotMat + ic * nCols, ic + 1);
+         double lowNorm = norm2(rotMat + ic * nCols + ic + 1, nCols - ic -1);
+         if (lowNorm >= 1e-24 * upNorm) { upT = false; break; }
+      }
+      if (upT)  {
+         char side = 'R', uplo = 'U', diag = 'N';
+         dtrmm (&side, &uplo, &noTrans, &diag, &nRows, &nCols,
+                (double *)const_cast<double*>(&one),
+                (double *)const_cast<double*>(rotMat), &nCols,
+                (double *)const_cast<double*>(mat), &nRows);
+         return;
+      }
+   }
+#endif
+#ifdef USE_OPENMP
+#  pragma omp parallel
+#endif
    {
       double *workspace;
       // catching the bad_alloc is essential for omp parallelism, because exceptions from omp
@@ -234,7 +298,9 @@ void inPlaceRot (double *mat,  const double *rotMat, int nRows, int nCols)
          SX_EXIT;
       }
       int r, c, myBlockSize = blockSize;
-// sketch for omp: #     pragma omp for
+#ifdef USE_OPENMP
+#     pragma omp for
+#endif
       for (r = 0; r < nRows; r += blockSize)  {
          if (r + blockSize > nRows)  {
             // reduce block size for last block
@@ -245,26 +311,31 @@ void inPlaceRot (double *mat,  const double *rotMat, int nRows, int nCols)
 //     * how do we prevent parallelism inside zgemm???
 //     * does it hurt if zgemm makes more threads??
 //     * maybe if omp is used inside zgemm, omp can deal with it...
-#ifdef USE_ATLAS
+#if defined USE_ATLAS || defined USE_NETLIB
          cblas_dgemm (CblasColMajor, CblasNoTrans, CblasNoTrans,
-                      myBlockSize, nCols, nCols, 
-                      one, mat + r, nRows, 
-                      rotMat, nCols, zero, workspace, myBlockSize);
+                      myBlockSize, nCols, nCols,
+                      (double)one, mat + r, nRows,
+                      rotMat, nCols, (double)zero, workspace, myBlockSize);
 #elif defined USE_GOTO // khr: GotoBLAS, experimental!
          cblas_dgemm (CblasColMajor, CblasNoTrans, CblasNoTrans,
                       myBlockSize, nCols, nCols,
-                      one, mat + r, nRows,
-                      const_cast<double*>(rotMat), nCols, zero, workspace,
-                      myBlockSize);
+                      (double)one, (double*)(mat + r), nRows,
+                      (double*)rotMat, nCols, (double)zero,
+                      (double*)workspace, myBlockSize);
 #elif defined USE_ACML
-         dgemm (noTrans,noTrans, myBlockSize, nCols, nCols, 
-                one, (mat + r), nRows, 
-                const_cast<double*>(rotMat), nCols, 
-                zero, workspace, myBlockSize);
+         dgemm (noTrans,noTrans, myBlockSize, nCols, nCols,
+                (double*)const_cast<double*>(&one),
+                (double*)(mat + r), nRows,
+                (double*)const_cast<double*>(rotMat), nCols,
+                (double*)const_cast<double*>(&zero),
+                (double*)workspace, myBlockSize);
 #elif defined USE_INTEL_MKL
          dgemm (&noTrans, &noTrans, &myBlockSize, &nCols, &nCols,
-                &one, (mat + r), &nRows, rotMat, &nCols, &zero, 
-                workspace, &myBlockSize);
+                (double *)const_cast<double*>(&one),
+                (double *)const_cast<double*>(mat + r), &nRows,
+                (double *)const_cast<double*>(rotMat), &nCols,
+                (double *)const_cast<double*>(&zero),
+                (double *)workspace, &myBlockSize);
 #else
          SX_EXIT;
 #endif
@@ -277,7 +348,7 @@ void inPlaceRot (double *mat,  const double *rotMat, int nRows, int nCols)
    }
 }
 
-void inPlaceRot (SxComplex8 *mat,  const SxComplex8 *rotMat, 
+void inPlaceRot (SxComplex8 *mat,  const SxComplex8 *rotMat,
                  int nRows, int nCols)
 {
    if (nRows <= 0 || nCols <=0) return;
@@ -285,10 +356,14 @@ void inPlaceRot (SxComplex8 *mat,  const SxComplex8 *rotMat,
    SX_CHECK (   mat    >= rotMat + nCols * nCols
              || rotMat >= mat    + nRows * nCols,
              (mat-rotMat), nRows * nCols);
+#ifdef USE_INTEL_MKL
+   int blockSize = 128;
+#else
    int blockSize = 1024;
-#if defined USE_ATLAS || defined USE_ACML || defined USE_INTEL_MKL
+#endif
    const int minSize = 2 * blockSize;
-   if (nRows < minSize || sizeof(SxComplex8) * nRows * nCols < 102400)
+#if defined USE_ATLAS || defined USE_ACML || defined USE_INTEL_MKL || defined USE_NETLIB
+   if (nRows < minSize || sizeof(SxComplex8) * nRows * nCols < 1024000)
 #endif
    {
       SxComplex8 *workspace = new SxComplex8[nRows * nCols];
@@ -297,14 +372,32 @@ void inPlaceRot (SxComplex8 *mat,  const SxComplex8 *rotMat,
       delete [] workspace;
       return;
    }
-   
-   SX_EXIT; // needs to be tested against implementation above
-
-   const SxComplex8 one (1.0, 0.0), zero (0.0, 0.0);
-#if ! defined USE_ATLAS
+   const SxComplex8 one(1.), zero(0.);
+#if !(defined USE_ATLAS || defined USE_NETLIB)
    char noTrans = 'N';
 #endif
-// sketch for omp: #  pragma omp parallel
+#ifdef USE_INTEL_MKL
+   if (sxAbsSqr(rotMat[nCols-1]) < 1e-24 * sxAbsSqr (rotMat[0]))  {
+      // check for upper triangular matrix
+      bool upT = true;
+      for (int ic = 0; ic < nCols -1; ic++)  {
+         double upNorm = norm2(rotMat + ic * nCols, ic + 1);
+         double lowNorm = norm2(rotMat + ic * nCols + ic + 1, nCols - ic -1);
+         if (lowNorm >= 1e-24 * upNorm) { upT = false; break; }
+      }
+      if (upT)  {
+         char side = 'R', uplo = 'U', diag = 'N';
+         ctrmm (&side, &uplo, &noTrans, &diag, &nRows, &nCols,
+                (MKL_Complex8 *)const_cast<SxComplex8*>(&one),
+                (MKL_Complex8 *)const_cast<SxComplex8*>(rotMat), &nCols,
+                (MKL_Complex8 *)const_cast<SxComplex8*>(mat), &nRows);
+         return;
+      }
+   }
+#endif
+#ifdef USE_OPENMP
+#  pragma omp parallel
+#endif
    {
       SxComplex8 *workspace;
       // catching the bad_alloc is essential for omp parallelism, because exceptions from omp
@@ -317,7 +410,9 @@ void inPlaceRot (SxComplex8 *mat,  const SxComplex8 *rotMat,
          SX_EXIT;
       }
       int r, c, myBlockSize = blockSize;
-// sketch for omp: #     pragma omp for
+#ifdef USE_OPENMP
+#     pragma omp for
+#endif
       for (r = 0; r < nRows; r += blockSize)  {
          if (r + blockSize > nRows)  {
             // reduce block size for last block
@@ -328,11 +423,11 @@ void inPlaceRot (SxComplex8 *mat,  const SxComplex8 *rotMat,
 //     * how do we prevent parallelism inside zgemm???
 //     * does it hurt if zgemm makes more threads??
 //     * maybe if omp is used inside zgemm, omp can deal with it...
-#ifdef USE_ATLAS
+#if defined USE_ATLAS || defined USE_NETLIB
          cblas_cgemm (CblasColMajor, CblasNoTrans, CblasNoTrans,
-                      myBlockSize, nCols, nCols, 
-                      &one, mat + r, nRows, 
-                      rotMat, nCols, &zero, workspace, myBlockSize);
+                      myBlockSize, nCols, nCols,
+                      (float*)&one, mat + r, nRows,
+                      rotMat, nCols, (float*)&zero, workspace, myBlockSize);
 #elif defined USE_GOTO // khr: GotoBLAS, experimental!
          cblas_cgemm (CblasColMajor, CblasNoTrans, CblasNoTrans,
                       myBlockSize, nCols, nCols,
@@ -340,10 +435,10 @@ void inPlaceRot (SxComplex8 *mat,  const SxComplex8 *rotMat,
                       (float*)rotMat, nCols, (float*)&zero,
                       (float*)workspace, myBlockSize);
 #elif defined USE_ACML
-         cgemm (noTrans,noTrans, myBlockSize, nCols, nCols, 
-                (complex*)const_cast<SxComplex8*>(&one), 
-                (complex*)(mat + r), nRows, 
-                (complex*)const_cast<SxComplex8*>(rotMat), nCols, 
+         cgemm (noTrans,noTrans, myBlockSize, nCols, nCols,
+                (complex*)const_cast<SxComplex8*>(&one),
+                (complex*)(mat + r), nRows,
+                (complex*)const_cast<SxComplex8*>(rotMat), nCols,
                 (complex*)const_cast<SxComplex8*>(&zero),
                 (complex*)workspace, myBlockSize);
 #elif defined USE_INTEL_MKL
@@ -365,7 +460,7 @@ void inPlaceRot (SxComplex8 *mat,  const SxComplex8 *rotMat,
    }
 }
 
-void inPlaceRot (SxComplex16 *mat,  const SxComplex16 *rotMat, 
+void inPlaceRot (SxComplex16 *mat,  const SxComplex16 *rotMat,
                  int nRows, int nCols)
 {
    if (nRows <= 0 || nCols <=0) return;
@@ -379,7 +474,7 @@ void inPlaceRot (SxComplex16 *mat,  const SxComplex16 *rotMat,
    int blockSize = 1024;
 #endif
    const int minSize = 2 * blockSize;
-#if defined USE_ATLAS || defined USE_ACML || defined USE_INTEL_MKL
+#if defined USE_ATLAS || defined USE_ACML || defined USE_INTEL_MKL || defined USE_NETLIB
    if (nRows < minSize || sizeof(SxComplex16) * nRows * nCols < 1024000)
 #endif
    {
@@ -389,12 +484,12 @@ void inPlaceRot (SxComplex16 *mat,  const SxComplex16 *rotMat,
       delete [] workspace;
       return;
    }
-   const SxComplex16 one (1.0, 0.0), zero (0.0, 0.0);
-#if ! defined USE_ATLAS
+   const SxComplex16 one(1.), zero(0.);
+#if !(defined USE_ATLAS || defined USE_NETLIB)
    char noTrans = 'N';
 #endif
 #ifdef USE_INTEL_MKL
-   if (rotMat[nCols-1].absSqr () < 1e-24 * rotMat[0].absSqr ())  {
+   if (sxAbsSqr(rotMat[nCols-1]) < 1e-24 * sxAbsSqr (rotMat[0]))  {
       // check for upper triangular matrix
       bool upT = true;
       for (int ic = 0; ic < nCols -1; ic++)  {
@@ -404,7 +499,7 @@ void inPlaceRot (SxComplex16 *mat,  const SxComplex16 *rotMat,
       }
       if (upT)  {
          char side = 'R', uplo = 'U', diag = 'N';
-         ztrmm (&side, &uplo, &noTrans, &diag, &nRows, &nCols, 
+         ztrmm (&side, &uplo, &noTrans, &diag, &nRows, &nCols,
                 (MKL_Complex16 *)const_cast<SxComplex16*>(&one),
                 (MKL_Complex16 *)const_cast<SxComplex16*>(rotMat), &nCols,
                 (MKL_Complex16 *)const_cast<SxComplex16*>(mat), &nRows);
@@ -440,11 +535,11 @@ void inPlaceRot (SxComplex16 *mat,  const SxComplex16 *rotMat,
 //     * how do we prevent parallelism inside zgemm???
 //     * does it hurt if zgemm makes more threads??
 //     * maybe if omp is used inside zgemm, omp can deal with it...
-#ifdef USE_ATLAS
+#if defined USE_ATLAS || defined USE_NETLIB
          cblas_zgemm (CblasColMajor, CblasNoTrans, CblasNoTrans,
-                      myBlockSize, nCols, nCols, 
-                      &one, mat + r, nRows, 
-                      rotMat, nCols, &zero, workspace, myBlockSize);
+                      myBlockSize, nCols, nCols,
+                      (double*)&one, mat + r, nRows,
+                      rotMat, nCols, (double*)&zero, workspace, myBlockSize);
 #elif defined USE_GOTO // khr: GotoBLAS, experimental!
          cblas_zgemm (CblasColMajor, CblasNoTrans, CblasNoTrans,
                       myBlockSize, nCols, nCols,
@@ -452,10 +547,10 @@ void inPlaceRot (SxComplex16 *mat,  const SxComplex16 *rotMat,
                       (double*)rotMat, nCols, (double*)&zero,
                       (double*)workspace, myBlockSize);
 #elif defined USE_ACML
-         zgemm (noTrans,noTrans, myBlockSize, nCols, nCols, 
-                (doublecomplex*)const_cast<SxComplex16*>(&one), 
-                (doublecomplex*)(mat + r), nRows, 
-                (doublecomplex*)const_cast<SxComplex16*>(rotMat), nCols, 
+         zgemm (noTrans,noTrans, myBlockSize, nCols, nCols,
+                (doublecomplex*)const_cast<SxComplex16*>(&one),
+                (doublecomplex*)(mat + r), nRows,
+                (doublecomplex*)const_cast<SxComplex16*>(rotMat), nCols,
                 (doublecomplex*)const_cast<SxComplex16*>(&zero),
                 (doublecomplex*)workspace, myBlockSize);
 #elif defined USE_INTEL_MKL
@@ -476,7 +571,7 @@ void inPlaceRot (SxComplex16 *mat,  const SxComplex16 *rotMat,
       delete [] workspace;
    }
 }
-
+// --- inPlaceRot
 
 
 

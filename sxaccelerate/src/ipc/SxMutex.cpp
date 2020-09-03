@@ -26,6 +26,7 @@ SxMutex::SxMutex ()
 #  else
       int err = pthread_mutex_init (&mutex, NULL);
       SX_CHECK (err == 0);
+      SX_UNUSED (err);
 #  endif
 }
 
@@ -40,6 +41,7 @@ SxMutex::~SxMutex ()
 #  else
       int err = pthread_mutex_destroy (&mutex);
       SX_CHECK (err == 0);
+      SX_UNUSED (err);
 #  endif
 }
 
@@ -60,6 +62,7 @@ void SxMutex::lock ()
 #  else
       int err = pthread_mutex_lock (&mutex);
       SX_CHECK (err == 0, err);
+      SX_UNUSED (err);
 #  endif
 }
 
@@ -111,5 +114,6 @@ void SxMutex::unlock ()
 #  else
       int err = pthread_mutex_unlock (&mutex);
       SX_CHECK (err == 0);
+      SX_UNUSED (err);
 #  endif
 }

@@ -49,6 +49,7 @@ PWHamiltonian        { type="group"; nItems=1; optional;
    nExcessElectrons  { type="real"; min=-1000; max=1000; optional; }
    ekt               { type="real"; min=0; }
    MethfesselPaxton  { type="int"; min=0; optional; }
+   FermiDirac        { type="int"; min=0; max=1; optional; }
    xc                { type="int"; min=0; max=10; }
    xcMesh            { type="group"; optional;
       eCut              { type="real"; min=5; xor="eCut,mesh,meshAccuracy";}

@@ -791,8 +791,6 @@ class MyProcess : public SxProcess
       };
       SxPtr<SxProcExecuter> childProc;
       static void winkill (pid_t pid, UINT exitCode, bool wait);
-      unsigned char getRndByte () const;
-      SxString getUUIDv4 ();
 #else /* WIN32 */
       /** POSIX-specific data type for pipes. File descriptor array index 0
           contains the reading end of the pipe; array index 1 contains the

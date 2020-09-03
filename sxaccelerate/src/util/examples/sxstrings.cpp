@@ -127,7 +127,7 @@ int main (int argc, char **argv)
    SxList<SxString> res;
    try  { res = date.regexp ("^(\\w+)\\s+(\\w+)\\s+(\\d+)\\s+([0-9]+):([0-9]+):([0-9]+)\\s+\\w+\\s+([0-9]+)"); }
    catch (SxException e)  { e.print (); SX_EXIT; }
-   SX_CHECK_VAR (res.getSize() == 9, res.getSize());
+   SX_CHECK (res.getSize() == 9, res.getSize());
    cout << "   Day:            '" << res(1) << "'" << endl;
    cout << "   Month:          '" << res(2) << "'" << endl;
    cout << "   Day of Month:   '" << res(3) << "'" << endl;

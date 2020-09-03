@@ -13,6 +13,7 @@
 #include <SxConfig.h>
 #include <SxRegex.h>
 #include <SxError.h>
+#include <SxException.h>
 
 // --- include 8-bit PCRE2
 #ifdef USE_PCRE2
@@ -135,11 +136,13 @@ void SxRegex::PcreMgr::cleanPtr ()
 // ---------------------------------------------------------------------------
 
 SxRegex::Match::Match ()
+   : charOffset(-1), byteOffset(-1), nChars(-1), nBytes(-1)
 {
    set (0, 0);
 }
 
 SxRegex::Match::Match (ssize_t charOffset_, ssize_t nChars_)
+   : charOffset(-1), byteOffset(-1), nChars(-1), nBytes(-1)
 {
    set (charOffset_, nChars_);
 }
@@ -180,6 +183,7 @@ SxRegex::SxRegex ()
    : compileOptions(0),
      metaOptions(None),
      captureCount(0),
+     rc_(0),
      isLiteral(false)
 {
    // empty
@@ -190,6 +194,7 @@ SxRegex::SxRegex (const SxString &pattern_,
    : compileOptions(0),
      metaOptions(None),
      captureCount(0),
+     rc_(0),
      isLiteral(false)
 {
    compile (pattern_, options_);
@@ -222,7 +227,8 @@ ssize_t SxRegex::getCaptureCount () const
 ssize_t SxRegex::namedCaptureGroupToNumber (const SxString &name_) const
 {
    if (!nameToNumber.containsKey (name_))
-      SX_THROW ("RegexNamedCaptureNotFound", namedCaptureGroupNotFoundError (name_, nameToNumber));
+      SX_THROW ("RegexNamedCaptureNotFound",
+                namedCaptureGroupNotFoundError (name_, nameToNumber));
 
    return nameToNumber(name_);
 }
@@ -243,7 +249,7 @@ bool SxRegex::compile (const SxString &pattern_,
 
       clean ();
       if (!exception) return false;
-      SX_THROW (e, "RegexCompilationFailed",
+      SX_RETHROW (e, "RegexCompilationFailed",
                 patternCompileError (pattern_, options_));
    }
 
@@ -272,9 +278,10 @@ void SxRegex::parseCompileOptions (const SxString &options_)
          case 'A': compileOptions |= PCRE2_ANCHORED; break;
          case 'D': compileOptions |= PCRE2_DOLLAR_ENDONLY; break;
          case 'P': metaOptions    |= POSIX; break;
-         case 'l': isLiteral = true; break;          
+         case 'l': isLiteral = true; break;
          default:
-            SX_THROW ("RegexUnknownOption", unknownOptionError (options_(i), "mixsUuAPl"));
+            SX_THROW ("RegexUnknownOption",
+                      unknownOptionError (options_(i), "mixsUuAPl"));
             break;
 
          // --- unused pcre2_compile options
@@ -384,7 +391,8 @@ void SxRegex::compilePattern (const SxString &patternIn)
       for (uint32_t i = 0; i < nameCount; i++)  {
          ssize_t n = (tabptr[0] << 8) | tabptr[1];
          if (n > captureCount)
-            SX_THROW ("RegexCaptureOutOfRange", captureGroupOutOfRangeError (n, captureCount));
+            SX_THROW ("RegexCaptureOutOfRange",
+                      captureGroupOutOfRangeError (n, captureCount));
          SxString name = reinterpret_cast<const char*>(tabptr + 2);
          nameToNumber(name) = n;
          numberToName(n) = name;
@@ -414,7 +422,7 @@ void SxRegex::adaptToPosix (size_t textSize) const
 {
 #ifdef USE_PCRE2
    int oldRc = rc_, rc2 = oldRc + 1;
-   PCRE2_SIZE *customOvector = new PCRE2_SIZE [static_cast<size_t>(2 * rc2)];
+   PCRE2_SIZE *customOvector = new PCRE2_SIZE [2 * ((size_t)rc2)];
    if (customOvector == NULL)  sxOutOfMemoryHandler ();
    ovectorMgr.setPtr ((void *) customOvector, PcreMgr::Ovector);
    pcre2_match_data *matchData = (pcre2_match_data *) dataMgr.getPtr ();

@@ -110,7 +110,7 @@ inline uint64_t SxTime::getEpoch ()
       FILETIME tp;
       GetSystemTimeAsFileTime (&tp);
       uint64_t stamp = ((uint64_t)tp.dwHighDateTime << 32) + tp.dwLowDateTime;
-      const uint64_t stampSeconds = (uint64_t)stamp * 1e-7; // stamp(1) == 100ns
+      const uint64_t stampSeconds = stamp / 10000000LL; // stamp(1) == 100ns
       const uint64_t stamp1970 = 11644473600; // year 1970-1601 seconds: time()
       return stampSeconds - stamp1970; // n seconds since January 1 1970
 #  else
@@ -235,7 +235,7 @@ inline SxString SxTime::ctime (long secondsSince1970)
       char res[DATE_SIZE];
 
       _wctime_s (expBuf, DATE_SIZE, &time);
-      for (int c=0; c < DATE_SIZE; ++c)  res[c] = expBuf[c];
+      for (int c=0; c < DATE_SIZE; ++c)  res[c] = (char)(expBuf[c] & 0x00FF);
       if (res[24]=='\n') res[24]='\0';
       return SxString(res);
 #  else

@@ -68,10 +68,11 @@
 
 
 /* Copy the first part of user declarations.  */
-#line 9 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:339  */
+#line 9 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:339  */
 
 #  define YYDEBUG 1
 #  include <SxMacroLib.h>
+#  include <inttypes.h>
 #  include <SxString.h>
 #  include <SxGProps.h>
 class SxJSONParser;
@@ -80,9 +81,10 @@ class SxJSONParser;
 #  include <SxJSONParser.h>
 #  define ast parserPtr
 
+typedef SxJSONParser::ElemType ElemType;
 
 
-#line 86 "SxJSONParser.tab.cpp" /* yacc.c:339  */
+#line 88 "SxJSONParser.tab.cpp" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -118,33 +120,37 @@ extern int SxJSONParser_debug;
   enum yytokentype
   {
     TK_INTEGER = 258,
-    TK_FLOAT = 259,
+    TK_REAL = 259,
     TK_BOOL = 260,
     TK_NULL = 261,
-    TK_STRING = 262
+    TK_STRING = 262,
+    TK_GRPDOC_BEGIN = 263,
+    TK_GRPDOC_END = 264
   };
 #endif
 /* Tokens.  */
 #define TK_INTEGER 258
-#define TK_FLOAT 259
+#define TK_REAL 259
 #define TK_BOOL 260
 #define TK_NULL 261
 #define TK_STRING 262
+#define TK_GRPDOC_BEGIN 263
+#define TK_GRPDOC_END 264
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 
 union YYSTYPE
 {
-#line 24 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:355  */
+#line 26 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:355  */
 
-   ssize_t   intVal;
+   int64_t   intVal;
    bool      boolVal;
-   double    floatVal;
+   double    realVal;
    SxString *strPtr;
    SxGProps *nPtr;
 
-#line 148 "SxJSONParser.tab.cpp" /* yacc.c:355  */
+#line 154 "SxJSONParser.tab.cpp" /* yacc.c:355  */
 };
 
 typedef union YYSTYPE YYSTYPE;
@@ -174,7 +180,7 @@ int SxJSONParser_parse (SxJSONParser* parserPtr);
 
 /* Copy the second part of user declarations.  */
 
-#line 178 "SxJSONParser.tab.cpp" /* yacc.c:358  */
+#line 184 "SxJSONParser.tab.cpp" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -416,23 +422,23 @@ union yyalloc
 #endif /* !YYCOPY_NEEDED */
 
 /* YYFINAL -- State number of the termination state.  */
-#define YYFINAL  5
+#define YYFINAL  7
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   29
+#define YYLAST   62
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  14
+#define YYNTOKENS  16
 /* YYNNTS -- Number of nonterminals.  */
 #define YYNNTS  11
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  22
+#define YYNRULES  27
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  35
+#define YYNSTATES  55
 
 /* YYTRANSLATE[YYX] -- Symbol number corresponding to YYX as returned
    by yylex, with out-of-bounds checking.  */
 #define YYUNDEFTOK  2
-#define YYMAXUTOK   262
+#define YYMAXUTOK   264
 
 #define YYTRANSLATE(YYX)                                                \
   ((unsigned int) (YYX) <= YYMAXUTOK ? yytranslate[YYX] : YYUNDEFTOK)
@@ -445,15 +451,15 @@ static const yytype_uint8 yytranslate[] =
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,    10,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,    11,     2,
+       2,     2,     2,     2,    12,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,    13,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,    12,     2,    13,     2,     2,     2,     2,     2,     2,
+       2,    14,     2,    15,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     8,     2,     9,     2,     2,     2,     2,
+       2,     2,     2,    10,     2,    11,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
@@ -467,16 +473,16 @@ static const yytype_uint8 yytranslate[] =
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     1,     2,     3,     4,
-       5,     6,     7
+       5,     6,     7,     8,     9
 };
 
 #if YYDEBUG
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
-static const yytype_uint8 yyrline[] =
+static const yytype_uint16 yyrline[] =
 {
-       0,    62,    62,    67,    74,    80,    88,   103,   119,   130,
-     139,   147,   167,   190,   196,   200,   204,   211,   217,   223,
-     229,   237,   244
+       0,    69,    69,    73,    79,    85,    94,   100,   111,   116,
+     123,   133,   143,   153,   166,   176,   191,   196,   203,   209,
+     213,   217,   225,   232,   239,   246,   255,   261
 };
 #endif
 
@@ -485,10 +491,10 @@ static const yytype_uint8 yyrline[] =
    First, the terminals, then, starting at YYNTOKENS, nonterminals.  */
 static const char *const yytname[] =
 {
-  "$end", "error", "$undefined", "TK_INTEGER", "TK_FLOAT", "TK_BOOL",
-  "TK_NULL", "TK_STRING", "'{'", "'}'", "','", "':'", "'['", "']'",
-  "$accept", "main", "object", "members", "member", "array", "elements",
-  "element", "value", "push", "pop", YY_NULLPTR
+  "$end", "error", "$undefined", "TK_INTEGER", "TK_REAL", "TK_BOOL",
+  "TK_NULL", "TK_STRING", "TK_GRPDOC_BEGIN", "TK_GRPDOC_END", "'{'", "'}'",
+  "','", "':'", "'['", "']'", "$accept", "main", "object", "members",
+  "member", "array", "elements", "element", "value", "push", "pop", YY_NULLPTR
 };
 #endif
 
@@ -497,15 +503,15 @@ static const char *const yytname[] =
    (internal) symbol number NUM (which must be that of a token).  */
 static const yytype_uint16 yytoknum[] =
 {
-       0,   256,   257,   258,   259,   260,   261,   262,   123,   125,
-      44,    58,    91,    93
+       0,   256,   257,   258,   259,   260,   261,   262,   263,   264,
+     123,   125,    44,    58,    91,    93
 };
 # endif
 
-#define YYPACT_NINF -18
+#define YYPACT_NINF -29
 
 #define yypact_value_is_default(Yystate) \
-  (!!((Yystate) == (-18)))
+  (!!((Yystate) == (-29)))
 
 #define YYTABLE_NINF -1
 
@@ -516,10 +522,12 @@ static const yytype_uint16 yytoknum[] =
      STATE-NUM.  */
 static const yytype_int8 yypact[] =
 {
-     -18,     6,   -18,   -18,    13,   -18,    15,    -2,     2,   -18,
-      17,   -18,   -18,   -18,   -18,   -18,   -18,   -18,   -18,   -18,
-      -3,   -18,   -18,    12,   -18,   -18,    16,   -18,    12,   -18,
-     -18,   -18,   -18,   -18,   -18
+       4,    12,    26,   -29,   -29,    -1,   -29,   -29,    -5,    27,
+       0,    15,    38,   -29,    13,   -29,   -29,   -29,   -29,   -29,
+     -29,   -29,   -29,   -29,     5,   -29,   -29,    -3,    33,    46,
+      48,   -29,   -29,    36,   -29,    46,   -29,   -29,    34,   -29,
+       7,   -29,    43,   -29,   -29,   -29,   -29,   -29,   -29,   -29,
+     -29,    46,   -29,   -29,   -29
 };
 
   /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -527,24 +535,26 @@ static const yytype_int8 yypact[] =
      means the default is an error.  */
 static const yytype_uint8 yydefact[] =
 {
-      21,     0,     2,     3,     0,     1,     0,    21,     0,    22,
-       0,     6,    17,    18,    19,    20,    16,    22,    14,    15,
-       0,    11,    13,    21,     4,    22,     0,     9,    21,    22,
-       8,     5,     7,    12,    10
+      26,     0,     0,     2,     3,     0,    26,     1,     0,    26,
+       0,     0,     0,    27,     0,     8,    22,    23,    24,    25,
+      21,    27,    19,    20,     0,    16,    18,     0,    26,    26,
+       0,     4,    27,     0,    12,    26,    27,    27,     0,    27,
+       0,    11,     0,     6,     9,    17,    14,     5,    27,    13,
+      27,    26,     7,    15,    10
 };
 
   /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-     -18,   -18,    20,   -18,     3,    28,   -18,   -14,   -18,   -18,
-     -17
+     -29,   -29,    57,    31,    28,    59,    32,   -28,   -29,    56,
+     -21
 };
 
   /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-      -1,     1,    18,    10,    11,    19,    20,    21,    22,     4,
-      24
+      -1,     2,    22,    14,    15,    23,    24,    25,    26,     5,
+      31
 };
 
   /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
@@ -552,42 +562,52 @@ static const yytype_int8 yydefgoto[] =
      number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_uint8 yytable[] =
 {
-      27,    12,    13,    14,    15,    16,     5,    28,    31,    30,
-      29,    17,    34,    23,    33,    12,    13,    14,    15,    16,
-       2,     6,     8,     8,     9,     7,    25,    26,     3,    32
+      34,    41,    11,    12,    11,    12,    13,    45,    37,     8,
+      27,    43,     1,     9,    28,    46,    47,    35,    49,    35,
+      36,     6,    50,    54,    32,    33,     7,    52,    29,    53,
+      16,    17,    18,    19,    20,     1,    16,    17,    18,    19,
+      20,     1,    21,    11,    12,    48,    33,    30,    39,    16,
+      17,    18,    19,    20,     1,    42,    51,     3,    38,     4,
+      40,    44,    10
 };
 
 static const yytype_uint8 yycheck[] =
 {
-      17,     3,     4,     5,     6,     7,     0,    10,    25,    23,
-      13,    13,    29,    11,    28,     3,     4,     5,     6,     7,
-       0,     8,     7,     7,     9,    12,     9,    10,     0,    26
+      21,    29,     7,     8,     7,     8,    11,    35,    11,    10,
+      10,    32,     8,    14,    14,    36,    37,    12,    39,    12,
+      15,     9,    15,    51,    11,    12,     0,    48,    13,    50,
+       3,     4,     5,     6,     7,     8,     3,     4,     5,     6,
+       7,     8,    15,     7,     8,    11,    12,     9,    15,     3,
+       4,     5,     6,     7,     8,     7,    13,     0,    27,     0,
+      28,    33,     6
 };
 
   /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
      symbol of state STATE-NUM.  */
 static const yytype_uint8 yystos[] =
 {
-       0,    15,    16,    19,    23,     0,     8,    12,     7,     9,
-      17,    18,     3,     4,     5,     6,     7,    13,    16,    19,
-      20,    21,    22,    11,    24,     9,    10,    24,    10,    13,
-      21,    24,    18,    21,    24
+       0,     8,    17,    18,    21,    25,     9,     0,    10,    14,
+      25,     7,     8,    11,    19,    20,     3,     4,     5,     6,
+       7,    15,    18,    21,    22,    23,    24,    10,    14,    13,
+       9,    26,    11,    12,    26,    12,    15,    11,    19,    15,
+      22,    23,     7,    26,    20,    23,    26,    26,    11,    26,
+      15,    13,    26,    26,    23
 };
 
   /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
 static const yytype_uint8 yyr1[] =
 {
-       0,    14,    15,    15,    16,    16,    17,    17,    18,    19,
-      19,    20,    20,    21,    22,    22,    22,    22,    22,    22,
-      22,    23,    24
+       0,    16,    17,    17,    18,    18,    18,    18,    19,    19,
+      20,    20,    21,    21,    21,    21,    22,    22,    23,    24,
+      24,    24,    24,    24,    24,    24,    25,    26
 };
 
   /* YYR2[YYN] -- Number of symbols on the right hand side of rule YYN.  */
 static const yytype_uint8 yyr2[] =
 {
-       0,     2,     1,     1,     4,     5,     1,     3,     3,     4,
-       5,     1,     3,     1,     1,     1,     1,     1,     1,     1,
-       1,     0,     0
+       0,     2,     1,     1,     4,     6,     5,     7,     1,     3,
+       5,     3,     4,     6,     5,     7,     1,     3,     1,     1,
+       1,     1,     1,     1,     1,     1,     0,     0
 };
 
 
@@ -743,75 +763,93 @@ yy_symbol_value_print (FILE *yyoutput, int yytype, YYSTYPE const * const yyvalue
   switch (yytype)
     {
           case 3: /* TK_INTEGER  */
-#line 48 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:684  */
-      { fprintf (yyoutput, "TK_INTEGER, val='%zd'", ((*yyvaluep).intVal)); }
-#line 749 "SxJSONParser.tab.cpp" /* yacc.c:684  */
+#line 52 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:684  */
+      { fprintf (yyoutput, "TK_INTEGER, val=%" PRId64, ((*yyvaluep).intVal)); }
+#line 769 "SxJSONParser.tab.cpp" /* yacc.c:684  */
         break;
 
-    case 4: /* TK_FLOAT  */
-#line 49 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:684  */
-      { fprintf (yyoutput, "TK_FLOAT, val='%f'", ((*yyvaluep).floatVal)); }
-#line 755 "SxJSONParser.tab.cpp" /* yacc.c:684  */
+    case 4: /* TK_REAL  */
+#line 53 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:684  */
+      { fprintf (yyoutput, "TK_REAL, val='%f'", ((*yyvaluep).realVal)); }
+#line 775 "SxJSONParser.tab.cpp" /* yacc.c:684  */
         break;
 
     case 5: /* TK_BOOL  */
-#line 50 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:684  */
+#line 54 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:684  */
       { fprintf (yyoutput, "TK_BOOL, val='%d'", ((*yyvaluep).boolVal)); }
-#line 761 "SxJSONParser.tab.cpp" /* yacc.c:684  */
+#line 781 "SxJSONParser.tab.cpp" /* yacc.c:684  */
+        break;
+
+    case 6: /* TK_NULL  */
+#line 55 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:684  */
+      { fprintf (yyoutput, "TK_NULL"); }
+#line 787 "SxJSONParser.tab.cpp" /* yacc.c:684  */
         break;
 
     case 7: /* TK_STRING  */
-#line 47 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:684  */
-      { fprintf (yyoutput, "TK_STRING, val='%s'", ((*yyvaluep).strPtr)->ascii()); }
-#line 767 "SxJSONParser.tab.cpp" /* yacc.c:684  */
+#line 51 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:684  */
+      { fprintf (yyoutput, "TK_STRING, val='%s'", ((*yyvaluep).strPtr)->getElems()); }
+#line 793 "SxJSONParser.tab.cpp" /* yacc.c:684  */
         break;
 
-    case 15: /* main  */
-#line 52 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:684  */
+    case 8: /* TK_GRPDOC_BEGIN  */
+#line 56 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:684  */
+      { fprintf (yyoutput, "TK_GRPDOC_BEGIN"); }
+#line 799 "SxJSONParser.tab.cpp" /* yacc.c:684  */
+        break;
+
+    case 9: /* TK_GRPDOC_END  */
+#line 57 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:684  */
+      { fprintf (yyoutput, "TK_GRPDOC_END"); }
+#line 805 "SxJSONParser.tab.cpp" /* yacc.c:684  */
+        break;
+
+    case 17: /* main  */
+#line 59 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:684  */
       { fprintf (yyoutput, "main"); }
-#line 773 "SxJSONParser.tab.cpp" /* yacc.c:684  */
+#line 811 "SxJSONParser.tab.cpp" /* yacc.c:684  */
         break;
 
-    case 16: /* object  */
-#line 53 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:684  */
+    case 18: /* object  */
+#line 60 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:684  */
       { fprintf (yyoutput, "object"); }
-#line 779 "SxJSONParser.tab.cpp" /* yacc.c:684  */
+#line 817 "SxJSONParser.tab.cpp" /* yacc.c:684  */
         break;
 
-    case 17: /* members  */
-#line 54 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:684  */
+    case 19: /* members  */
+#line 61 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:684  */
       { fprintf (yyoutput, "members"); }
-#line 785 "SxJSONParser.tab.cpp" /* yacc.c:684  */
+#line 823 "SxJSONParser.tab.cpp" /* yacc.c:684  */
         break;
 
-    case 18: /* member  */
-#line 55 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:684  */
+    case 20: /* member  */
+#line 62 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:684  */
       { fprintf (yyoutput, "member"); }
-#line 791 "SxJSONParser.tab.cpp" /* yacc.c:684  */
+#line 829 "SxJSONParser.tab.cpp" /* yacc.c:684  */
         break;
 
-    case 19: /* array  */
-#line 56 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:684  */
+    case 21: /* array  */
+#line 63 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:684  */
       { fprintf (yyoutput, "array"); }
-#line 797 "SxJSONParser.tab.cpp" /* yacc.c:684  */
+#line 835 "SxJSONParser.tab.cpp" /* yacc.c:684  */
         break;
 
-    case 20: /* elements  */
-#line 57 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:684  */
+    case 22: /* elements  */
+#line 64 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:684  */
       { fprintf (yyoutput, "elements"); }
-#line 803 "SxJSONParser.tab.cpp" /* yacc.c:684  */
+#line 841 "SxJSONParser.tab.cpp" /* yacc.c:684  */
         break;
 
-    case 21: /* element  */
-#line 58 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:684  */
+    case 23: /* element  */
+#line 65 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:684  */
       { fprintf (yyoutput, "element"); }
-#line 809 "SxJSONParser.tab.cpp" /* yacc.c:684  */
+#line 847 "SxJSONParser.tab.cpp" /* yacc.c:684  */
         break;
 
-    case 22: /* value  */
-#line 59 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:684  */
+    case 24: /* value  */
+#line 66 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:684  */
       { fprintf (yyoutput, "value"); }
-#line 815 "SxJSONParser.tab.cpp" /* yacc.c:684  */
+#line 853 "SxJSONParser.tab.cpp" /* yacc.c:684  */
         break;
 
 
@@ -1159,9 +1197,9 @@ yydestruct (const char *yymsg, int yytype, YYSTYPE *yyvaluep, YYLTYPE *yylocatio
   switch (yytype)
     {
           case 7: /* TK_STRING  */
-#line 37 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:1257  */
+#line 39 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:1257  */
       { delete ((*yyvaluep).strPtr); }
-#line 1165 "SxJSONParser.tab.cpp" /* yacc.c:1257  */
+#line 1203 "SxJSONParser.tab.cpp" /* yacc.c:1257  */
         break;
 
 
@@ -1453,280 +1491,315 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 62 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:1646  */
+#line 69 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:1646  */
     {
                   SX_DBG_YACC ("main#1");
-                  SxGProps *root = parserPtr->getRoot ();
-                  ast->addEdge (root, (yyval.nPtr));
+                  (yyval.nPtr)->setProperty (".key", ".root node");
                }
-#line 1463 "SxJSONParser.tab.cpp" /* yacc.c:1646  */
+#line 1500 "SxJSONParser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 3:
-#line 67 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:1646  */
+#line 73 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:1646  */
     {
                   SX_DBG_YACC ("main#2");
-                  SxGProps *root = parserPtr->getRoot ();
-                  ast->addEdge (root, (yyval.nPtr));
+                  (yyval.nPtr)->setProperty (".key", ".root node");
                }
-#line 1473 "SxJSONParser.tab.cpp" /* yacc.c:1646  */
+#line 1509 "SxJSONParser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 4:
-#line 74 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:1646  */
+#line 79 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:1646  */
     {
                   SX_DBG_YACC ("object#1");
                   (yyval.nPtr) = (yyvsp[-3].nPtr);
-                  (yyval.nPtr)->setProperty ("__sx_Key", "undefined");
-                  (yyval.nPtr)->getProperty ("__sx_Value").setTag (SXTAG_YACC((yylsp[-2]),(yylsp[-1])));
+                  (yyval.nPtr)->setProperty (".key", "");
+                  (yyval.nPtr)->getProperty (".val").setTag (SXTAG_YACC((yylsp[-2]),(yylsp[-1])));
                }
-#line 1484 "SxJSONParser.tab.cpp" /* yacc.c:1646  */
+#line 1520 "SxJSONParser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 5:
-#line 80 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:1646  */
+#line 85 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:1646  */
     {
                   SX_DBG_YACC ("object#2");
-                  (yyval.nPtr) = (yyvsp[-2].nPtr);
-                  (yyval.nPtr)->setProperty ("__sx_Key", "undefined");
-                  (yyval.nPtr)->getProperty ("__sx_Value").setTag (SXTAG_YACC((yylsp[-3]),(yylsp[-1])));
-               }
-#line 1495 "SxJSONParser.tab.cpp" /* yacc.c:1646  */
-    break;
-
-  case 6:
-#line 88 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:1646  */
-    {
-                  SX_DBG_YACC ("members#1: " << (yyvsp[0].nPtr));
-                  (yyval.nPtr) = parserPtr->peek ();
-                  SxVariantType::DataType chT =
-                  (SxVariantType::DataType)(yyvsp[0].nPtr)->getProperty ("__sx_Value").getType ();
-
-                  if (!(chT == SxVariantType::List || chT == SxVariantType::Group))
-                  {
-                     (yyval.nPtr)->setProperty ((yyvsp[0].nPtr)->getProperty ("__sx_Key").getString (),
-                                      (yyvsp[0].nPtr)->getProperty ("__sx_Value"));
-                     ast->getAst ()->removeElement (*(yyvsp[0].nPtr));
-                  } else {
-                     ast->addEdge ((yyval.nPtr), (yyvsp[0].nPtr));
-                  }
-               }
-#line 1515 "SxJSONParser.tab.cpp" /* yacc.c:1646  */
-    break;
-
-  case 7:
-#line 103 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:1646  */
-    {
-                  SX_DBG_YACC ("members#2: " << (yyvsp[-2].nPtr) << "-" << (yyvsp[0].nPtr));
-                  (yyval.nPtr) = parserPtr->peek ();
-                  SxVariantType::DataType chT =
-                  (SxVariantType::DataType)(yyvsp[0].nPtr)->getProperty ("__sx_Value").getType ();
-
-                  if (!(chT == SxVariantType::List || chT == SxVariantType::Group)) {
-                     (yyval.nPtr)->setProperty ((yyvsp[0].nPtr)->getProperty ("__sx_Key").getString (),
-                                      (yyvsp[0].nPtr)->getProperty ("__sx_Value"));
-                     ast->getAst ()->removeElement (*(yyvsp[0].nPtr));
-                  } else {
-                     ast->addEdge ((yyval.nPtr), (yyvsp[0].nPtr));
-                  }
+                  (yyval.nPtr) = (yyvsp[-3].nPtr);
+                  (yyval.nPtr)->setProperty (".key", "");
+                  (yyval.nPtr)->getProperty (".val").setTag (SXTAG_YACC((yylsp[-2]),(yylsp[-1])));
+                  (yyval.nPtr)->setProperty (".docTxt", *(yyvsp[-4].strPtr));
+                  (yyval.nPtr)->getProperty (".docTxt").setTag (SXTAG_YACC((yylsp[-5]), (yylsp[-4])));
+                  delete (yyvsp[-4].strPtr);
                }
 #line 1534 "SxJSONParser.tab.cpp" /* yacc.c:1646  */
     break;
 
-  case 8:
-#line 119 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:1646  */
+  case 6:
+#line 94 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:1646  */
     {
-                  SX_DBG_YACC ("member#1");
-                  (yyval.nPtr) = (yyvsp[0].nPtr);
-                  if (!ast->validateKey (*(yyvsp[-2].strPtr)))
-                     SxJSONParser_error (&(yylsp[-2]), ast, SxString("Invalid key: ")+ *(yyvsp[-2].strPtr));
-                  (yyval.nPtr)->setProperty ("__sx_Key", *(yyvsp[-2].strPtr));
-                  (yyval.nPtr)->getProperty ("__sx_Value").setTag (SXTAG_YACC((yylsp[-2]),(yylsp[0])));
-                  delete (yyvsp[-2].strPtr);
+                  SX_DBG_YACC ("object#3");
+                  (yyval.nPtr) = (yyvsp[-2].nPtr);
+                  (yyval.nPtr)->setProperty (".key", "");
+                  (yyval.nPtr)->getProperty (".val").setTag (SXTAG_YACC((yylsp[-3]),(yylsp[-1])));
                }
-#line 1548 "SxJSONParser.tab.cpp" /* yacc.c:1646  */
+#line 1545 "SxJSONParser.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 7:
+#line 100 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:1646  */
+    {
+                  SX_DBG_YACC ("object#4");
+                  (yyval.nPtr) = (yyvsp[-2].nPtr);
+                  (yyval.nPtr)->setProperty (".key", "");
+                  (yyval.nPtr)->getProperty (".val").setTag (SXTAG_YACC((yylsp[-3]),(yylsp[-1])));
+                  (yyval.nPtr)->setProperty (".docTxt", *(yyvsp[-5].strPtr));
+                  (yyval.nPtr)->getProperty (".docTxt").setTag (SXTAG_YACC((yylsp[-6]), (yylsp[-5])));
+                  delete (yyvsp[-5].strPtr);
+               }
+#line 1559 "SxJSONParser.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 8:
+#line 111 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:1646  */
+    {
+                  SX_DBG_YACC ("members#1: " << (yyvsp[0].nPtr));
+                  (yyval.nPtr) = parserPtr->peek ();
+                  ast->addEdge ((yyval.nPtr), (yyvsp[0].nPtr));
+               }
+#line 1569 "SxJSONParser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 9:
-#line 130 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:1646  */
+#line 116 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:1646  */
     {
-                  SX_DBG_YACC ("array#1");
-                  (yyval.nPtr) = (yyvsp[-3].nPtr);
-                  (yyval.nPtr)->setProperty ("__sx_Key", "undefined");
-                  SxVariant v;
-                  v.setType ((int)SxVariantType::List);
-                  (yyval.nPtr)->setProperty ("__sx_Value", v);
-                  (yyval.nPtr)->getProperty ("__sx_Value").setTag (SXTAG_YACC((yylsp[-2]),(yylsp[-1])));
+                  SX_DBG_YACC ("members#2: " << (yyvsp[-2].nPtr) << "-" << (yyvsp[0].nPtr));
+                  (yyval.nPtr) = parserPtr->peek ();
+                  ast->addEdge ((yyval.nPtr), (yyvsp[0].nPtr));
                }
-#line 1562 "SxJSONParser.tab.cpp" /* yacc.c:1646  */
+#line 1579 "SxJSONParser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 10:
-#line 139 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:1646  */
+#line 123 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:1646  */
     {
-                  SX_DBG_YACC ("array#2");
-                  (yyval.nPtr) = (yyvsp[-4].nPtr);
-                  (yyval.nPtr)->setProperty ("__sx_Key", "undefined");
-                  (yyval.nPtr)->getProperty ("__sx_Value").setTag (SXTAG_YACC((yylsp[-3]),(yylsp[-1])));
+                  SX_DBG_YACC ("member#1");
+                  (yyval.nPtr) = (yyvsp[0].nPtr);
+                  (yyval.nPtr)->setProperty (".key", *(yyvsp[-2].strPtr));
+                  (yyval.nPtr)->getProperty (".key").setTag (SXTAG_YACC((yylsp[-2])));
+                  (yyval.nPtr)->setProperty (".docTxt", *(yyvsp[-3].strPtr));
+                  (yyval.nPtr)->getProperty (".docTxt").setTag (SXTAG_YACC((yylsp[-4]), (yylsp[-3])));
+                  delete (yyvsp[-3].strPtr);
+                  delete (yyvsp[-2].strPtr);
                }
-#line 1573 "SxJSONParser.tab.cpp" /* yacc.c:1646  */
+#line 1594 "SxJSONParser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 11:
-#line 147 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:1646  */
+#line 133 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:1646  */
     {
-                  SX_DBG_YACC ("elements#1: " << (yyvsp[0].nPtr));
-                  (yyval.nPtr) = parserPtr->peek ();
-                  if ((yyval.nPtr)->getProperty ("__sx_Value").getType () != SxVariantType::List) {
-                     SxVariant v;
-                     v.setType ((int)SxVariantType::List);
-                     v.set (SxList<SxVariant>());
-                     (yyval.nPtr)->setProperty ("__sx_Value", v);
-                  }
-                  SxVariantType::DataType chT =
-                  (SxVariantType::DataType)(yyvsp[0].nPtr)->getProperty ("__sx_Value").getType ();
-
-                  if (!(chT == SxVariantType::List || chT == SxVariantType::Group))
-                  {
-                     (yyval.nPtr)->getProperty ("__sx_Value").append ((yyvsp[0].nPtr)->getProperty ("__sx_Value"));
-                     ast->getAst ()->removeElement (*(yyvsp[0].nPtr));
-                  } else {
-                     ast->addEdge ((yyval.nPtr), (yyvsp[0].nPtr));
-                  }
+                  SX_DBG_YACC ("member#2");
+                  (yyval.nPtr) = (yyvsp[0].nPtr);
+                  (yyval.nPtr)->setProperty (".key", *(yyvsp[-2].strPtr));
+                  (yyval.nPtr)->getProperty (".key").setTag (SXTAG_YACC((yylsp[-2])));
+                  (yyval.nPtr)->setProperty (".docTxt", "");
+                  delete (yyvsp[-2].strPtr);
                }
-#line 1598 "SxJSONParser.tab.cpp" /* yacc.c:1646  */
+#line 1607 "SxJSONParser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 12:
-#line 167 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:1646  */
+#line 143 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:1646  */
     {
-                  SX_DBG_YACC ("elements#2: " << (yyvsp[-2].nPtr) << "-" << (yyvsp[0].nPtr));
-                  (yyval.nPtr) = parserPtr->peek ();
-
-                  if ((yyval.nPtr)->getProperty ("__sx_Value").getType () != SxVariantType::List) {
-                     SxVariant v;
-                     v.setType ((int)SxVariantType::List);
-                     (yyval.nPtr)->setProperty ("__sx_Value", v);
-                  }
-
-                  SxVariantType::DataType chT =
-                  (SxVariantType::DataType)(yyvsp[0].nPtr)->getProperty ("__sx_Value").getType ();
-
-                  if (!(chT == SxVariantType::List || chT == SxVariantType::Group))
-                  {
-                     (yyval.nPtr)->getProperty ("__sx_Value").append ((yyvsp[0].nPtr)->getProperty ("__sx_Value"));
-                     ast->getAst ()->removeElement (*(yyvsp[0].nPtr));
-                  } else {
-                     ast->addEdge ((yyval.nPtr), (yyvsp[0].nPtr));
-                  }
+                  SX_DBG_YACC ("array#1");
+                  (yyval.nPtr) = (yyvsp[-3].nPtr);
+                  (yyval.nPtr)->setProperty (".key", "");
+                  SxVariant v;
+                  v.setType ((int)SxVariantType::List);
+                  (yyval.nPtr)->setProperty (".val", v);
+                  (yyval.nPtr)->setProperty (".type", (int)ElemType::List);
+                  (yyval.nPtr)->getProperty (".val").setTag (SXTAG_YACC((yylsp[-2]),(yylsp[-1])));
                }
-#line 1624 "SxJSONParser.tab.cpp" /* yacc.c:1646  */
+#line 1622 "SxJSONParser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 13:
-#line 190 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:1646  */
+#line 153 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:1646  */
+    {
+                  SX_DBG_YACC ("array#2");
+                  (yyval.nPtr) = (yyvsp[-3].nPtr);
+                  (yyval.nPtr)->setProperty (".key", "");
+                  SxVariant v;
+                  v.setType ((int)SxVariantType::List);
+                  (yyval.nPtr)->setProperty (".val", v);
+                  (yyval.nPtr)->setProperty (".type", (int)ElemType::List);
+                  (yyval.nPtr)->getProperty (".val").setTag (SXTAG_YACC((yylsp[-2]),(yylsp[-1])));
+                  (yyval.nPtr)->setProperty (".docTxt", *(yyvsp[-4].strPtr));
+                  (yyval.nPtr)->getProperty (".docTxt").setTag (SXTAG_YACC((yylsp[-5]), (yylsp[-4])));
+                  delete (yyvsp[-4].strPtr);
+               }
+#line 1640 "SxJSONParser.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 14:
+#line 166 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:1646  */
+    {
+                  SX_DBG_YACC ("array#3");
+                  (yyval.nPtr) = (yyvsp[-4].nPtr);
+                  (yyval.nPtr)->setProperty (".key", "");
+                  SxVariant v;
+                  v.setType ((int)SxVariantType::List);
+                  (yyval.nPtr)->setProperty (".val", v);
+                  (yyval.nPtr)->setProperty (".type", (int)ElemType::List);
+                  (yyval.nPtr)->getProperty (".val").setTag (SXTAG_YACC((yylsp[-3]),(yylsp[-1])));
+               }
+#line 1655 "SxJSONParser.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 15:
+#line 176 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:1646  */
+    {
+                  SX_DBG_YACC ("array#4");
+                  (yyval.nPtr) = (yyvsp[-4].nPtr);
+                  (yyval.nPtr)->setProperty (".key", "");
+                  SxVariant v;
+                  v.setType ((int)SxVariantType::List);
+                  (yyval.nPtr)->setProperty (".val", v);
+                  (yyval.nPtr)->setProperty (".type", (int)ElemType::List);
+                  (yyval.nPtr)->getProperty (".val").setTag (SXTAG_YACC((yylsp[-3]),(yylsp[-1])));
+                  (yyval.nPtr)->setProperty (".docTxt", *(yyvsp[-5].strPtr));
+                  (yyval.nPtr)->getProperty (".docTxt").setTag (SXTAG_YACC((yylsp[-6]), (yylsp[-5])));
+                  delete (yyvsp[-5].strPtr);
+               }
+#line 1673 "SxJSONParser.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 16:
+#line 191 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:1646  */
+    {
+                  SX_DBG_YACC ("elements#1: " << (yyvsp[0].nPtr));
+                  (yyval.nPtr) = parserPtr->peek ();
+                  ast->addEdge ((yyval.nPtr), (yyvsp[0].nPtr));
+               }
+#line 1683 "SxJSONParser.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 17:
+#line 196 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:1646  */
+    {
+                  SX_DBG_YACC ("elements#2: " << (yyvsp[-2].nPtr) << "-" << (yyvsp[0].nPtr));
+                  (yyval.nPtr) = parserPtr->peek ();
+                  ast->addEdge ((yyval.nPtr), (yyvsp[0].nPtr));
+               }
+#line 1693 "SxJSONParser.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 18:
+#line 203 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:1646  */
     {
                     SX_DBG_YACC ("element#1");
                     (yyval.nPtr) = (yyvsp[0].nPtr);
                  }
-#line 1633 "SxJSONParser.tab.cpp" /* yacc.c:1646  */
+#line 1702 "SxJSONParser.tab.cpp" /* yacc.c:1646  */
     break;
 
-  case 14:
-#line 196 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:1646  */
+  case 19:
+#line 209 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:1646  */
     {
                     SX_DBG_YACC ("value#1");
                     (yyval.nPtr) = (yyvsp[0].nPtr);
                  }
-#line 1642 "SxJSONParser.tab.cpp" /* yacc.c:1646  */
+#line 1711 "SxJSONParser.tab.cpp" /* yacc.c:1646  */
     break;
 
-  case 15:
-#line 200 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:1646  */
+  case 20:
+#line 213 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:1646  */
     {
                     SX_DBG_YACC ("value#2");
                     (yyval.nPtr) = (yyvsp[0].nPtr);
                  }
-#line 1651 "SxJSONParser.tab.cpp" /* yacc.c:1646  */
-    break;
-
-  case 16:
-#line 204 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:1646  */
-    {
-                    SX_DBG_YACC ("value#3");
-                    (yyval.nPtr) = ast->addNode (SxVariantType::String);
-                    (yyval.nPtr)->setProperty ("__sx_Value", *(yyvsp[0].strPtr));
-                    (yyval.nPtr)->getProperty ("__sx_Value").setTag (SXTAG_YACC((yylsp[0])));
-                    delete (yyvsp[0].strPtr);
-                 }
-#line 1663 "SxJSONParser.tab.cpp" /* yacc.c:1646  */
-    break;
-
-  case 17:
-#line 211 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:1646  */
-    {
-                    SX_DBG_YACC ("value#4");
-                    (yyval.nPtr) = ast->addNode (SxVariantType::Int);
-                    (yyval.nPtr)->setProperty ("__sx_Value", (yyvsp[0].intVal));
-                    (yyval.nPtr)->getProperty ("__sx_Value").setTag (SXTAG_YACC((yylsp[0])));
-                 }
-#line 1674 "SxJSONParser.tab.cpp" /* yacc.c:1646  */
-    break;
-
-  case 18:
-#line 217 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:1646  */
-    {
-                    SX_DBG_YACC ("value#5");
-                    (yyval.nPtr) = ast->addNode (SxVariantType::Double);
-                    (yyval.nPtr)->setProperty ("__sx_Value", (yyvsp[0].floatVal));
-                    (yyval.nPtr)->getProperty ("__sx_Value").setTag (SXTAG_YACC((yylsp[0])));
-                 }
-#line 1685 "SxJSONParser.tab.cpp" /* yacc.c:1646  */
-    break;
-
-  case 19:
-#line 223 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:1646  */
-    {
-                    SX_DBG_YACC ("value#6");
-                    (yyval.nPtr) = ast->addNode (SxVariantType::Bool);
-                    (yyval.nPtr)->setProperty ("__sx_Value", (yyvsp[0].boolVal));
-                    (yyval.nPtr)->getProperty ("__sx_Value").setTag (SXTAG_YACC((yylsp[0])));
-                 }
-#line 1696 "SxJSONParser.tab.cpp" /* yacc.c:1646  */
-    break;
-
-  case 20:
-#line 229 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:1646  */
-    {
-                    SX_DBG_YACC ("value#6");
-                    (yyval.nPtr) = ast->addNode (SxVariantType::String);
-                    (yyval.nPtr)->setProperty ("__sx_Value", SxString (""));
-                    (yyval.nPtr)->getProperty ("__sx_Value").setTag (SXTAG_YACC((yylsp[0])));
-                 }
-#line 1707 "SxJSONParser.tab.cpp" /* yacc.c:1646  */
+#line 1720 "SxJSONParser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 21:
-#line 237 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:1646  */
+#line 217 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:1646  */
     {
-                    (yyval.nPtr) = ast->push (SxVariantType::Group);
-                    (yyval.nPtr)->setProperty ("__sx_Key", "undefined");
-                    SX_DBG_MSG ("push: " << (yyval.nPtr));
+                    SX_DBG_YACC ("value#3");
+                    (yyval.nPtr) = ast->addNode (ElemType::String);
+                    (yyval.nPtr)->setProperty (".key", "");
+                    (yyval.nPtr)->setProperty (".val", *(yyvsp[0].strPtr));
+                    (yyval.nPtr)->getProperty (".val").setTag (SXTAG_YACC((yylsp[0])));
+                    delete (yyvsp[0].strPtr);
                  }
-#line 1717 "SxJSONParser.tab.cpp" /* yacc.c:1646  */
+#line 1733 "SxJSONParser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 22:
-#line 244 "/home/freysoldt/devel/sphinx/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:1646  */
+#line 225 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:1646  */
+    {
+                    SX_DBG_YACC ("value#4");
+                    (yyval.nPtr) = ast->addNode (ElemType::Int);
+                    (yyval.nPtr)->setProperty (".key", "");
+                    (yyval.nPtr)->setProperty (".val", (yyvsp[0].intVal));
+                    (yyval.nPtr)->getProperty (".val").setTag (SXTAG_YACC((yylsp[0])));
+                 }
+#line 1745 "SxJSONParser.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 23:
+#line 232 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:1646  */
+    {
+                    SX_DBG_YACC ("value#5");
+                    (yyval.nPtr) = ast->addNode (ElemType::Double);
+                    (yyval.nPtr)->setProperty (".key", "");
+                    (yyval.nPtr)->setProperty (".val", (yyvsp[0].realVal));
+                    (yyval.nPtr)->getProperty (".val").setTag (SXTAG_YACC((yylsp[0])));
+                 }
+#line 1757 "SxJSONParser.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 24:
+#line 239 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:1646  */
+    {
+                    SX_DBG_YACC ("value#6");
+                    (yyval.nPtr) = ast->addNode (ElemType::Bool);
+                    (yyval.nPtr)->setProperty (".key", "");
+                    (yyval.nPtr)->setProperty (".val", (yyvsp[0].boolVal));
+                    (yyval.nPtr)->getProperty (".val").setTag (SXTAG_YACC((yylsp[0])));
+                 }
+#line 1769 "SxJSONParser.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 25:
+#line 246 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:1646  */
+    {
+                    SX_DBG_YACC ("value#7");
+                    (yyval.nPtr) = ast->addNode (ElemType::String);
+                    (yyval.nPtr)->setProperty (".key", "");
+                    (yyval.nPtr)->setProperty (".val", SxString (""));
+                    (yyval.nPtr)->getProperty (".val").setTag (SXTAG_YACC((yylsp[0])));
+                 }
+#line 1781 "SxJSONParser.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 26:
+#line 255 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:1646  */
+    {
+                    (yyval.nPtr) = ast->push (ElemType::Group);
+                    SX_DBG_MSG ("push: " << (yyval.nPtr));
+                 }
+#line 1790 "SxJSONParser.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 27:
+#line 261 "/home/christoph/devel/sphinx-2.7/sxaccelerate/src/json/SxJSONParser.ypp" /* yacc.c:1646  */
     {
                     SX_DBG_MSG ("pop");
                     (yyval.nPtr) = parserPtr->pop ();
                  }
-#line 1726 "SxJSONParser.tab.cpp" /* yacc.c:1646  */
+#line 1799 "SxJSONParser.tab.cpp" /* yacc.c:1646  */
     break;
 
 
-#line 1730 "SxJSONParser.tab.cpp" /* yacc.c:1646  */
+#line 1803 "SxJSONParser.tab.cpp" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires

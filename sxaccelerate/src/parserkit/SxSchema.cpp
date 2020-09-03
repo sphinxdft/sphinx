@@ -1,8 +1,19 @@
 #include <SxSchema.h>
+#include <SxRegex.h>
 
-SxSchema::SxSchema () { }
+SxSchema::SxSchema ()
+   : schemaG (),
+     dataG (),
+     topLevelDefs (false),
+     allowUndeclared (false)
+{
+   // empty
+}
 
-SxSchema::~SxSchema () { }
+SxSchema::~SxSchema ()
+{
+   // empty
+}
 
 SxSchema::SxSchema (const SxPtr<SxGraph<SxGProps> > &schemaG_)
 {
@@ -12,13 +23,24 @@ SxSchema::SxSchema (const SxPtr<SxGraph<SxGProps> > &schemaG_)
    simplifySchemaAst ();
 }
 
-ssize_t SxSchema::getInt (const SxGraph<SxGProps>::Iterator &sIt,
-                          const SxString &key,
-                          const ssize_t &default_)
+bool SxSchema::getBool (const SxGraph<SxGProps>::Iterator &sIt,
+                        const SxString &key,
+                        bool default_)
 {
-   auto it = get (sIt, "__sx_Key", key);
+   auto it = get (sIt, ".key", key);
    if (it.isValid ())
-      return it->getProperty ("__sx_Value").getInt ();
+      return it->getProperty (".val").toBool ();
+   else
+      return default_;
+}
+
+int64_t SxSchema::getInt (const SxGraph<SxGProps>::Iterator &sIt,
+                          const SxString &key,
+                          const int64_t &default_)
+{
+   auto it = get (sIt, ".key", key);
+   if (it.isValid ())
+      return it->getProperty (".val").toInt ();
    else
       return default_;
 }
@@ -27,9 +49,9 @@ double SxSchema::getDouble (const SxGraph<SxGProps>::Iterator &sIt,
                             const SxString &key,
                             const double &default_)
 {
-   auto it = get (sIt, "__sx_Key", key);
+   auto it = get (sIt, ".key", key);
    if (it.isValid ())
-      return it->getProperty ("__sx_Value").getDouble ();
+      return it->getProperty (".val").toDouble ();
    else
       return default_;
 }
@@ -38,9 +60,9 @@ SxString SxSchema::getString (const SxGraph<SxGProps>::Iterator &sIt,
                               const SxString &key,
                               const SxString &default_)
 {
-   auto it = get (sIt, "__sx_Key", key);
+   auto it = get (sIt, ".key", key);
    if (it.isValid ())
-      return it->getProperty ("__sx_Value").getString ();
+      return it->getProperty (".val").toString ();
    else
       return default_;
 }
@@ -49,565 +71,910 @@ void SxSchema::validationError (const SxString &msg,
                                 const SxString &sTag,
                                 const SxString &dTag)
 {
-   SX_THROW (dTag+": "+msg+" declared at "+sTag);
+   SxString errMsg = "";
+   if (dTag != "")
+      errMsg += dTag + ": ";
+   errMsg += msg;
+   if (sTag != "")
+      errMsg += ", declared at " + sTag;
+   SX_THROW ("SchemaValidation", "ValidationError",
+             errMsg);
 }
-
 
 bool SxSchema::validateArray (const SxGraph<SxGProps>::Iterator &sIt,
                               const SxGraph<SxGProps>::Iterator &dIt)
 {
-   auto itemTypeIt = get(sIt, "__sx_Key", "itemsType");
-   SX_CHECK (itemTypeIt.isValid ());
+   SX_CHECK (sIt.isValid ());
 
-   Type itype = (Type)itemTypeIt->getProperty ("type").getInt ();
-   ssize_t nItemsFound = 0;
+   int64_t n        = getInt (sIt, "nItems", max<int64_t>());
+   int64_t maxItems = getInt (sIt, "maxItems", max<int64_t>());
+   int64_t minItems = getInt (sIt, "minItems", min<int64_t>());
 
-   if (itype == Type::Group) {
-      for (ssize_t l = 0; l < dIt.getSizeOut (); ++l) {
-         auto elemIt = dIt.out (l);
-         if (elemIt->getProperty ("__sx_Value").getType () != itype) {
-            validationError ("type mismatch "
-                             + elemIt->getProperty ("__sx_Value").getTypeName ()
-                             + " != " + SxVariant::getTypeStr(itype),
-                             itemTypeIt->getProperty("__sx_Value").getTag (),
-                             elemIt->getProperty ("__sx_Value").getTag ());
-         }
-         if (validateObj (itemTypeIt, elemIt))
-            nItemsFound++;
-      }
+   bool isOptional = getBool (sIt, "optional", false);
 
-   } else if (itype == Type::List) {
-      auto subArrayIt = get(sIt, "__sx_Key", "subarray");
-      for (ssize_t l = 0; l < dIt.getSizeOut (); ++l) {
-         auto elemIt = dIt.out (l);
-         if (elemIt->getProperty ("__sx_Value").getType () != itype) {
-            validationError ("type mismatch "
-                             + elemIt->getProperty ("__sx_Value").getTypeName ()
-                             + " != " + SxVariant::getTypeStr(itype),
-                             itemTypeIt->getProperty ("__sx_Value").getTag (),
-                             elemIt->getProperty ("__sx_Value").getTag ());
-         }
-         if (validateArray (subArrayIt, elemIt))
-            nItemsFound++;
-      }
+   int64_t nItemsFound = dIt.getSizeOut ();
 
-   } else if (itype == Type::Int) {
-      for (auto elemIt = dIt->getProperty ("__sx_Value").begin ();
-           elemIt.isValid (); ++elemIt) {
+   if (nItemsFound == 0 && isOptional)  return true;
 
-         if (elemIt->getType () != itype) {
-            validationError ("type mismatch "
-                             + elemIt->getTypeName ()
-                             + " != " + SxVariant::getTypeStr(itype),
-                             itemTypeIt->getProperty ("__sx_Value").getTag (),
-                             elemIt->getTag ());
-         }
-
-         ssize_t val = elemIt->getInt ();
-
-         if (!itemTypeIt->getProperty ("__sx_Value").matchLimits (val)) {
-            ssize_t minVal = 0;
-            ssize_t maxVal = 0;
-            itemTypeIt->getProperty ("__sx_Value").getLimits (&minVal, &maxVal);
-            validationError (SxString("value of type 'int' is out of range (")
-                             + minVal + ", "
-                             + maxVal + ")",
-                             itemTypeIt->getProperty ("__sx_Value").getTag (),
-                             elemIt->getTag ());
-         }
-         nItemsFound++;
-      }
-
-   } else if (itype == Type::Double) {
-      for (auto elemIt = dIt->getProperty ("__sx_Value").begin ();
-           elemIt.isValid (); ++elemIt) {
-
-         if (elemIt->getType () != itype) {
-            validationError ("type mismatch "
-                             + elemIt->getTypeName ()
-                             + " != " + SxVariant::getTypeStr(itype),
-                             itemTypeIt->getProperty ("__sx_Value").getTag (),
-                             elemIt->getTag ());
-         }
-         double val = elemIt->getDouble ();
-
-         if (!itemTypeIt->getProperty ("__sx_Value").matchLimits (val)) {
-            double minVal = 0;
-            double maxVal = 0;
-            itemTypeIt->getProperty ("__sx_Value").getLimits (&minVal, &maxVal);
-            validationError (SxString ("value of type 'float' is out of range (")
-                             + minVal + ", "
-                             + maxVal + ")",
-                             itemTypeIt->getProperty ("__sx_Value").getTag (),
-                             elemIt->getTag ());
-         }
-         nItemsFound++;
-      }
-
-   } else if (itype == Type::Bool) {
-      for (auto elemIt = dIt->getProperty ("__sx_Value").begin ();
-           elemIt.isValid (); ++elemIt) {
-
-         if (elemIt->getType () != itype) {
-            validationError ("type mismatch "
-                             + elemIt->getTypeName ()
-                             + " != " + SxVariant::getTypeStr(itype),
-                             itemTypeIt->getProperty ("__sx_Value").getTag (),
-                             elemIt->getTag ());
-         }
-
-         nItemsFound++;
-      }
-
-   } else if (itype == Type::String) {
-
-      for (auto elemIt = dIt->getProperty ("__sx_Value").begin ();
-         elemIt.isValid (); ++elemIt) {
-
-         if (elemIt->getType () != itype) {
-            validationError ("type mismatch "
-                             + elemIt->getTypeName ()
-                             + " != " + SxVariant::getTypeStr(itype),
-                             itemTypeIt->getProperty ("__sx_Value").getTag (),
-                             elemIt->getTag ());
-         }
-         SxString val = elemIt->getString ();
-
-         if (!itemTypeIt->getProperty ("__sx_Value").matchLimits (val)) {
-            ssize_t minLen = 0;
-            ssize_t maxLen = 0;
-            itemTypeIt->getProperty ("__sx_Value").getLimits (&minLen, &maxLen);
-            validationError (SxString("string length is out of range (")
-                             + minLen + ", "
-                             + maxLen + ")",
-                             itemTypeIt->getProperty ("__sx_Value").getTag (),
-                             elemIt->getTag ());
-         }
-         nItemsFound++;
-      }
-
+   if (n != max<int64_t>() && nItemsFound > n)  {
+      validationError (  SxString("too many elements in list ")
+                       + ", expected " + n
+                       + " got " + nItemsFound,
+                       sIt->getProperty (".val").getTag (),
+                       dIt->getProperty (".val").getTag ());
+   }
+   if (maxItems != max<int64_t>() && nItemsFound > maxItems)  {
+      validationError (  SxString("too many elements in list")
+                       + ", expected less or equal to "
+                       + maxItems + " got " + nItemsFound,
+                       sIt->getProperty (".val").getTag (),
+                       dIt->getProperty (".val").getTag ());
    }
 
-   SxString opt = sIt->hasProperty ("optional")?
-                  sIt->getProperty ("optional").getString () :
-                  "";
 
-   if (nItemsFound == 0 && (opt == "" || opt == "false")) {
-      validationError ("array is empty",
-                       sIt->getProperty ("__sx_Value").getTag (),
-                       dIt->getProperty ("__sx_Value").getTag ());
+   if (n != max<int64_t>() && nItemsFound < n)  {
+      validationError (  SxString("too few elements in list, expected ")
+                       + n + " got " + nItemsFound,
+                       sIt->getProperty (".val").getTag (),
+                       dIt->getProperty (".val").getTag ());
    }
 
-   ssize_t n        = sIt->hasProperty ("nItems")?
-   sIt->getProperty ("nItems").getInt () :
-   max<ssize_t>();
-   ssize_t maxItems = sIt->hasProperty ("maxItems")?
-   sIt->getProperty ("maxItems").getInt () :
-   max<ssize_t>();
-   ssize_t minItems = sIt->hasProperty ("minItems")?
-   sIt->getProperty ("minItems").getInt () :
-   min<ssize_t>();
-   if (n != max<ssize_t>()) {
-      if (nItemsFound > n) {
-         validationError ("too many array items",
-                          sIt->getProperty ("__sx_Value").getTag (),
-                          dIt->getProperty ("__sx_Value").getTag ());
+   if (minItems != min<int64_t>() && nItemsFound < minItems)  {
+      validationError (  SxString("too few elements in list, ")
+                       + "expected greater or equal to "
+                       + minItems + " got " + nItemsFound,
+                       sIt->getProperty (".val").getTag (),
+                       dIt->getProperty (".val").getTag ());
+   }
+
+   auto itemsIt = get (sIt, ".key", "items");
+
+   Type type = (Type)getInt (itemsIt, "type", (int)Type::Undefined);
+
+   switch (type)  {
+
+      case Type::Group:  {
+         for (ssize_t i = 0; i < dIt.getSizeOut (); ++i)  {
+            auto elemIt = dIt.out (i);
+
+            if (elemIt->getProperty (".type").getInt () != Type::Group)  {
+               Type t = (Type)elemIt->getProperty (".type").getInt ();
+               SxString typeStr = SxParserAst::getTypeStr (t);
+               validationError (  SxString("type mismatch for list element")
+                                + ", expected 'group', got '"
+                                + typeStr + "'",
+                                itemsIt->getProperty (".val").getTag (),
+                                elemIt->getProperty (".val").getTag ());
+            }
+
+            validateObj (itemsIt, &elemIt);
+         }
       }
-      if (nItemsFound < n) {
-         validationError ("too few array items",
-                          sIt->getProperty ("__sx_Value").getTag (),
-                          dIt->getProperty ("__sx_Value").getTag ());
+      break;
+      case Type::List:  {
+         for (ssize_t i = 0; i < dIt.getSizeOut (); ++i)  {
+            auto elemIt = dIt.out (i);
+
+            if (elemIt->getProperty (".type").getInt () != Type::List)  {
+               Type t = (Type)elemIt->getProperty (".type").getInt ();
+               SxString typeStr = SxParserAst::getTypeStr (t);
+               validationError (  SxString("type mismatch for list element")
+                                + ", expected 'list', got '"
+                                + typeStr + "'",
+                                itemsIt->getProperty (".val").getTag (),
+                                elemIt->getProperty (".val").getTag ());
+            }
+
+            validateArray (itemsIt, elemIt);
+         }
+      }
+      break;
+      case Type::Int:  {
+         for (ssize_t i = 0; i < dIt.getSizeOut (); ++i)  {
+            auto elemIt = dIt.out (i);
+            const SxVariant &val = elemIt->getProperty (".val");
+
+            if (   val.getType () != SxVariantType::Int
+                && val.getType () != SxVariantType::Double)  {
+               validationError (  SxString("type mismatch for list element")
+                                + ", expected 'int', got '"
+                                + val.getTypeName () + "'",
+                                itemsIt->getProperty (".val").getTag (),
+                                val.getTag ());
+            }
+
+            if (!itemsIt->getProperty (".val").matchLimits (val))  {
+               int64_t minVal = 0;
+               int64_t maxVal = 0;
+               itemsIt->getProperty (".val").getLimits (&minVal, &maxVal);
+               validationError (  SxString("int value ")
+                                + val.toInt () + " is out of range ["
+                                + minVal + ", "
+                                + maxVal + "]",
+                                itemsIt->getProperty (".val").getTag (),
+                                val.getTag ());
+            }
+
+         }
+      }
+      break;
+      case Type::Double:  {
+         for (ssize_t i = 0; i < dIt.getSizeOut (); ++i)  {
+            auto elemIt = dIt.out (i);
+            const SxVariant &val = elemIt->getProperty (".val");
+
+            if (   val.getType () != SxVariantType::Int
+                && val.getType () != SxVariantType::Double)
+            {
+               validationError (  SxString("type mismatch for list element")
+                                + ", expected 'real', got '"
+                                + val.getTypeName () + "'",
+                                itemsIt->getProperty (".val").getTag (),
+                                val.getTag ());
+            }
+
+            if (!itemsIt->getProperty (".val").matchLimits (val))  {
+               double minVal = 0;
+               double maxVal = 0;
+               itemsIt->getProperty (".val").getLimits (&minVal, &maxVal);
+               validationError (  SxString("real value ")
+                                + val.toDouble () + " is out of range ["
+                                + minVal + ", "
+                                + maxVal + "]",
+                                itemsIt->getProperty (".val").getTag (),
+                                val.getTag ());
+            }
+         }
+      }
+      break;
+      case Type::Bool:  {
+         for (ssize_t i = 0; i < dIt.getSizeOut (); ++i)  {
+            auto elemIt = dIt.out (i);
+            SxVariant &val = elemIt->getProperty (".val");
+
+            // --- correction for symboltable issue
+            if (val.getType () == SxVariantType::Int)  {
+               int64_t v = elemIt->getProperty (".val").toInt ();
+               if (v > 0)  elemIt->setProperty (".val", true);
+               else        elemIt->setProperty (".val", false);
+               elemIt->setProperty (".type", (int)Type::Bool);
+            }
+
+            if (val.getType () != SxVariantType::Bool)  {
+               validationError (  SxString("type mismatch for list element")
+                                + ", expected 'bool', got '"
+                                + val.getTypeName () + "'",
+                                itemsIt->getProperty (".val").getTag (),
+                                val.getTag ());
+            }
+
+         }
+      }
+      break;
+      case Type::String:  {
+         for (ssize_t i = 0; i < dIt.getSizeOut (); ++i)  {
+            auto elemIt = dIt.out (i);
+            const SxVariant &val = elemIt->getProperty (".val");
+
+            if (val.getType () != SxVariantType::String)
+            {
+               validationError (  SxString("type mismatch for list element")
+                                + ", expected 'string', got '"
+                                + val.getTypeName () + "'",
+                                itemsIt->getProperty (".val").getTag (),
+                                val.getTag ());
+            }
+
+            if (!itemsIt->getProperty (".val").matchLimits (val))  {
+               ssize_t minLen = 0;
+               ssize_t maxLen = 0;
+               itemsIt->getProperty (".val").getLimits (&minLen, &maxLen);
+               ssize_t strLen = val.toString ().getSize ();
+               if (strLen < minLen || strLen > maxLen)  {
+                  validationError (  SxString("string of size ")
+                                   + val.toString ().getSize ()
+                                   + " is out of range ["
+                                   + minLen + ", "
+                                   + maxLen + "]",
+                                   itemsIt->getProperty (".val").getTag (),
+                                   val.getTag ());
+               }  else  {
+                  SxString regexHint = getString (itemsIt, "regexHint", "");
+                  validationError (  SxString ("unexpected format for list element")
+                                   + ", expected '"
+                                   + regexHint + "'",
+                                   itemsIt->getProperty (".val").getTag (),
+                                   val.getTag ());
+               }
+            }
+         }
+      }
+      break;
+      case Type::Enum:  {
+         for (ssize_t i = 0; i < dIt.getSizeOut (); ++i)  {
+            auto elemIt = dIt.out (i);
+            if (   elemIt->getProperty (".val").getType ()
+                != SxVariantType::String)
+            {
+               validationError (  SxString("type mismatch for list element")
+                                + ", expected 'string(enum)', got '"
+                                + elemIt->getProperty (".val").getTypeName ()
+                                + "'",
+                                itemsIt->getProperty (".val").getTag (),
+                                elemIt->getProperty (".val").getTag ());
+            }
+
+            SxString val = elemIt->getProperty (".val").getString ();
+
+            SxList<SxString> options = getString (itemsIt, "val", "").tokenize(",");
+            bool found = false;
+            for (auto oIt = options.begin (); oIt.isValid (); ++oIt)  {
+               if (*oIt == val)  {
+                  found = true;
+                  break;
+               }
+            }
+
+            if (found == false)  {
+               validationError (  SxString ("value for list element")
+                                + " not part of Enum values",
+                                itemsIt->getProperty (".val").getTag (),
+                                elemIt->getProperty (".val").getTag ());
+            }
+         }
+      }
+      break;
+      case Type::Vector:  {
+         for (ssize_t i = 0; i < dIt.getSizeOut (); ++i)  {
+            auto elemIt = dIt.out (i);
+            if (elemIt->getProperty (".type").getInt () != Type::List)  {
+               Type t = (Type)elemIt->getProperty (".type").getInt ();
+               SxString typeStr = SxParserAst::getTypeStr (t);
+               validationError (  SxString("type mismatch for list element")
+                                + ", expected 'list(vector)', got '"
+                                + typeStr + "'",
+                                itemsIt->getProperty (".val").getTag (),
+                                elemIt->getProperty (".val").getTag ());
+            }
+
+            validateVector (itemsIt, elemIt);
+         }
+      }
+      break;
+      case Type::Matrix:  {
+         for (ssize_t i = 0; i < dIt.getSizeOut (); ++i)  {
+            auto elemIt = dIt.out (i);
+            if (elemIt->getProperty (".type").getInt () != Type::List)  {
+               Type t = (Type)elemIt->getProperty (".type").getInt ();
+               SxString typeStr = SxParserAst::getTypeStr (t);
+               validationError (  SxString("type mismatch for list element")
+                                + ", expected 'list(matrix)', got '"
+                                + typeStr + "'",
+                                itemsIt->getProperty (".val").getTag (),
+                                elemIt->getProperty (".val").getTag ());
+            }
+
+            validateMatrix (itemsIt, elemIt);
+         }
+      }
+      break;
+      default:  {
+         validationError ("list element type is not recognized",
+                          "",
+                          itemsIt->getProperty (".val").getTag ());
       }
    }
-   if (nItemsFound > maxItems) {
-      validationError ("too many array items",
-                       sIt->getProperty ("__sx_Value").getTag (),
-                       dIt->getProperty ("__sx_Value").getTag ());
+
+   return true;
+}
+
+bool SxSchema::validateVector (const SxGraph<SxGProps>::Iterator &sIt,
+                               const SxGraph<SxGProps>::Iterator &dIt)
+{
+   SX_CHECK (sIt.isValid ());
+
+   ssize_t nElems = dIt.getSizeOut ();
+
+   int64_t dim = getInt (sIt, "dim", max<int64_t>());
+
+   if (dim != max<int64_t>() && dim != static_cast<int64_t>(nElems))  {
+      validationError (  SxString("dimensions mismatch for vector, ")
+                       + "must be equal to " + dim,
+                       sIt->getProperty (".val").getTag (),
+                       dIt->getProperty (".val").getTag ());
    }
-   if (nItemsFound < minItems) {
-      validationError ("too few array items",
-                       sIt->getProperty ("__sx_Value").getTag (),
-                       dIt->getProperty ("__sx_Value").getTag ());
+
+   int64_t minDim = getInt (sIt, "minDim", min<int64_t>());
+
+   if (minDim != min<int64_t>() && static_cast<int64_t>(nElems) < minDim)  {
+      validationError (  SxString("dimensions mismatch for vector, ")
+                       + "must be greater or equal to "
+                       + minDim + ", got " + nElems,
+                       sIt->getProperty (".val").getTag (),
+                       dIt->getProperty (".val").getTag ());
+   }
+
+   int64_t maxDim = getInt (sIt, "maxDim", max<int64_t>());
+
+   if (maxDim != max<int64_t>() && static_cast<int64_t>(nElems) > maxDim)  {
+      validationError (  SxString("dimensions mismatch for vector, ")
+                       + "must be less or equal to "
+                       + maxDim + ", got " + nElems,
+                       sIt->getProperty (".val").getTag (),
+                       dIt->getProperty (".val").getTag ());
+   }
+
+   return true;
+}
+
+bool SxSchema::validateMatrix (const SxGraph<SxGProps>::Iterator &sIt,
+                               const SxGraph<SxGProps>::Iterator &dIt)
+{
+   SX_CHECK (sIt.isValid ());
+
+
+   int64_t dimX = max<int64_t>(), dimY = max<int64_t>();
+
+   auto dimsIt = get (sIt, ".key", "dims");
+   SX_CHECK (dimsIt.isValid ());
+   SX_CHECK (dimsIt->getProperty (".type").getInt () == Type::List);
+
+   if (   dimsIt.isValid ()
+       && dimsIt->getProperty (".type").getInt () == Type::List)  {
+
+      if (dimsIt.getSizeOut () > 0)
+         dimX = dimsIt.out (0)->getProperty (".val").toInt ();
+
+      if (dimsIt.getSizeOut () > 1)
+         dimY = dimsIt.out (1)->getProperty (".val").toInt ();
+
+      SX_CHECK (dimX != 0 && dimY != 0);
+
+      ssize_t nElems = dIt.getSizeOut ();
+
+      if (dimX != max<int64_t>() && dimX != static_cast<int64_t>(nElems))  {
+         validationError (  SxString("number of rows ")
+                          + "of matrix "
+                          + "must be equal to " + dimX
+                          + ", got " + nElems,
+                          sIt->getProperty (".val").getTag (),
+                          dIt->getProperty (".val").getTag ());
+      }
+
+      nElems = 0;
+
+      for (ssize_t i = 0; i < dIt.getSizeOut (); ++i)  {
+         auto eIt = dIt.out (i);
+         SX_CHECK (eIt->getProperty (".type").toInt () == Type::List);
+         nElems = eIt.getSizeOut ();
+         if (dimY != static_cast<int64_t>(nElems))  {
+            validationError (  SxString("number of columns ")
+                             + " of matrix "
+                             + "must be equal to " + dimY
+                             + ", got " + nElems,
+                             sIt->getProperty (".val").getTag (),
+                             eIt->getProperty (".val").getTag ());
+         }
+      }
    }
    return true;
 }
 
-
-
 bool SxSchema::validateObj (const SxGraph<SxGProps>::Iterator &sIt,
-                            const SxGraph<SxGProps>::Iterator &dIt)
+                            SxGraph<SxGProps>::Iterator *dIt)
 {
-   SxMap<ssize_t, SxList<ssize_t> > foundGroups;
+   SX_CHECK (dIt);
+   SX_CHECK (sIt.isValid ());
+
+   auto dataIt = *dIt;
+
+   // --- any unexpected items
+   if (!allowUndeclared)  {
+      for (ssize_t m = 0; m < dataIt.getSizeOut (); ++m)  {
+         bool found = false;
+         SxString key = dataIt.out (m)->getProperty (".key").getString ();
+         for (ssize_t n = 0; n < sIt.getSizeOut (); ++n)  {
+            SxString k = sIt.out (n)->getProperty (".key").getString ();
+            if (key == k)  {
+               found = true;
+               break;
+            }
+         }
+         if (!found)  {
+            validationError (  "undeclared key '"
+                             + key + "' in group '"
+                             + sIt->getProperty (".key").getString ()
+                             + "'",
+                             sIt->getProperty (".val").getTag (),
+                             dataIt.out (m)->getProperty (".key").getTag ());
+         }
+      }
+   }
+
    SxMap<SxString, ssize_t> nameToIdx;
-   for (ssize_t i = 0; i < sIt.getSizeOut (); ++i) {
+   SxArray<uint8_t> isFound;
+   isFound.resize (sIt.getSizeOut ());
+   if (isFound.getSize () > 0)  isFound.set (0);
+   for (ssize_t i = 0; i < sIt.getSizeOut (); ++i)  {
       auto chIt = sIt.out (i);
-      Type type = (Type)chIt->getProperty ("type").getInt ();
 
-      if (type == Type::Group) {
-         const SxVariant &key = chIt->getProperty ("__sx_Key");
-         nameToIdx (key.getString ()) = chIt.getIdx ();
-         foundGroups(chIt.getIdx ()); // insert empty matched list
+      if (chIt->getProperty (".type").getInt () != Type::Group)
+         continue;
 
-         for (ssize_t k = 0; k < dIt.getSizeOut (); ++k) {
-            auto dchIt = dIt.out (k);
-            if (dchIt->getProperty ("__sx_Key") == key) {
-               foundGroups(chIt.getIdx ()).append (dchIt.getIdx ());
+      Type type = (Type)getInt (chIt, "type", (int)Type::Undefined);
+
+      const SxString &key = chIt->getProperty (".key").getString ();
+
+      nameToIdx (key) = i;
+
+      switch (type)  {
+
+         case Type::Group:  {
+            ssize_t prevId = -1;
+            for (ssize_t k = 0; k < dataIt.getSizeOut (); ++k)  {
+               auto dchIt = dataIt.out (k);
+               if (dchIt->getProperty (".key").getString () == key)  {
+                  if (prevId != -1)  {
+                     validationError (  "duplicate key '"
+                                      + key
+                                      + "' previously defined at "
+                                      + dataIt.out (prevId)->getProperty (".key").getTag (),
+                                      chIt->getProperty (".val").getTag (),
+                                      dchIt->getProperty (".key").getTag ());
+                  }
+
+                  if (dchIt->getProperty (".type").getInt () != Type::Group)  {
+                     Type t = (Type)dchIt->getProperty (".type").getInt ();
+                     SxString typeStr = SxParserAst::getTypeStr (t);
+                     validationError (  "type mismatch for key '" + key
+                                      + "', expected 'group', got '"
+                                      + typeStr + "'",
+                                      chIt->getProperty (".val").getTag (),
+                                      dchIt->getProperty (".val").getTag ());
+                  }
+                  prevId = k;
+                  isFound(i) = 1;
+                  validateObj (chIt, &dchIt);
+               }
             }
          }
-      } else if (type == Type::List) {
-         const SxVariant &key = chIt->getProperty ("__sx_Key");
-         bool keyFound = false;
-         for (ssize_t k = 0; k < dIt.getSizeOut (); ++k) {
-            auto dchIt = dIt.out (k);
-            if (dchIt->getProperty ("__sx_Key") == key) {
-               keyFound = true;
-               validateArray (chIt, dchIt);
+         break;
+         case Type::List:  {
+            ssize_t prevId = -1;
+            for (ssize_t k = 0; k < dataIt.getSizeOut (); ++k)  {
+               auto dchIt = dataIt.out (k);
+               if (dchIt->getProperty (".key").getString () == key)  {
+                  if (prevId != -1)  {
+                     validationError (  "duplicate key '"
+                                      + key
+                                      + "' previously defined at "
+                                      + dataIt.out (prevId)->getProperty (".key").getTag (),
+                                      chIt->getProperty (".val").getTag (),
+                                      dchIt->getProperty (".key").getTag ());
+                  }
+
+                  if (dchIt->getProperty (".type").getInt () != Type::List)  {
+                     Type t = (Type)dchIt->getProperty (".type").getInt ();
+                     SxString typeStr = SxParserAst::getTypeStr (t);
+                     validationError (  "type mismatch for key '" + key
+                                      + "', expected 'list', got '"
+                                      + typeStr + "'",
+                                      chIt->getProperty (".val").getTag (),
+                                      dchIt->getProperty (".val").getTag ());
+                  }
+                  prevId = k;
+                  isFound(i) = 1;
+                  validateArray (chIt, dchIt);
+               }
+            }
+
+         }
+         break;
+         case Type::Vector:  {
+            ssize_t prevId = -1;
+            for (ssize_t k = 0; k < dataIt.getSizeOut (); ++k)  {
+               auto dchIt = dataIt.out (k);
+               if (dchIt->getProperty (".key").getString () == key)  {
+                  if (prevId != -1)  {
+                     validationError (  "duplicate key '"
+                                      + key
+                                      + "' previously defined at "
+                                      + dataIt.out (prevId)->getProperty (".key").getTag (),
+                                      chIt->getProperty (".val").getTag (),
+                                      dchIt->getProperty (".key").getTag ());
+                  }
+
+                  if (dchIt->getProperty (".type").getInt () != Type::List)  {
+                     Type t = (Type)dchIt->getProperty (".type").getInt ();
+                     SxString typeStr = SxParserAst::getTypeStr (t);
+                     validationError (  "type mismatch for key '" + key
+                                      + "', expected 'list(vector)', got '"
+                                      + typeStr + "'",
+                                      chIt->getProperty (".val").getTag (),
+                                      dchIt->getProperty (".val").getTag ());
+                  }
+                  prevId = k;
+                  isFound(i) = 1;
+                  validateVector (chIt, dchIt);
+               }
+            }
+
+         }
+         break;
+         case Type::Matrix:  {
+            ssize_t prevId = -1;
+            for (ssize_t k = 0; k < dataIt.getSizeOut (); ++k)  {
+               auto dchIt = dataIt.out (k);
+               if (dchIt->getProperty (".key").getString () == key)  {
+                  if (prevId != -1)  {
+                     validationError (  "duplicate key '"
+                                      + key
+                                      + "' previously defined at "
+                                      + dataIt.out (prevId)->getProperty (".key").getTag (),
+                                      chIt->getProperty (".val").getTag (),
+                                      dchIt->getProperty (".key").getTag ());
+                  }
+
+                  if (dchIt->getProperty (".type").getInt () != Type::List)  {
+                     Type t = (Type)dchIt->getProperty (".type").getInt ();
+                     SxString typeStr = SxParserAst::getTypeStr (t);
+                     validationError (  "type mismatch for key '" + key
+                                      + "', expected 'list(matrix)', got '"
+                                      + typeStr + "'",
+                                      chIt->getProperty (".val").getTag (),
+                                      dchIt->getProperty (".val").getTag ());
+                  }
+                  prevId = k;
+                  isFound(i) = 1;
+                  validateMatrix (chIt, dchIt);
+               }
+            }
+
+         }
+         break;
+         case Type::Enum:  {
+            ssize_t prevId = -1;
+            for (ssize_t k = 0; k < dataIt.getSizeOut (); ++k)  {
+               auto dchIt = dataIt.out (k);
+               if (dchIt->getProperty (".key").getString () == key)  {
+                  isFound(i) = 1;
+                  if (prevId != -1)  {
+                     validationError (  "duplicate key '"
+                                      + key
+                                      + "' previously defined at "
+                                      + dataIt.out (prevId)->getProperty (".key").getTag (),
+                                      chIt->getProperty (".val").getTag (),
+                                      dchIt->getProperty (".key").getTag ());
+                  }
+
+                  if (   dchIt->getProperty (".val").getType ()
+                      != SxVariantType::String)
+                  {
+                     validationError (  "type mismatch for key '" + key
+                                      + "', expected 'string(enum)', got '"
+                                      + dchIt->getProperty (".val").getTypeName ()
+                                      + "'",
+                                      chIt->getProperty (".val").getTag (),
+                                      dchIt->getProperty (".val").getTag ());
+                  }
+
+                  SxString val = dchIt->getProperty (".val").getString ();
+
+                  SxList<SxString> options = getString (chIt, "val", "").tokenize(",");
+                  bool found = false;
+                  for (auto oIt = options.begin (); oIt.isValid (); ++oIt)  {
+                     if (*oIt == val)  {
+                        found = true;
+                        break;
+                     }
+                  }
+
+                  if (found == false)  {
+                     validationError (  SxString ("value for key '" + key
+                                      + "' not part of Enum values"),
+                                      chIt->getProperty (".val").getTag (),
+                                      dchIt->getProperty (".val").getTag ());
+                  }
+                  prevId = k;
+               }
+            }
+
+         }
+         break;
+         case Type::Int:  {
+            ssize_t prevId = -1;
+            for (ssize_t k = 0; k < dataIt.getSizeOut (); ++k)  {
+               auto dchIt = dataIt.out (k);
+               if (dchIt->getProperty (".key").getString () == key)  {
+                  isFound(i) = 1;
+                  if (prevId != -1)  {
+                     validationError (  "duplicate key '"
+                                      + key
+                                      + "' previously defined at "
+                                      + dataIt.out (prevId)->getProperty (".key").getTag (),
+                                      chIt->getProperty (".val").getTag (),
+                                      dchIt->getProperty (".key").getTag ());
+                  }
+
+                  const SxVariant &val = dchIt->getProperty (".val");
+
+                  if (   val.getType () != SxVariantType::Int
+                      && val.getType () != SxVariantType::Double)  {
+                     validationError (  "type mismatch for key '" + key
+                                      + "', expected 'int', got '"
+                                      + val.getTypeName () + "'",
+                                      chIt->getProperty (".val").getTag (),
+                                      val.getTag ());
+                  }
+
+                  if (!chIt->getProperty (".val").matchLimits (val))  {
+                     int64_t minVal = 0;
+                     int64_t maxVal = 0;
+                     chIt->getProperty (".val").getLimits (&minVal, &maxVal);
+                     validationError (  SxString("int value ")
+                                      + val.toInt () + " is out of range ["
+                                      + minVal + ", "
+                                      + maxVal + "]",
+                                      chIt->getProperty (".val").getTag (),
+                                      val.getTag ());
+                  }
+                  prevId = k;
+               }
+            }
+
+         }
+         break;
+         case Type::Double:  {
+            ssize_t prevId = -1;
+            for (ssize_t k = 0; k < dataIt.getSizeOut (); ++k)  {
+               auto dchIt = dataIt.out (k);
+               if (dchIt->getProperty (".key").getString () == key)  {
+                  isFound(i) = 1;
+                  if (prevId != -1)  {
+                     validationError (  "duplicate key '"
+                                      + key
+                                      + "' previously defined at "
+                                      + dataIt.out (prevId)->getProperty (".key").getTag (),
+                                      chIt->getProperty (".val").getTag (),
+                                      dchIt->getProperty (".key").getTag ());
+                  }
+
+                  const SxVariant &val = dchIt->getProperty (".val");
+
+                  if (   val.getType () != SxVariantType::Int
+                      && val.getType () != SxVariantType::Double)
+                  {
+                     validationError (  "type mismatch for key '" + key
+                                      + "', expected 'real', got '"
+                                      + val.getTypeName () + "'",
+                                      chIt->getProperty (".val").getTag (),
+                                      val.getTag ());
+                  }
+
+                  if (!chIt->getProperty (".val").matchLimits (val))  {
+                     double minVal = 0;
+                     double maxVal = 0;
+                     chIt->getProperty (".val").getLimits (&minVal, &maxVal);
+                     validationError (  SxString("real value ")
+                                      + val.toDouble () + " is out of range ["
+                                      + minVal + ", "
+                                      + maxVal + "]",
+                                      chIt->getProperty (".val").getTag (),
+                                      val.getTag ());
+                  }
+                  prevId = k;
+               }
+            }
+
+         }
+         break;
+         case Type::Bool:  {
+            ssize_t prevId = -1;
+            for (ssize_t k = 0; k < dataIt.getSizeOut (); ++k)  {
+               auto dchIt = dataIt.out (k);
+               if (dchIt->getProperty (".key").getString () == key)  {
+                  isFound(i) = 1;
+                  if (prevId != -1)  {
+                     validationError (  "duplicate key '"
+                                      + key
+                                      + "' previously defined at "
+                                      + dataIt.out (prevId)->getProperty (".key").getTag (),
+                                      chIt->getProperty (".val").getTag (),
+                                      dchIt->getProperty (".key").getTag ());
+                  }
+
+                  SxVariant &val = dchIt->getProperty (".val");
+
+                  // --- correction for symboltable issue
+                  if (val.getType () == SxVariantType::Int)  {
+                     int64_t v = dchIt->getProperty (".val").toInt ();
+                     if (v > 0)  dchIt->setProperty (".val", true);
+                     else        dchIt->setProperty (".val", false);
+                     dchIt->setProperty (".type", (int)Type::Bool);
+                  }
+
+                  if (val.getType () != SxVariantType::Bool)  {
+                     validationError (  "type mismatch for key '" + key
+                                      + "', expected 'bool', got '"
+                                      + val.getTypeName () + "'",
+                                      chIt->getProperty (".val").getTag (),
+                                      val.getTag ());
+                  }
+                  prevId = k;
+               }
+            }
+
+         }
+         break;
+         case Type::String:  {
+            ssize_t prevId = -1;
+            for (ssize_t k = 0; k < dataIt.getSizeOut (); ++k)  {
+               auto dchIt = dataIt.out (k);
+               if (dchIt->getProperty (".key").getString () == key)  {
+                  isFound(i) = 1;
+                  if (prevId != -1)  {
+                     validationError (  "duplicate key '"
+                                      + key
+                                      + "' previously defined at "
+                                      + dataIt.out (prevId)->getProperty (".key").getTag (),
+                                      chIt->getProperty (".val").getTag (),
+                                      dchIt->getProperty (".key").getTag ());
+                  }
+
+                  const SxVariant &val = dchIt->getProperty (".val");
+
+                  if (val.getType () != SxVariantType::String)
+                  {
+                     validationError (  "type mismatch for key '" + key
+                                      + "', expected 'string', got '"
+                                      + val.getTypeName () + "'",
+                                      chIt->getProperty (".val").getTag (),
+                                      val.getTag ());
+                  }
+
+                  if (!chIt->getProperty (".val").matchLimits (val))  {
+                     ssize_t minLen = 0;
+                     ssize_t maxLen = 0;
+                     chIt->getProperty (".val").getLimits (&minLen, &maxLen);
+                     ssize_t strLen = val.toString ().getSize ();
+                     if (strLen < minLen || strLen > maxLen)  {
+                        validationError (  SxString("string of size ")
+                                         + val.toString ().getSize ()
+                                         + " is out of range ["
+                                         + minLen + ", "
+                                         + maxLen + "]",
+                                         chIt->getProperty (".val").getTag (),
+                                         val.getTag ());
+                     }  else  {
+                        SxString regexHint = getString (chIt, "regexHint", "");
+                        validationError (  SxString ("unexpected format for key '")
+                                         + key + "', expected '"
+                                         + regexHint + "'",
+                                         chIt->getProperty (".val").getTag (),
+                                         val.getTag ());
+                     }
+                  }
+                  prevId = k;
+               }
+            }
+
+         }
+         break;
+         default:  {
+            validationError ("type is not recognized",
+                             "",
+                             chIt->getProperty (".val").getTag ());
+         }
+
+      }
+
+      bool opt = getBool (chIt, "optional", false);
+
+      // --- if not found and is optional, set to 2
+      if (isFound(i) == 0 && opt == true)  {
+         isFound(i) = 2;
+      }
+
+      // ----------------------------------------------------
+
+      if (isFound(i) == 1)  {
+         // --- check for needed items
+         SxString needs = getString (chIt, "needs", "");
+
+         if (needs != "")  {
+            SxList<SxString> needList = needs.tokenize (",");
+            bool found = true;
+            for (auto nIt = needList.begin (); nIt.isValid (); ++nIt)
+            {
+               if (!(get(dataIt,".key", *nIt).isValid()))  {
+                  found = false;
+                  break;
+               }
+            }
+
+            if (!found)  {
+               validationError (  "Presence of item(s) '"
+                                + needs
+                                + "' is required by '"
+                                + chIt->getProperty (".key").getString ()
+                                + "'",
+                                chIt->getProperty (".val").getTag (),
+                                dataIt->getProperty (".val").getTag ()
+                               );
             }
          }
-         SxString opt = chIt->hasProperty ("optional")?
-            chIt->getProperty ("optional").getString () :
-            "";
-         if (!keyFound && opt != "true") {
-            validationError ("key '"
-                             + key.getString ()
-                             + "' of type 'array' not found in '"
-                             + dIt->getProperty ("__sx_Key").getString ()
-                             + "'", chIt->getProperty ("__sx_Value").getTag (),
-                             dIt->getProperty ("__sx_Value").getTag ());
+
+         // --- check for excluded items
+         SxString nots = getString (chIt, "not", "");
+
+         if (nots != "")  {
+            SxList<SxString> notList = nots.tokenize (",");
+            bool found = false;
+            for (auto nIt = notList.begin (); nIt.isValid (); ++nIt)
+            {
+               if ((get(dataIt,".key", *nIt).isValid()))  {
+                  found = true;
+                  break;
+               }
+            }
+
+            if (found)  {
+               validationError (  "Presence of item(s) '"
+                                + nots
+                                + "' is excluded by '"
+                                + chIt->getProperty (".key").getString ()
+                                + "'",
+                                chIt->getProperty (".val").getTag (),
+                                dataIt->getProperty (".val").getTag ()
+                               );
+            }
          }
-
-      } else if (type == Type::Int) {
-         SxString k = chIt->getProperty ("__sx_Key").getString ();
-
-         if (!dIt->hasProperty (k)) {
-            validationError ("key '"
-                             + k
-                             + "' of type 'int' not found in '"
-                             + dIt->getProperty ("__sx_Key").getString ()
-                             + "'", chIt->getProperty ("__sx_Value").getTag (),
-                             dIt->getProperty ("__sx_Value").getTag ());
-         }
-
-         if (dIt->getProperty (k).getType () != Type::Int) {
-            validationError ("type mismatch "
-                             + dIt->getProperty (k).getTypeName ()
-                             + " != int",
-                             chIt->getProperty ("__sx_Value").getTag (),
-                             dIt->getProperty (k).getTag ());
-         }
-
-         nameToIdx (k) = chIt.getIdx ();
-
-         ssize_t val = dIt->getProperty (k).getInt ();
-
-         if (!chIt->getProperty ("__sx_Value").matchLimits (val)) {
-            ssize_t minVal = 0;
-            ssize_t maxVal = 0;
-            chIt->getProperty ("__sx_Value").getLimits (&minVal, &maxVal);
-            validationError (SxString("value of type 'int' is out of range (")
-                             + minVal + ", "
-                             + maxVal + ")",
-                             chIt->getProperty ("__sx_Value").getTag (),
-                             dIt->getProperty (k).getTag ());
-         }
-
-      } else if (type == Type::Double) {
-         SxString k = chIt->getProperty ("__sx_Key").getString ();
-
-         if (!dIt->hasProperty (k)) {
-            validationError ("key '"
-                             + k
-                             + "' of type 'float' not found in '"
-                             + dIt->getProperty ("__sx_Key").getString ()
-                             + "'",
-                             chIt->getProperty ("__sx_Value").getTag (),
-                             dIt->getProperty ("__sx_Value").getTag ());
-         }
-
-         if (dIt->getProperty (k).getType () != Type::Double) {
-            validationError ("type mismatch "
-                             + dIt->getProperty (k).getTypeName ()
-                             + " != float",
-                             chIt->getProperty ("__sx_Value").getTag (),
-                             dIt->getProperty (k).getTag ());
-         }
-
-         nameToIdx (k) = chIt.getIdx ();
-
-         double val = dIt->getProperty (k).getDouble ();
-
-         if (!chIt->getProperty ("__sx_Value").matchLimits (val)) {
-            double minVal = 0;
-            double maxVal = 0;
-            chIt->getProperty ("__sx_Value").getLimits (&minVal, &maxVal);
-            validationError (SxString("value of type 'float' is out of range (")
-                             + minVal + ", "
-                             + maxVal + ")",
-                             chIt->getProperty ("__sx_Value").getTag (),
-                             dIt->getProperty (k).getTag ());
-         }
-
-      } else if (type == Type::Bool) {
-         SxString k = chIt->getProperty ("__sx_Key").getString ();
-
-         if (!dIt->hasProperty (k)) {
-            validationError ("key '"
-                             + k
-                             + "' of type 'bool' not found in '"
-                             + dIt->getProperty ("__sx_Key").getString ()
-                             + "'",
-                             chIt->getProperty ("__sx_Value").getTag (),
-                             dIt->getProperty ("__sx_Value").getTag ());
-         }
-
-         if (dIt->getProperty (k).getType () != Type::Bool) {
-            validationError ("type mismatch "
-                             + dIt->getProperty (k).getTypeName ()
-                             + " != bool",
-                             chIt->getProperty ("__sx_Value").getTag (),
-                             dIt->getProperty (k).getTag ());
-         }
-
-         nameToIdx (k) = chIt.getIdx ();
-
-      } else if (type == Type::String) {
-         SxString k = chIt->getProperty ("__sx_Key").getString ();
-
-         if (!dIt->hasProperty (k)) {
-            validationError ("key '"
-                             + k
-                             + "' of type 'string' not found in '"
-                             + dIt->getProperty ("__sx_Key").getString ()
-                             + "'",
-                             chIt->getProperty ("__sx_Value").getTag (),
-                             dIt->getProperty ("__sx_Value").getTag ());
-         }
-
-         if (dIt->getProperty (k).getType () != Type::String) {
-            validationError ("type mismatch "
-                             + dIt->getProperty (k).getTypeName ()
-                             + " != string",
-                             chIt->getProperty ("__sx_Value").getTag (),
-                             dIt->getProperty (k).getTag ());
-         }
-
-         nameToIdx (k) = chIt.getIdx ();
-
-         SxString val = dIt->getProperty (k).getString ();
-
-         if (!chIt->getProperty ("__sx_Value").matchLimits (val)) {
-            ssize_t minLen = 0;
-            ssize_t maxLen = 0;
-            chIt->getProperty ("__sx_Value").getLimits (&minLen, &maxLen);
-            validationError (SxString("string length is out of range (")
-                             + minLen + ", "
-                             + maxLen + ")",
-                             chIt->getProperty ("__sx_Value").getTag (),
-                             dIt->getProperty (k).getTag ());
-         }
-
-      } else {
-         validationError ("type '" + SxVariant::getTypeStr(type)
-                          + "' not recognized",
-                          chIt->getProperty ("__sx_Value").getTag (),
-                          chIt->getProperty ("__sx_Value").getTag ());
       }
 
    }
 
-   auto groupIt  = foundGroups.getKeys ().begin ();
-   auto matchIt = foundGroups.getValues ().begin ();
-   for (; groupIt.isValid (); (++groupIt,++matchIt)) {
-      auto chIt = schemaG->begin (*groupIt);
-      const SxVariant &key = chIt->getProperty ("__sx_Key");
-      ssize_t nItemsFound = 0;
-      for (auto mIt = matchIt->begin (); mIt != matchIt->end (); ++mIt) {
-         auto dchIt = dataG->begin (*mIt);
-         if (   dchIt->getProperty ("__sx_Key") == key
-             && dchIt->getProperty ("__sx_Value").getType () == Type::Group) {
-            validateObj (chIt, dchIt);
-            nItemsFound++;
-         }
-      }
+   for (ssize_t i = 0; i < sIt.getSizeOut (); ++i)  {
+      auto chIt = sIt.out (i);
 
-      // check needed groups
-      SxString needStr = chIt->hasProperty ("needs")?
-                         chIt->getProperty ("needs").getString()
-                       : "";
-      if (needStr != "" && nItemsFound > 0) {
-         SxList<SxString> needList = needStr.tokenize (',');
+      if (chIt->getProperty (".type").getInt () != Type::Group)
+         continue;
 
-         bool isPresent = true;
-         for (auto nIt = needList.begin (); nIt != needList.end (); ++nIt) {
-            if (!nameToIdx.containsKey (*nIt)) {
-               isPresent = false;
-            }
-         }
+      const SxString &key = chIt->getProperty (".key").getString ();
+      SxString xorStr = getString (chIt, "xor", "");
 
-         if (!isPresent) {
-            validationError ("Presence of group '"
-                             + key.getString ()
-                             + "' requires also '" + needStr
-                             + "'",
-                             chIt->getProperty ("__sx_Value").getTag (),
-                             dIt->getProperty ("__sx_Value").getTag ());
-         }
-      }
-
-
-      // check not groups
-      SxString notStr = chIt->hasProperty ("not")?
-                        chIt->getProperty ("not").getString ()
-                      : "";
-
-      if (notStr != "" && nItemsFound > 0) {
-         SxList<SxString> notList = notStr.tokenize (',');
-
-         bool isPresent = false;
-         for (auto notIt = notList.begin (); notIt != notList.end (); ++notIt)
-         {
-            if (nameToIdx.containsKey (*notIt))
-               isPresent = true;
-         }
-
-         if (isPresent) {
-            validationError ("Presence of group '"
-                             + key.getString ()
-                             + "' excludes '" + notStr
-                             + "'",
-                             chIt->getProperty ("__sx_Value").getTag (),
-                             dIt->getProperty ("__sx_Value").getTag ());
-         }
-      }
-
-      SxString xorStr = chIt->hasProperty ("xor")?
-                        chIt->getProperty ("xor").getString ()
-                      : "";
-
-      if (xorStr != "") {
+      if (xorStr != "")  {
          SxList<SxString> xorList = xorStr.tokenize (',');
-
          bool xorFound = false;
          for (auto xorIt = xorList.begin (); xorIt != xorList.end (); ++xorIt)
          {
-            if (   nameToIdx.containsKey (*xorIt)
-                && *xorIt != key.getString ())
+            if (   isFound(nameToIdx (*xorIt)) == 1
+                && *xorIt != key)  {
                xorFound = true;
+            }
          }
 
-         if (nItemsFound == 0 && xorFound == false) {
-            validationError ("Missing one of these groups '"
+         if (xorFound == false && isFound (i) == 0)  {
+            validationError (  "Missing one of '"
                              + xorStr + "'",
-                             chIt->getProperty ("__sx_Value").getTag (),
-                             dIt->getProperty ("__sx_Value").getTag ());
+                             chIt->getProperty (".val").getTag (),
+                             dataIt->getProperty (".val").getTag ());
          }
-         if (nItemsFound > 0 && xorFound == true) {
-            validationError ("Only one of these groups '"
-                             + xorStr + "' are allowed",
-                             chIt->getProperty ("__sx_Value").getTag (),
-                             dIt->getProperty ("__sx_Value").getTag ());
+         // --- if curr key is found and one of xor's is also found
+         if (xorFound == true && isFound (i) == 1)  {
+            validationError (xorStr + "' are mutually excluded",
+                             chIt->getProperty (".val").getTag (),
+                             dataIt->getProperty (".val").getTag ());
          }
-      } else {
-         SxString opt = chIt->hasProperty ("optional")?
-                        chIt->getProperty ("optional").getString ()
-                      : "";
-
-         if (nItemsFound == 0 && (opt == "" || opt == "false")) {
-            validationError ("group item '"
-                             + key.getString ()
+      }  else  {
+         // --- if not optional
+         if (isFound (i) == 0)  {
+            // --- item not found
+            validationError (  "key '" + key
                              + "' not found in '"
-                             + dIt->getProperty ("__sx_Key").getString ()
-                             + "'",
-                             chIt->getProperty ("__sx_Value").getTag (),
-                             dIt->getProperty ("__sx_Value").getTag ());
+                             + dataIt->getProperty (".key").getString ()
+                             + "'", sIt->getProperty (".val").getTag (),
+                             dataIt->getProperty (".val").getTag ());
          }
-
-         ssize_t n = chIt->hasProperty ("nItems")?
-                     chIt->getProperty ("nItems").getInt ()
-                   : max<ssize_t>();
-         ssize_t maxItems = chIt->hasProperty ("maxItems")?
-                            chIt->getProperty ("maxItems").getInt ()
-                          : max<ssize_t>();
-         ssize_t minItems = chIt->hasProperty ("minItems")?
-                            chIt->getProperty ("minItems").getInt ()
-                          : min<ssize_t>();
-
-         if (n != max<ssize_t>()) {
-            if (nItemsFound > n) {
-               validationError ("too many groups with key '"
-                                + key.getString ()
-                                + "'",
-                                chIt->getProperty ("__sx_Value").getTag (),
-                                dIt->getProperty ("__sx_Value").getTag ());
-            }
-            if (nItemsFound < n) {
-               validationError ("too few groups with key '"
-                                + key.getString ()
-                                + "'",
-                                chIt->getProperty ("__sx_Value").getTag (),
-                                dIt->getProperty ("__sx_Value").getTag ());
-            }
-         }
-
-         if (nItemsFound > maxItems) {
-            validationError ("too many groups with key '"
-                             + key.getString ()
-                             + "'",
-                             chIt->getProperty ("__sx_Value").getTag (),
-                             dIt->getProperty ("__sx_Value").getTag ());
-         }
-
-         if (nItemsFound < minItems) {
-            validationError ("too few groups with key '"
-                             + key.getString ()
-                             + "'",
-                             chIt->getProperty ("__sx_Value").getTag (),
-                             dIt->getProperty ("__sx_Value").getTag ());
-         }
-      }
-
-   }
-
-   // any unexpected items
-   for (ssize_t m = 0; m < dIt.getSizeOut (); ++m) {
-      bool found = false;
-      SxString key = dIt.out (m)->getProperty ("__sx_Key").getString ();
-      for (ssize_t n = 0; n < sIt.getSizeOut (); ++n) {
-         SxString k = sIt.out (n)->getProperty ("__sx_Key").getString ();
-         if (key == k) {
-            found = true;
-            break;
-         }
-      }
-      if (!found) {
-         validationError ("unexpected key '"
-                          + key + "' in group '"
-                          + sIt->getProperty ("__sx_Key").getString ()
-                          + "'",
-                          sIt->getProperty ("__sx_Value").getTag (),
-                          dIt.out (m)->getProperty ("__sx_Value").getTag ());
-      }
-   }
-
-   auto elemsIt = dIt->getProperties ().getKeys ().begin ();
-   for (; elemsIt.isValid (); ++elemsIt) {
-      bool found = false;
-      const SxString &key = *elemsIt;
-      if (key.find ("__sx_") == 0) continue;
-      for (ssize_t n = 0; n < sIt.getSizeOut (); ++n) {
-         SxString k = sIt.out (n)->getProperty ("__sx_Key").getString ();
-         if (key == k) {
-            found = true;
-            break;
-         }
-      }
-      if (!found) {
-         validationError ("unexpected key '"
-                          + key + "' in group '"
-                          + sIt->getProperty ("__sx_Key").getString ()
-                          + "'",
-                          sIt->getProperty ("__sx_Value").getTag (),
-                          dIt->getProperty (key).getTag ());
       }
    }
 
@@ -623,13 +990,9 @@ bool SxSchema::validate (const SxPtr<SxGraph<SxGProps> > &dataG_)
    auto dIt = dataG->begin ();
    auto sIt = schemaG->begin ();
 
-   // skip dummy root
-   ++sIt; ++dIt;
-   Type t = (Type)sIt->getProperty ("type").getInt ();
-   if (t == Type::Group)
-      validateObj (sIt, dIt);
-   else
-      validateArray (sIt, dIt);
+   Type t = (Type)getInt (sIt, "type", Type::Undefined);
+   if (t == Type::Group)  validateObj (sIt, &dIt);
+   else                   validateArray (sIt, dIt);
 
    return true;
 }
@@ -645,155 +1008,112 @@ SxSchema::get (const SxGraph<SxGProps>::Iterator &it,
    for (ssize_t i = 0; i < it.getSizeOut (); ++i)
    {
       auto chIt = it.out (i);
-      if (chIt->hasProperty (key)) {
-         if (!val.isInitialized ())
+      if (chIt->hasProperty (key))  {
+         if (!val.isInitialized () || chIt->getProperty (key) == val)  {
             return chIt;
-         else if (chIt->getProperty (key) == val)
-            return chIt;
+         }
       }
    }
-   return schemaG->end ();
+   return SxGraph<SxGProps>::Iterator ();
 }
 
 void SxSchema::simplifyInt (SxGraph<SxGProps>::Iterator &sIt)
 {
-   Type t = (Type)SxVariant::getTypeId (sIt->getProperty ("type").getString ());
+   int64_t minVal = getInt (sIt, "min", min<int64_t>());
+   int64_t maxVal = getInt (sIt, "max", max<int64_t>());
 
-   sIt->setProperty ("type", (int)t);
-
-   SX_CHECK (t == Type::Int);
-
-   ssize_t minVal = min<ssize_t>();
-   ssize_t maxVal = max<ssize_t>();
-
-   if (sIt->hasProperty ("min")) {
-      minVal = sIt->getProperty ("min").getInt ();
-   }
-   if (sIt->hasProperty ("max")) {
-      maxVal = sIt->getProperty ("max").getInt ();
-   }
-
-   sIt->getProperty ("__sx_Value").setType (Type::Int);
-   sIt->getProperty ("__sx_Value").set (minVal);
-   sIt->getProperty ("__sx_Value").setLimits (minVal, maxVal);
-   SX_CHECK (sIt->getProperty ("__sx_Value").getType() == Type::Int);
+   sIt->getProperty (".val").setType (SxVariantType::Int);
+   sIt->getProperty (".val").set (minVal);
+   sIt->getProperty (".val").setLimits (minVal, maxVal);
+   SX_CHECK (sIt->getProperty (".val").getType() == SxVariantType::Int);
 }
 
 void SxSchema::simplifyDouble (SxGraph<SxGProps>::Iterator &sIt)
 {
-   Type t = (Type)SxVariant::getTypeId (sIt->getProperty ("type").getString ());
+   double minVal = getDouble (sIt, "min", min<double>());
+   double maxVal = getDouble (sIt, "max", max<double>());
 
-   sIt->setProperty ("type", (int)t);
-
-   SX_CHECK (t == Type::Double);
-
-   double minVal = min<double>();
-   double maxVal = max<double>();
-
-   if (sIt->hasProperty ("min")) {
-      minVal = sIt->getProperty ("min").getDouble ();
-   }
-   if (sIt->hasProperty ("max")) {
-      maxVal = sIt->getProperty ("max").getDouble ();
-   }
-
-   sIt->getProperty ("__sx_Value").setType (Type::Double);
-   sIt->getProperty ("__sx_Value").set (minVal);
-   sIt->getProperty ("__sx_Value").setLimits (minVal, maxVal);
-   SX_CHECK (sIt->getProperty ("__sx_Value").getType() == Type::Double);
+   sIt->getProperty (".val").setType (SxVariantType::Double);
+   sIt->getProperty (".val").set (minVal);
+   sIt->getProperty (".val").setLimits (minVal, maxVal);
+   SX_CHECK (sIt->getProperty (".val").getType() == SxVariantType::Double);
 }
 
 void SxSchema::simplifyString (SxGraph<SxGProps>::Iterator &sIt)
 {
-   Type t = (Type)SxVariant::getTypeId (sIt->getProperty ("type").getString ());
+   ssize_t minVal = (ssize_t)getInt (sIt, "min", min<ssize_t>());
+   ssize_t maxVal = (ssize_t)getInt (sIt, "max", max<ssize_t>());
 
-   sIt->setProperty ("type", (int)t);
+   sIt->getProperty (".val").setType (SxVariantType::String);
+   sIt->getProperty (".val").set (SxString (""));
+   sIt->getProperty (".val").setLimits (minVal, maxVal);
 
-   SX_CHECK (t == Type::String);
-
-   ssize_t minVal = min<ssize_t>();
-   ssize_t maxVal = max<ssize_t>();
-
-   if (sIt->hasProperty ("min")) {
-      minVal = sIt->getProperty ("min").getInt ();
+   SxString regex = getString (sIt, "regex", "");
+   if (regex != "")  {
+      try  {
+         sIt->getProperty (".val").setRegex (regex);
+      }  catch (SxException e)  {
+         auto regexIt = get (sIt, ".key", "regex");
+         validationError (e.toString (), "",
+                          regexIt->getProperty (".val").getTag ());
+      }
    }
-   if (sIt->hasProperty ("max")) {
-      maxVal = sIt->getProperty ("max").getInt ();
-   }
 
-   sIt->getProperty ("__sx_Value").setType (Type::String);
-   sIt->getProperty ("__sx_Value").set (SxString (""));
-   sIt->getProperty ("__sx_Value").setLimits (minVal, maxVal);
-   SX_CHECK (sIt->getProperty ("__sx_Value").getType() == Type::String);
+   SX_CHECK (sIt->getProperty (".val").getType() == SxVariantType::String);
 }
-
-void SxSchema::simplifyBool (SxGraph<SxGProps>::Iterator &sIt)
-{
-   Type t = (Type)SxVariant::getTypeId (sIt->getProperty ("type").getString ());
-   sIt->setProperty ("type", (int)t);
-
-   SX_CHECK (t == Type::Bool);
-}
-
 
 void SxSchema::simplifyArray (SxGraph<SxGProps>::Iterator &sIt)
 {
-   Type t = (Type)SxVariant::getTypeId (sIt->getProperty ("type").getString ());
+   auto itemsIt = get (sIt, ".key", "items");
+   SX_CHECK (itemsIt.isValid ());
 
-   sIt->setProperty ("type", (int)t);
+   auto typeIt = get (itemsIt, ".key", "type");
+   SxString typeStr = typeIt->getProperty (".val").toString ();
+   Type itemType = (Type)SxParserAst::getTypeId (typeStr);
+   typeIt->setProperty (".val", (int)itemType);
 
-   SX_CHECK (t == Type::List);
-
-   auto itemsTypeIt = get (sIt, "__sx_Key", "itemsType");
-   SX_CHECK (itemsTypeIt.isValid ());
-
-   Type itemType = (Type)SxVariant::getTypeId (itemsTypeIt->getProperty ("type").getString ());
-
-   if (itemType == Type::Group) {
-      simplifyObj (itemsTypeIt);
-   } else if (itemType == Type::List) {
-      itemsTypeIt->setProperty ("type", (int)itemType);
-      auto subArrayIt = get (sIt, "__sx_Key", "subarray");
-      simplifyArray (subArrayIt);
-   } else if (itemType == Type::Int) {
-      simplifyInt (itemsTypeIt);
-   } else if (itemType == Type::Double) {
-      simplifyDouble (itemsTypeIt);
-   } else if (itemType == Type::Bool) {
-      simplifyBool (itemsTypeIt);
-   } else if (itemType == Type::String) {
-      simplifyString (itemsTypeIt);
+   if (itemType == Type::Group)  {
+      simplifyObj (itemsIt);
+   }  else if (itemType == Type::List)  {
+      simplifyArray (itemsIt);
+   }  else if (itemType == Type::Int)  {
+      simplifyInt (itemsIt);
+   }  else if (itemType == Type::Double)  {
+      simplifyDouble (itemsIt);
+   }  else if (itemType == Type::String)  {
+      simplifyString (itemsIt);
    }
 
 }
 
 void SxSchema::simplifyObj (SxGraph<SxGProps>::Iterator &sIt)
 {
-   Type t = (Type)SxVariant::getTypeId (sIt->getProperty ("type").getString ());
-
-   sIt->setProperty ("type", (int)t);
-
-   SX_CHECK (t == Type::Group);
-
-   for (ssize_t i = 0; i < sIt.getSizeOut (); ++i) {
+   for (ssize_t i = 0; i < sIt.getSizeOut (); ++i)  {
       auto chIt = sIt.out (i);
-      Type elemType = (Type)SxVariant::getTypeId (chIt->getProperty ("type").getString ());
 
-      if (elemType == Type::Group) {
-         simplifyObj (chIt);
-      } else if (elemType == Type::List) {
-         simplifyArray (chIt);
-      } else if (elemType == Type::Int) {
-         simplifyInt (chIt);
-      } else if (elemType == Type::Double) {
-         simplifyDouble (chIt);
-      } else if (elemType == Type::Bool) {
-         simplifyBool (chIt);
-      } else if (elemType == Type::String) {
-         simplifyString (chIt);
+      if (chIt->getProperty (".type").getInt () == Type::Group)  {
+
+         auto typeIt = get (chIt, ".key", "type");
+
+         SxString typeStr = typeIt->getProperty (".val").toString ();
+
+         Type elemType = (Type)SxParserAst::getTypeId (typeStr);
+         typeIt->setProperty (".val", (int)elemType);
+
+         if (elemType == Type::Group)  {
+            simplifyObj (chIt);
+         }  else if (elemType == Type::Int)  {
+            simplifyInt (chIt);
+         }  else if (elemType == Type::Double)  {
+            simplifyDouble (chIt);
+         }  else if (elemType == Type::String)  {
+            simplifyString (chIt);
+         }  else if (elemType == Type::List)  {
+            simplifyArray (chIt);
+         }
       }
-   }
 
+   }
 }
 
 void SxSchema::simplifySchemaAst ()
@@ -801,12 +1121,16 @@ void SxSchema::simplifySchemaAst ()
    SX_CHECK (schemaG.getPtr ());
 
    auto sIt = schemaG->begin ();
-   // skip dummy root
-   ++sIt;
-   Type t = (Type)SxVariant::getTypeId (sIt->getProperty ("type").getString ());
-   if (t == Type::Group)
-      simplifyObj (sIt);
-   else
-      simplifyArray (sIt);
+
+   topLevelDefs = getBool (sIt, "topLevelDefs", false);
+
+   allowUndeclared = getBool (sIt, "allowUndeclared", false);
+
+   auto typeIt = get (sIt, ".key", "type");
+
+   Type t = (Type)SxParserAst::getTypeId (typeIt->getProperty (".val").toString ());
+   typeIt->setProperty (".val", (int)t);
+
+   if (t == Type::Group)  simplifyObj (sIt);
 }
 

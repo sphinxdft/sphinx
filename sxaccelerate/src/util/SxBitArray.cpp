@@ -35,14 +35,14 @@ SxBitArray::SxBitArray (const SxBitArray & rhs) :
    // empty
 }
 
-SxBitArray::SxBitArray (SxBitArray &&rhs) : 
-   bytes (std::move(rhs.bytes)), nBits (rhs.nBits) 
+SxBitArray::SxBitArray (SxBitArray &&rhs) noexcept : 
+   bytes (std::move(rhs.bytes)), nBits (rhs.nBits)
 {
    // empty
 }
 
 // -- Creates a bit array from int array
-SxBitArray::SxBitArray (const SxArray<int> &in_)
+SxBitArray::SxBitArray (const SxArray<int> &in_) : nBits(0)
 {
    SX_CHECK (in_.getSize() >= 0, in_.getSize());
 
@@ -151,7 +151,7 @@ SxBitArray & SxBitArray::operator= (int rhs)
    return *this;
 }
 
-SxBitArray & SxBitArray::operator= (const SxBitArray &rhs)
+SxBitArray & SxBitArray::operator= (const SxBitArray &rhs) noexcept
 {
    // Performing a selftest
    if (&rhs == this)  {
@@ -165,7 +165,7 @@ SxBitArray & SxBitArray::operator= (const SxBitArray &rhs)
    return *this;
 }
 
-SxBitArray &SxBitArray::operator= (SxBitArray &&rhs)
+SxBitArray &SxBitArray::operator= (SxBitArray &&rhs) noexcept
 {
    // Performing a selftest
    if (&rhs == this)  { 

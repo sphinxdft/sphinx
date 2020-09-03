@@ -18,6 +18,7 @@
 #include <SxConfig.h>
 #include <SxMacroLib.h>
 #include <atomic>
+#include <random>
 
 #ifdef WIN32
 #  if defined(_EXPORT_sxutil)
@@ -49,9 +50,11 @@ class SX_EXPORT_UTIL SxUtil
       SxUtil ();
      ~SxUtil ();
 
-     static SxUtil &getGlobalObj ();
+      static SxUtil &getGlobalObj ();
 
-     int nProcs;
+      int nProcs;
+      // for SxUUIDv4
+      std::mt19937 mtEngine;
 
 #    ifdef USE_SX_LOG
 #       ifdef WIN32

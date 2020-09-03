@@ -28,7 +28,7 @@ namespace Timer {
       initialization,
       tbElMinim,
       diagonalization,
-      forces,
+      Forces,
       mullikenRho,
       gammaMatrix,
       ewald,
@@ -43,7 +43,7 @@ SX_REGISTER_TIMERS (Timer::tbHamSolverTimer)
    regTimer (initialization, "Initialization");
    regTimer (tbElMinim,      "Electronic Loop");
    regTimer (diagonalization,"Diagonalization");
-   regTimer (forces,         "Forces");
+   regTimer (Forces,         "Forces");
    regTimer (mullikenRho,    "Mulliken Charges");
    regTimer (gammaMatrix,    "Gamma Matrix");
    regTimer (ewald,          "Ewald Summation");

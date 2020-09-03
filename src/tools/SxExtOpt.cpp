@@ -220,19 +220,21 @@ void SxExtPot::readStructureExtern (SxAtomicStructure *structPtr)
    SxArray<int> iSpecies (nAtoms);
    SxArray<Coord> coords (nAtoms);
    {
-      char symbol[3];
-      symbol[2] = 0;
+      char symbol[81];
+      symbol[80] = 0;
       for (int ia = 0; ia < nAtoms; ++ia)  {
          Coord &pos = coords(ia);
-         if (fscanf (response, " %lf %lf %lf %2s",
+         if (fscanf (response, " %lf %lf %lf %80s",
                      &pos(0), &pos(1), &pos(2), symbol) != 4)
          {
             cout << "Failed to atom no. " << (ia+1) << endl;
             responseError ();
          }
 
-         symbol[0] = char(symbol[0] & 0xdf); // capital letter
-         if (symbol[1] > 0) symbol[1] |= 0x20; // small letter
+         if (symbol[2] == 0 || symbol[1] == 0)  {
+            symbol[0] = char(symbol[0] & 0xdf); // capital letter
+            if (symbol[1] > 0) symbol[1] |= 0x20; // small letter
+         }
          SxString chem(symbol);
          elementSymbols << chem;
          iSpecies(ia) = (int)elementSymbols.findPos (chem);
@@ -240,6 +242,13 @@ void SxExtPot::readStructureExtern (SxAtomicStructure *structPtr)
          while (fgetc(response) != '\n' && !feof(response)) ;
       }
    }
+
+   // --- set speciesData
+   int nSpecies = (int)elementSymbols.getSize ();
+   speciesData.chemName = elementSymbols;
+   speciesData.elementName = elementSymbols;
+   speciesData.valenceCharge.resize (nSpecies);
+   speciesData.valenceCharge.set (-1);
 
    map.resize (nAtoms);
    if (structure.getNAtoms () > 0)  {
@@ -286,11 +295,7 @@ void SxExtPot::readStructureExtern (SxAtomicStructure *structPtr)
       }
    } else {
       structure.cell = cell;
-      int nSpecies = (int)elementSymbols.getSize ();
       structure.resize (nAtoms);
-      // --- set speciesData
-      speciesData.chemName = elementSymbols;
-      speciesData.elementName = elementSymbols;
       // --- set up atom info
       SxPtr<SxAtomInfo> atomInfo = SxPtr<SxAtomInfo>::create (nSpecies);
       atomInfo->nAtoms.set (0);
@@ -350,8 +355,9 @@ int main (int argc, char **argv)
 
    SxExtPot extPot(controlFile, responseFile);
    extPot.readStructureExtern (&structure);
+   structure.print (extPot.speciesData);
 
-   extPot.start ();
+   //extPot.start ();
 
    {
       SxStructOpt structOpt(&extPot, structure);
